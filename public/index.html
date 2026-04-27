@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ezhome · Спецификации</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--brand:#7B2237;--brand-dark:#621a2c;--accent:#778D7F;--stone:#C8C1BE;--ink:#000;--ink3:#8e8e93;--line:#ddd5d0;--bg:#fdfcfb;--bg2:#f5f1ef}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--ink);font-weight:300;font-size:14px;min-height:100vh}
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--brand)}
+.auth-card{background:#fff;border-radius:8px;padding:40px 44px;width:min(420px,90vw)}
+.auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.auth-logo img{width:44px;height:44px;border-radius:7px}
+.auth-logo-text h1{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;color:var(--brand)}
+.auth-logo-text p{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
+.auth-tabs{display:flex;margin-bottom:24px;border-bottom:1px solid var(--line)}
+.auth-tab{padding:8px 0;margin-right:20px;font-size:13px;cursor:pointer;color:var(--ink3);border-bottom:2px solid transparent;margin-bottom:-1px}
+.auth-tab.active{color:var(--brand);border-bottom-color:var(--brand);font-weight:500}
+.fg2{margin-bottom:14px}
+.fg2 label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ink3);margin-bottom:5px}
+.fg2 input{width:100%;border:1px solid var(--line);border-radius:3px;padding:9px 12px;font-family:'Jost',sans-serif;font-size:13px;color:var(--ink);outline:none;background:var(--bg)}
+.fg2 input:focus{border-color:var(--brand)}
+.btn-auth{width:100%;background:var(--brand);color:#fff;border:none;border-radius:3px;padding:11px;font-family:'Jost',sans-serif;font-size:13px;cursor:pointer;margin-top:6px}
+.btn-auth:hover{background:var(--brand-dark)}
+.auth-err{color:#c0392b;font-size:12px;margin-top:8px;text-align:center;min-height:18px}
+.app{display:none}
+.topbar{background:var(--brand);padding:0 32px;height:52px;display:flex;align-items:center;justify-content:space-between}
+.topbar-brand{display:flex;align-items:center;gap:12px}
+.topbar-brand img{width:32px;height:32px;border-radius:5px}
+.topbar-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;color:#fff}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.btn-new{background:#fff;color:var(--brand);border:none;border-radius:3px;padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer}
+.user-pill{display:flex;align-items:center;gap:8px;cursor:pointer;position:relative}
+.avatar{width:30px;height:30px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:500}
+.user-name{font-size:12px;color:rgba(255,255,255,0.8)}
+.user-menu{display:none;position:absolute;right:0;top:42px;background:#fff;border:1px solid var(--line);border-radius:4px;padding:4px 0;min-width:160px;z-index:100}
+.user-menu.show{display:block}
+.user-menu a{display:block;padding:8px 14px;font-size:13px;color:var(--ink);cursor:pointer}
+.user-menu a:hover{background:var(--bg2)}
+.layout{display:flex;height:calc(100vh - 52px)}
+.sidebar{width:200px;background:var(--brand-dark);padding:16px 0;flex-shrink:0}
+.sb-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(200,193,190,0.4);padding:0 20px;margin-bottom:6px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 20px;font-size:12px;color:rgba(255,255,255,0.55);cursor:pointer;margin:1px 8px;border-radius:3px}
+.sb-item:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.8)}
+.sb-item.active{background:rgba(255,255,255,0.12);color:#fff}
+.sb-count{margin-left:auto;background:rgba(255,255,255,0.15);border-radius:10px;padding:1px 6px;font-size:10px}
+.content{flex:1;overflow-y:auto;background:var(--bg2)}
+.content-hdr{background:#fff;border-bottom:1px solid var(--line);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.content-title{font-size:15px;font-weight:500}
+.search-wrap{display:flex;align-items:center;gap:8px;background:var(--bg2);border:0.5px solid var(--line);border-radius:3px;padding:6px 12px;width:200px}
+.search-wrap input{background:none;border:none;outline:none;font-family:'Jost',sans-serif;font-size:12px;color:var(--ink);width:100%}
+.pgrid{padding:20px 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.pcard{background:#fff;border:0.5px solid var(--line);border-radius:4px;overflow:hidden;cursor:pointer;transition:border-color .15s}
+.pcard:hover{border-color:var(--brand)}
+.pcard-thumb{height:68px;background:var(--bg2);display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px solid var(--line)}
+.pcard-thumb-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--stone)}
+.badge{position:absolute;top:7px;right:7px;font-size:9px;padding:2px 7px;border-radius:3px;font-weight:500}
+.badge-active{background:var(--accent);color:#fff}
+.badge-draft{background:var(--stone);color:var(--brand)}
+.pcard-info{padding:11px 14px}
+.pcard-name{font-size:13px;font-weight:500;margin-bottom:2px}
+.pcard-client{font-size:11px;color:var(--ink3);margin-bottom:3px}
+.pcard-meta{font-size:11px;color:var(--stone)}
+.pcard-foot{padding:8px 14px;border-top:1px solid var(--bg2);display:flex;align-items:center;justify-content:space-between}
+.pcard-sum{font-size:12px;font-weight:500;color:var(--brand);font-variant-numeric:tabular-nums}
+.pcard-acts{display:flex;gap:5px}
+.pbtn{background:none;border:0.5px solid var(--line);border-radius:3px;padding:4px 10px;font-size:10px;color:var(--ink3);cursor:pointer;font-family:'Jost',sans-serif}
+.pbtn:hover{border-color:var(--brand);color:var(--brand)}
+.pbtn-primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+.pbtn-primary:hover{background:var(--brand-dark)}
+.new-pcard{border:0.5px dashed var(--stone);background:var(--bg);display:flex;align-items:center;justify-content:center;min-height:170px;cursor:pointer;border-radius:4px}
+.new-pcard:hover{border-color:var(--brand)}
+.new-pcard-inner{text-align:center}
+.new-pcard-plus{width:32px;height:32px;border:1.5px dashed var(--stone);border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--stone);line-height:1}
+.new-pcard span{font-size:12px;color:var(--stone)}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:6px;overflow:hidden}
+.mhead{background:var(--brand);padding:18px 24px}
+.mhead h3{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:500;color:#fff}
+.mbody{padding:22px 24px}
+.mrow{margin-bottom:14px}
+.mrow label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ink3);margin-bottom:5px}
+.mrow input,.mrow select{width:100%;border:1px solid var(--line);border-radius:3px;padding:8px 11px;font-family:'Jost',sans-serif;font-size:13px;color:var(--ink);outline:none;background:var(--bg)}
+.mrow input:focus,.mrow select:focus{border-color:var(--brand)}
+.m2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.macts{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.btn-cancel{background:none;border:1px solid var(--line);border-radius:3px;padding:8px 18px;font-family:'Jost',sans-serif;font-size:12px;cursor:pointer;color:var(--ink3)}
+.btn-cancel:hover{border-color:var(--brand);color:var(--brand)}
+.btn-save{background:var(--brand);color:#fff;border:none;border-radius:3px;padding:8px 20px;font-family:'Jost',sans-serif;font-size:12px;cursor:pointer}
+.btn-save:hover{background:var(--brand-dark)}
+.editor-page{display:none;flex-direction:column;height:calc(100vh - 52px);background:var(--bg)}
+.editor-topbar{background:#fff;border-bottom:1px solid var(--line);padding:10px 24px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.editor-back{background:none;border:0.5px solid var(--line);border-radius:3px;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--ink3);font-family:'Jost',sans-serif}
+.editor-back:hover{border-color:var(--brand);color:var(--brand)}
+.editor-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;flex:1}
+.editor-acts{display:flex;gap:8px}
+.btn-link{background:var(--accent);color:#fff;border:none;border-radius:3px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'Jost',sans-serif}
+.btn-link:hover{background:#5f7268}
+.btn-print{background:var(--ink);color:#fff;border:none;border-radius:3px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'Jost',sans-serif}
+.editor-body{flex:1;overflow-y:auto;padding:20px 24px}
+.add-form{background:#fff;border:1px solid var(--line);border-radius:4px;margin-bottom:20px}
+.add-form-head{padding:10px 16px;border-bottom:1px solid var(--line);font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--ink3);display:flex;align-items:center;justify-content:space-between}
+.tip-lnk{font-size:11px;color:var(--accent);cursor:pointer;text-transform:none;letter-spacing:0;text-decoration:underline;text-underline-offset:2px}
+.add-form-row{display:flex;gap:10px;padding:14px 16px;flex-wrap:wrap;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ink3)}
+.fg select,.fg input{border:1px solid var(--line);border-radius:3px;padding:7px 10px;font-family:'Jost',sans-serif;font-size:13px;color:var(--ink);background:var(--bg);outline:none}
+.fg select:focus,.fg input:focus{border-color:var(--brand)}
+.btn-add{background:var(--brand);color:#fff;border:none;border-radius:3px;padding:8px 18px;font-size:12px;cursor:pointer;font-family:'Jost',sans-serif;margin-top:21px}
+.btn-add:hover{background:var(--brand-dark)}
+.spec-wrap{background:#fff;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+thead th{background:var(--brand);color:rgba(255,255,255,.75);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:400;padding:9px 11px;text-align:left}
+tbody td{padding:10px 11px;border-bottom:1px solid var(--bg2);font-size:13px;vertical-align:middle;overflow:hidden}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--bg2)}
+.rhdr td{background:var(--brand-dark);color:rgba(255,255,255,.65);font-size:9px;text-transform:uppercase;letter-spacing:2px;font-weight:500;padding:5px 11px}
+.rsub td{background:var(--bg2);font-size:11px;color:var(--ink3);padding:6px 11px;text-align:right;border-bottom:2px solid var(--brand)}
+.rsub .sub-amt{font-weight:500;color:var(--brand);font-size:13px}
+.item-img{width:50px;height:42px;object-fit:contain;border-radius:3px;background:var(--bg2);display:block}
+.img-ph{width:50px;height:42px;background:var(--bg2);border-radius:3px;display:flex;align-items:center;justify-content:center;color:var(--line);font-size:18px}
+.item-name{font-weight:400;font-size:13px}
+.item-link{font-size:11px;color:var(--accent);text-decoration:none;display:block;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item-link:hover{text-decoration:underline}
+.r{text-align:right;font-variant-numeric:tabular-nums}.c{text-align:center}
+.muted{color:var(--ink3);font-size:12px}
+.sum-cell{text-align:right;font-weight:500;font-variant-numeric:tabular-nums}
+.act-cell{display:flex;gap:3px;justify-content:center}
+.icon-btn{background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:3px;font-size:13px;color:var(--stone)}
+.icon-btn:hover{background:var(--bg2);color:var(--ink)}
+.icon-btn.del:hover{color:var(--brand);background:#fdeaec}
+.grand-bar{display:flex;align-items:center;justify-content:space-between;background:var(--brand);padding:14px 16px}
+.grand-bar .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.5)}
+.grand-bar .val{font-size:20px;font-weight:400;color:#fff;font-variant-numeric:tabular-nums;font-family:'Cormorant Garamond',serif}
+.empty-state{text-align:center;padding:48px 20px;color:var(--ink3)}
+.empty-state p:first-child{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--brand);opacity:.6;margin-bottom:5px;font-weight:500}
+.tip-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;align-items:center;justify-content:center}
+.tip-bg.show{display:flex}
+.tip-box{background:#fff;border-radius:6px;width:min(460px,94vw);overflow:hidden}
+.tip-head{background:var(--accent);padding:16px 22px}
+.tip-head h3{font-family:'Cormorant Garamond',serif;font-size:19px;color:#fff;font-weight:500}
+.tip-body{padding:18px 22px}
+.tip-body p{font-size:13px;color:#333;line-height:1.75;margin-bottom:8px}
+.tip-body code{background:var(--bg2);padding:2px 6px;border-radius:3px;font-size:12px;color:var(--brand);font-family:monospace}
+.tip-close{display:block;text-align:center;margin-top:14px;font-size:12px;color:var(--ink3);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.toast{position:fixed;bottom:24px;right:24px;background:#222;color:#fff;padding:10px 18px;border-radius:4px;font-size:13px;z-index:500;display:none;align-items:center;max-width:320px}
+.toast.show{display:flex}
+.toast.success{background:#3B6D11}.toast.error{background:#A32D2D}
+@media print{
+  .topbar,.sidebar,.editor-topbar,.add-form,.act-cell,.btn-link,.btn-print{display:none!important}
+  .editor-page{height:auto}
+  .editor-body{padding:0;overflow:visible}
+  .spec-wrap{border:none}
+  thead th{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:var(--brand)!important}
+  .rhdr td{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:var(--brand-dark)!important}
+  .grand-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:var(--brand)!important}
+  @page{margin:10mm 14mm;size:A4 landscape}
+}
+</style>
+</head>
+<body>
+
+<div class="auth-wrap" id="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <img src="data:image/png;base64,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" alt="ezhome">
+      <div class="auth-logo-text"><h1>ezhome.design</h1><p>Спецификации интерьера</p></div>
+    </div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="switchTab('login')">Войти</div>
+      <div class="auth-tab" onclick="switchTab('register')">Регистрация</div>
+    </div>
+    <div id="login-form">
+      <div class="fg2"><label>Email</label><input type="email" id="l-email" placeholder="email@studio.ru"></div>
+      <div class="fg2"><label>Пароль</label><input type="password" id="l-pass" placeholder="••••••••"></div>
+      <button class="btn-auth" onclick="doLogin()">Войти</button>
+      <div class="auth-err" id="auth-err"></div>
+    </div>
+    <div id="register-form" style="display:none">
+      <div class="fg2"><label>Ваше имя</label><input type="text" id="r-name" placeholder="Анна Иванова"></div>
+      <div class="fg2"><label>Email</label><input type="email" id="r-email" placeholder="email@studio.ru"></div>
+      <div class="fg2"><label>Пароль</label><input type="password" id="r-pass" placeholder="Минимум 6 символов"></div>
+      <button class="btn-auth" onclick="doRegister()">Создать аккаунт</button>
+      <div class="auth-err" id="reg-err"></div>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <img src="data:image/png;base64,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" alt="ezhome">
+      <span class="topbar-name">ezhome.design</span>
+    </div>
+    <div class="topbar-right">
+      <button class="btn-new" onclick="openNewProject()">+ Новый проект</button>
+      <div class="user-pill" onclick="toggleUserMenu()">
+        <div class="avatar" id="user-avatar">АК</div>
+        <span class="user-name" id="user-name-top">...</span>
+        <div class="user-menu" id="user-menu">
+          <a onclick="openSettings()">Настройки</a>
+          <a onclick="doLogout()">Выйти</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout" id="dashboard">
+    <div class="sidebar">
+      <div style="padding:12px 0 8px">
+        <div class="sb-label">Проекты</div>
+        <div class="sb-item active" onclick="filterProjects('all')">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" rx="1" fill="currentColor"/><rect x="8" y="1" width="5" height="5" rx="1" fill="currentColor"/><rect x="1" y="8" width="5" height="5" rx="1" fill="currentColor"/><rect x="8" y="8" width="5" height="5" rx="1" fill="currentColor"/></svg>
+          Все проекты <span class="sb-count" id="cnt-all">0</span>
+        </div>
+        <div class="sb-item" onclick="filterProjects('active')">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M7 4v3l2 1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          В работе <span class="sb-count" id="cnt-active">0</span>
+        </div>
+        <div class="sb-item" onclick="filterProjects('done')">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3 3 7-6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Завершены <span class="sb-count" id="cnt-done">0</span>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="content-hdr">
+        <span class="content-title" id="dash-title">Все проекты</span>
+        <div class="search-wrap">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="3.5" stroke="#aaa" stroke-width="1.2"/><path d="M8 8l2 2" stroke="#aaa" stroke-width="1.2" stroke-linecap="round"/></svg>
+          <input id="search-input" placeholder="Поиск..." oninput="renderProjects()">
+        </div>
+      </div>
+      <div class="pgrid" id="pgrid"></div>
+    </div>
+  </div>
+
+  <div class="editor-page" id="editor-page">
+    <div class="editor-topbar">
+      <button class="editor-back" onclick="backToDash()">← Проекты</button>
+      <div class="editor-title" id="editor-title">Проект</div>
+      <div class="editor-acts">
+        <button class="btn-link" onclick="copyLink()">🔗 Ссылка клиенту</button>
+        <button class="btn-print" onclick="window.print()">↓ PDF</button>
+      </div>
+    </div>
+    <div class="editor-body">
+      <div class="add-form">
+        <div class="add-form-head">
+          <span>Добавить позицию</span>
+          <span class="tip-lnk" onclick="showTip()">Как добавить фото?</span>
+        </div>
+        <div class="add-form-row">
+          <div class="fg"><label>Комната</label>
+            <select id="f-room" style="width:120px">
+              <option>Гостиная</option><option>Спальня</option><option>Прихожая</option>
+              <option>Кухня</option><option>Детская</option><option>Ванная</option>
+              <option>Кабинет</option><option>Свет</option>
+            </select>
+          </div>
+          <div class="fg"><label>Наименование *</label><input id="f-name" style="width:200px" placeholder="Диван Stone"></div>
+          <div class="fg"><label>Ссылка на товар</label><input id="f-url" style="width:185px" placeholder="https://divan.ru/..."></div>
+          <div class="fg"><label>Фото (прямая ссылка)</label><input id="f-img" style="width:185px" placeholder="https://.../photo.jpg"></div>
+          <div class="fg"><label>Размер</label><input id="f-size" style="width:76px" placeholder="140×80"></div>
+          <div class="fg"><label>Цена, ₽</label><input id="f-price" type="number" style="width:88px" min="0"></div>
+          <div class="fg"><label>Кол-во</label><input id="f-qty" type="number" style="width:50px" value="1" min="1"></div>
+          <div class="fg"><label>Комментарий</label><input id="f-cmt" style="width:136px" placeholder="подбор цвета"></div>
+          <button class="btn-add" onclick="addItem()">+ Добавить</button>
+        </div>
+      </div>
+      <div class="spec-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:62px">Фото</th><th>Наименование</th>
+            <th style="width:84px">Размер</th><th style="width:44px" class="c">Кол</th>
+            <th style="width:100px" class="r">Цена/шт</th><th style="width:108px" class="r">Сумма</th>
+            <th style="width:140px">Комментарий</th><th style="width:56px"></th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="grand-bar" id="grand-bar" style="display:none">
+          <div class="lbl">Итого по всем позициям</div>
+          <div class="val" id="grand-val"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="new-project-modal">
+  <div class="modal" style="width:min(420px,94vw)">
+    <div class="mhead"><h3 id="np-title">Новый проект</h3></div>
+    <div class="mbody">
+      <div class="mrow"><label>Название *</label><input id="np-name" placeholder="Квартира на Садовой"></div>
+      <div class="mrow"><label>Клиент</label><input id="np-client" placeholder="Семья Ивановых"></div>
+      <div class="mrow"><label>Статус</label>
+        <select id="np-status"><option value="active">В работе</option><option value="done">Завершён</option><option value="draft">Черновик</option></select>
+      </div>
+      <div class="macts">
+        <button class="btn-cancel" onclick="closeModal('new-project-modal')">Отмена</button>
+        <button class="btn-save" id="np-save-btn" onclick="saveProject()">Создать</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="edit-item-modal">
+  <div class="modal" style="width:min(640px,95vw)">
+    <div class="mhead"><h3>Редактировать позицию</h3></div>
+    <div class="mbody">
+      <div class="m2col">
+        <div class="mrow"><label>Комната</label>
+          <select id="e-room"><option>Гостиная</option><option>Спальня</option><option>Прихожая</option><option>Кухня</option><option>Детская</option><option>Ванная</option><option>Кабинет</option><option>Свет</option></select>
+        </div>
+        <div class="mrow"><label>Размер</label><input id="e-size"></div>
+      </div>
+      <div class="mrow"><label>Наименование *</label><input id="e-name"></div>
+      <div class="mrow"><label>Ссылка на товар</label><input id="e-url"></div>
+      <div class="mrow"><label>Фото (прямая ссылка)</label><input id="e-img"></div>
+      <div class="m2col">
+        <div class="mrow"><label>Цена, ₽</label><input id="e-price" type="number" min="0"></div>
+        <div class="mrow"><label>Кол-во</label><input id="e-qty" type="number" min="1"></div>
+      </div>
+      <div class="mrow"><label>Комментарий</label><input id="e-cmt"></div>
+      <div class="macts">
+        <button class="btn-cancel" onclick="closeModal('edit-item-modal')">Отмена</button>
+        <button class="btn-save" onclick="saveItem()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="settings-modal">
+  <div class="modal" style="width:min(400px,94vw)">
+    <div class="mhead"><h3>Настройки профиля</h3></div>
+    <div class="mbody">
+      <div class="mrow"><label>Имя</label><input id="s-name"></div>
+      <div class="mrow"><label>Телефон</label><input id="s-phone" placeholder="+7 (999) 000-00-00"></div>
+      <div class="mrow"><label>Сайт</label><input id="s-site" placeholder="ezhome.design"></div>
+      <div class="macts">
+        <button class="btn-cancel" onclick="closeModal('settings-modal')">Отмена</button>
+        <button class="btn-save" onclick="saveSettings()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tip-bg" id="tip-bg">
+  <div class="tip-box">
+    <div class="tip-head"><h3>Как добавить фото</h3></div>
+    <div class="tip-body">
+      <p>Сайты магазинов блокируют прямую загрузку. Нужна <strong>прямая ссылка на файл</strong>:</p>
+      <p><strong>1.</strong> Откройте страницу товара в браузере.</p>
+      <p><strong>2.</strong> Нажмите <strong>правой кнопкой</strong> на фото.</p>
+      <p><strong>3.</strong> Выберите <code>Копировать адрес изображения</code>.</p>
+      <p><strong>4.</strong> Вставьте в поле <strong>«Фото (прямая ссылка)»</strong>.</p>
+      <p>Прямая ссылка оканчивается на <code>.jpg</code>, <code>.png</code> или <code>.webp</code>.</p>
+      <span class="tip-close" onclick="closeTip()">Понятно</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ROOM_ORDER=["Гостиная","Кухня","Спальня","Прихожая","Детская","Ванная","Кабинет","Свет"];
+let currentUser=null,projects=[],currentProject=null,currentItems=[],editingItemId=null,editingProjectId=null,filterMode='all';
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmt=n=>Number(n).toLocaleString('ru-RU')+'\u202f₽';
+const shortUrl=u=>{try{return new URL(u).hostname.replace('www.','')}catch(e){return u.slice(0,24)}};
+const vv=id=>document.getElementById(id).value.trim();
+
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show '+(type||'');
+  setTimeout(()=>t.className='toast',2800);
+}
+async function api(url,opts={}){
+  const r=await fetch(url,{headers:{'Content-Type':'application/json'},...opts,body:opts.body?JSON.stringify(opts.body):undefined});
+  return r.json();
+}
+function switchTab(tab){
+  document.getElementById('login-form').style.display=tab==='login'?'block':'none';
+  document.getElementById('register-form').style.display=tab==='register'?'block':'none';
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',(tab==='login'&&i===0)||(tab==='register'&&i===1)));
+}
+async function doLogin(){
+  const r=await api('/api/login',{method:'POST',body:{email:vv('l-email'),password:vv('l-pass')}});
+  if(r.error)return document.getElementById('auth-err').textContent=r.error;
+  await initApp();
+}
+async function doRegister(){
+  const r=await api('/api/register',{method:'POST',body:{name:vv('r-name'),email:vv('r-email'),password:vv('r-pass')}});
+  if(r.error)return document.getElementById('reg-err').textContent=r.error;
+  await initApp();
+}
+async function doLogout(){await api('/api/logout',{method:'POST'});location.reload();}
+async function initApp(){
+  const me=await api('/api/me');
+  if(me.error){document.getElementById('auth-wrap').style.display='flex';return;}
+  currentUser=me;
+  document.getElementById('auth-wrap').style.display='none';
+  document.getElementById('app').style.display='block';
+  const ini=(me.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('user-avatar').textContent=ini;
+  document.getElementById('user-name-top').textContent=me.name||me.email;
+  await loadProjects();
+}
+async function loadProjects(){
+  projects=await api('/api/projects');
+  renderProjects();
+}
+function filterProjects(mode){
+  filterMode=mode;
+  document.querySelectorAll('.sb-item').forEach((el,i)=>el.classList.toggle('active',['all','active','done'][i]===mode));
+  document.getElementById('dash-title').textContent={all:'Все проекты',active:'В работе',done:'Завершены'}[mode]||'Проекты';
+  renderProjects();
+}
+function renderProjects(){
+  const q=vv('search-input').toLowerCase();
+  let list=projects.filter(p=>{
+    if(filterMode==='active'&&p.status!=='active')return false;
+    if(filterMode==='done'&&p.status!=='done')return false;
+    if(q&&!p.name.toLowerCase().includes(q)&&!(p.client||'').toLowerCase().includes(q))return false;
+    return true;
+  });
+  document.getElementById('cnt-all').textContent=projects.length;
+  document.getElementById('cnt-active').textContent=projects.filter(p=>p.status==='active').length;
+  document.getElementById('cnt-done').textContent=projects.filter(p=>p.status==='done').length;
+  const statMap={active:'badge-active',draft:'badge-draft'};
+  const statLbl={active:'Активен',done:'Завершён',draft:'Черновик'};
+  let html=list.map(p=>`<div class="pcard">
+    <div class="pcard-thumb">
+      <span class="pcard-thumb-lbl">${esc(p.client||'Проект')}</span>
+      ${p.status!=='done'?`<span class="badge ${statMap[p.status]||''}">${statLbl[p.status]||p.status}</span>`:''}
+    </div>
+    <div class="pcard-info">
+      <div class="pcard-name">${esc(p.name)}</div>
+      ${p.client?`<div class="pcard-client">${esc(p.client)}</div>`:''}
+      <div class="pcard-meta">${p.item_count} поз. · ${new Date(p.updated_at).toLocaleDateString('ru-RU')}</div>
+    </div>
+    <div class="pcard-foot">
+      <span class="pcard-sum">${p.total?fmt(p.total):'—'}</span>
+      <div class="pcard-acts">
+        <button class="pbtn" onclick="event.stopPropagation();duplicateProject('${p.id}')">Копия</button>
+        <button class="pbtn" onclick="event.stopPropagation();copyProjectLink('${p.slug}')">Ссылка</button>
+        <button class="pbtn pbtn-primary" onclick="openProject('${p.id}')">Открыть</button>
+      </div>
+    </div>
+  </div>`).join('');
+  html+=`<div class="new-pcard" onclick="openNewProject()"><div class="new-pcard-inner"><div class="new-pcard-plus">+</div><span>Новый проект</span></div></div>`;
+  document.getElementById('pgrid').innerHTML=html;
+}
+function openNewProject(editId){
+  editingProjectId=editId||null;
+  if(editId){
+    const p=projects.find(x=>x.id===editId);
+    document.getElementById('np-title').textContent='Редактировать';
+    document.getElementById('np-name').value=p.name;
+    document.getElementById('np-client').value=p.client||'';
+    document.getElementById('np-status').value=p.status;
+    document.getElementById('np-save-btn').textContent='Сохранить';
+  }else{
+    document.getElementById('np-title').textContent='Новый проект';
+    document.getElementById('np-name').value='';
+    document.getElementById('np-client').value='';
+    document.getElementById('np-status').value='active';
+    document.getElementById('np-save-btn').textContent='Создать';
+  }
+  document.getElementById('new-project-modal').classList.add('show');
+  setTimeout(()=>document.getElementById('np-name').focus(),50);
+}
+async function saveProject(){
+  const name=vv('np-name');if(!name)return;
+  const body={name,client:vv('np-client'),status:document.getElementById('np-status').value};
+  if(editingProjectId){
+    await api('/api/projects/'+editingProjectId,{method:'PUT',body});
+    toast('Проект обновлён','success');
+  }else{
+    const r=await api('/api/projects',{method:'POST',body});
+    if(r.error)return toast(r.error,'error');
+    toast('Проект создан','success');
+  }
+  closeModal('new-project-modal');
+  await loadProjects();
+}
+async function duplicateProject(id){
+  const r=await api('/api/projects/'+id+'/duplicate',{method:'POST'});
+  if(r.error)return toast(r.error,'error');
+  toast('Проект скопирован','success');
+  await loadProjects();
+}
+function copyProjectLink(slug){
+  const url=location.origin+'/p/'+slug;
+  navigator.clipboard.writeText(url).then(()=>toast('Ссылка скопирована','success'));
+}
+async function openProject(id){
+  currentProject=projects.find(p=>p.id===id);
+  if(!currentProject)return;
+  document.getElementById('editor-title').textContent=currentProject.client||currentProject.name;
+  currentItems=await api('/api/projects/'+id+'/items');
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('editor-page').style.display='flex';
+  renderItems();
+}
+function backToDash(){
+  document.getElementById('editor-page').style.display='none';
+  document.getElementById('dashboard').style.display='flex';
+  loadProjects();
+}
+async function addItem(){
+  const name=vv('f-name');if(!name){document.getElementById('f-name').focus();return;}
+  const r=await api('/api/projects/'+currentProject.id+'/items',{method:'POST',body:{
+    room:document.getElementById('f-room').value,name,
+    url:vv('f-url'),img:vv('f-img'),size:vv('f-size'),
+    price:parseFloat(vv('f-price'))||0,qty:parseInt(vv('f-qty'))||1,cmt:vv('f-cmt')
+  }});
+  if(r.error)return toast(r.error,'error');
+  ['f-name','f-url','f-img','f-size','f-price','f-cmt'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-qty').value=1;
+  currentItems=await api('/api/projects/'+currentProject.id+'/items');
+  renderItems();
+  document.getElementById('f-name').focus();
+}
+function openEditItem(id){
+  const it=currentItems.find(i=>i.id===id);if(!it)return;
+  editingItemId=id;
+  document.getElementById('e-room').value=it.room;
+  document.getElementById('e-name').value=it.name;
+  document.getElementById('e-url').value=it.url||'';
+  document.getElementById('e-img').value=it.img||'';
+  document.getElementById('e-size').value=it.size||'';
+  document.getElementById('e-price').value=it.price||'';
+  document.getElementById('e-qty').value=it.qty||1;
+  document.getElementById('e-cmt').value=it.cmt||'';
+  document.getElementById('edit-item-modal').classList.add('show');
+  setTimeout(()=>document.getElementById('e-name').focus(),50);
+}
+async function saveItem(){
+  const name=document.getElementById('e-name').value.trim();if(!name)return;
+  await api('/api/items/'+editingItemId,{method:'PUT',body:{
+    room:document.getElementById('e-room').value,name,
+    url:document.getElementById('e-url').value.trim(),
+    img:document.getElementById('e-img').value.trim(),
+    size:document.getElementById('e-size').value.trim(),
+    price:parseFloat(document.getElementById('e-price').value)||0,
+    qty:parseInt(document.getElementById('e-qty').value)||1,
+    cmt:document.getElementById('e-cmt').value.trim()
+  }});
+  closeModal('edit-item-modal');
+  currentItems=await api('/api/projects/'+currentProject.id+'/items');
+  renderItems();
+  toast('Позиция обновлена','success');
+}
+async function deleteItem(id){
+  if(!confirm('Удалить позицию?'))return;
+  await api('/api/items/'+id,{method:'DELETE'});
+  currentItems=currentItems.filter(i=>i.id!==id);
+  renderItems();
+}
+function renderItems(){
+  const tb=document.getElementById('tbody');
+  const gb=document.getElementById('grand-bar');
+  if(!currentItems.length){
+    tb.innerHTML='<tr><td colspan="8"><div class="empty-state"><p>Спецификация пуста</p><p>Заполните форму выше и нажмите «Добавить»</p></div></td></tr>';
+    gb.style.display='none';return;
+  }
+  const grp={};currentItems.forEach(i=>{(grp[i.room]=grp[i.room]||[]).push(i)});
+  const rooms=[...ROOM_ORDER,...Object.keys(grp).filter(r=>!ROOM_ORDER.includes(r))].filter(r=>grp[r]);
+  let html='';
+  rooms.forEach(room=>{
+    html+=`<tr class="rhdr"><td colspan="8">${esc(room)}</td></tr>`;
+    let rs=0;
+    grp[room].forEach(it=>{
+      const sum=it.price*it.qty;rs+=sum;
+      const imgPart=it.img
+        ?`<img class="item-img" src="${esc(it.img)}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div class="img-ph" style="display:none">◻</div>`
+        :`<div class="img-ph">◻</div>`;
+      html+=`<tr>
+        <td>${imgPart}</td>
+        <td><div class="item-name">${esc(it.name)}</div>${it.url?`<a class="item-link" href="${esc(it.url)}" target="_blank">${esc(shortUrl(it.url))}</a>`:''}</td>
+        <td class="muted">${esc(it.size||'—')}</td>
+        <td class="c">${it.qty}</td>
+        <td class="r">${it.price?fmt(it.price):'—'}</td>
+        <td class="sum-cell">${it.price?fmt(sum):'—'}</td>
+        <td class="muted">${esc(it.cmt||'')}</td>
+        <td><div class="act-cell">
+          <button class="icon-btn" onclick="openEditItem('${it.id}')" title="Редактировать">✎</button>
+          <button class="icon-btn del" onclick="deleteItem('${it.id}')" title="Удалить">×</button>
+        </div></td>
+      </tr>`;
+    });
+    html+=`<tr class="rsub"><td colspan="5" style="text-align:right;font-size:11px;color:var(--ink3)">Итого ${esc(room)}:</td><td colspan="3"><span class="sub-amt">${rs?fmt(rs):'—'}</span></td></tr>`;
+  });
+  tb.innerHTML=html;
+  const grand=currentItems.reduce((s,i)=>s+i.price*i.qty,0);
+  gb.style.display='flex';
+  document.getElementById('grand-val').textContent=fmt(grand);
+}
+function copyLink(){
+  if(!currentProject)return;
+  navigator.clipboard.writeText(location.origin+'/p/'+currentProject.slug).then(()=>toast('Ссылка скопирована — отправьте клиенту','success'));
+}
+function openSettings(){
+  document.getElementById('user-menu').classList.remove('show');
+  document.getElementById('s-name').value=currentUser.name||'';
+  document.getElementById('s-phone').value=currentUser.phone||'';
+  document.getElementById('s-site').value=currentUser.site||'';
+  document.getElementById('settings-modal').classList.add('show');
+}
+async function saveSettings(){
+  await api('/api/me',{method:'PUT',body:{name:vv('s-name'),phone:vv('s-phone'),site:vv('s-site')}});
+  currentUser={...currentUser,name:vv('s-name'),phone:vv('s-phone'),site:vv('s-site')};
+  document.getElementById('user-name-top').textContent=currentUser.name;
+  closeModal('settings-modal');
+  toast('Настройки сохранены','success');
+}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function toggleUserMenu(){document.getElementById('user-menu').classList.toggle('show')}
+function showTip(){document.getElementById('tip-bg').classList.add('show')}
+function closeTip(){document.getElementById('tip-bg').classList.remove('show')}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.user-pill'))document.getElementById('user-menu').classList.remove('show');
+  ['new-project-modal','edit-item-modal','settings-modal'].forEach(id=>{if(e.target===document.getElementById(id))closeModal(id)});
+  if(e.target===document.getElementById('tip-bg'))closeTip();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){['new-project-modal','edit-item-modal','settings-modal'].forEach(closeModal);closeTip();}
+  if(e.key==='Enter'&&e.target.closest('.add-form'))addItem();
+  if(e.key==='Enter'&&e.target.closest('#edit-item-modal'))saveItem();
+  if(e.key==='Enter'&&e.target.closest('#new-project-modal'))saveProject();
+  if(e.key==='Enter'&&['l-email','l-pass'].includes(e.target.id))doLogin();
+  if(e.key==='Enter'&&['r-name','r-email','r-pass'].includes(e.target.id))doRegister();
+});
+initApp();
+</script>
+</body>
+</html>
