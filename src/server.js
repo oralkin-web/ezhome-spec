@@ -6,7 +6,7 @@ const { Pool } = require('pg');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 
 // PostgreSQL connection
 const pool = new Pool({
@@ -55,7 +55,7 @@ async function initDB() {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
   secret: process.env.SESSION_SECRET || 'ezhome-secret-2024',
   resave: false,
@@ -217,7 +217,7 @@ function buildClientPage(project, items) {
   const summaryCards = rooms.map(r => roomTot[r] ? `
     <div style="background:#fff;border:1px solid #ddd5d0;border-top:3px solid #778D7F;border-radius:4px;padding:14px 20px;flex:1;min-width:110px">
       <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#8e8e93;font-weight:400">${esc(r)}</div>
-      <div style="font-size:18px;font-weight:400;color:#000;margin-top:4px;font-variant-numeric:tabular-nums;font-family:'Cormorant Garamond',serif">${fmt(roomTot[r])}</div>
+      <div style="font-size:18px;font-weight:400;color:#000;margin-top:4px;font-variant-numeric:tabular-nums;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">${fmt(roomTot[r])}</div>
     </div>` : '').join('');
 
   const sections = rooms.map(room => {
@@ -237,14 +237,14 @@ function buildClientPage(project, items) {
           ${it.cmt ? `<div style="color:#778D7F;font-size:12px;font-style:italic">${esc(it.cmt)}</div>` : ''}
           <div style="margin-top:auto;padding-top:10px;border-top:1px solid #f0ede6;display:flex;justify-content:space-between;align-items:baseline">
             <div style="font-size:12px;color:#8e8e93;font-weight:300">${it.qty} шт × ${it.price ? Number(it.price).toLocaleString('ru-RU') + ' ₽' : '—'}</div>
-            <div style="font-size:16px;font-weight:500;color:#000;font-variant-numeric:tabular-nums;font-family:'Cormorant Garamond',serif">${it.price ? fmt(sum) : '—'}</div>
+            <div style="font-size:16px;font-weight:500;color:#000;font-variant-numeric:tabular-nums;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">${it.price ? fmt(sum) : '—'}</div>
           </div>
         </div>
       </div>`;
     }).join('');
     return `<section style="margin-bottom:48px">
       <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:12px;border-bottom:2px solid #7B2237;margin-bottom:18px">
-        <h2 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;color:#7B2237">${esc(room)}</h2>
+        <h2 style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:26px;font-weight:500;color:#7B2237">${esc(room)}</h2>
         ${roomTot[room] ? `<div style="font-size:13px;color:#8e8e93;font-weight:300">${fmt(roomTot[room])}</div>` : ''}
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px">${cards}</div>
@@ -255,22 +255,22 @@ function buildClientPage(project, items) {
 <html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(project.client || project.name)}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="" rel="stylesheet">
 <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Jost',sans-serif;background:#fdfcfb;color:#000;font-weight:300;font-size:14px;line-height:1.6}
 @media print{.no-print{display:none!important}@page{margin:12mm}}</style>
 </head><body>
 <header style="background:#7B2237;padding:20px 40px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap" class="no-print">
   <div style="display:flex;align-items:center;gap:16px">
-    <div style="width:44px;height:44px;border:1px solid rgba(255,255,255,0.2);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;color:rgba(255,255,255,0.7);font-family:'Cormorant Garamond',serif;font-weight:500;background:rgba(255,255,255,0.08)">ez</div>
+    <div style="width:44px;height:44px;border:1px solid rgba(255,255,255,0.2);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;color:rgba(255,255,255,0.7);font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-weight:500;background:rgba(255,255,255,0.08)">ez</div>
     <div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:500;color:#fff">${esc(project.designer_name)}</div>
+      <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:19px;font-weight:500;color:#fff">${esc(project.designer_name)}</div>
       <div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px">Дизайнер интерьеров</div>
     </div>
   </div>
   <div style="display:flex;gap:12px;align-items:center">
     <button onclick="window.print()" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:4px;padding:7px 16px;font-size:12px;cursor:pointer;font-family:'Jost',sans-serif">↓ PDF</button>
     <div style="text-align:right">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;color:#fff">${esc(project.client || project.name)}</div>
+      <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:18px;font-weight:500;color:#fff">${esc(project.client || project.name)}</div>
       <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px">${date}</div>
     </div>
   </div>
@@ -280,7 +280,7 @@ function buildClientPage(project, items) {
     ${summaryCards}
     <div style="background:#7B2237;padding:14px 20px;min-width:110px;flex:0 0 auto">
       <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.45);font-weight:400">Итого</div>
-      <div style="font-size:20px;font-weight:400;color:#fff;margin-top:4px;font-variant-numeric:tabular-nums;font-family:'Cormorant Garamond',serif">${fmt(grand)}</div>
+      <div style="font-size:20px;font-weight:400;color:#fff;margin-top:4px;font-variant-numeric:tabular-nums;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">${fmt(grand)}</div>
     </div>
   </div>
   ${sections}
