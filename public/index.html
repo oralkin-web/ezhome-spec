@@ -441,7 +441,7 @@ tbody tr:hover td{background:var(--bg2)}
           Удалить
         </button>
         <button class="btn-accent" onclick="copyLink()">🔗 Ссылка клиенту</button>
-        <button class="btn-dark" onclick="printPDF()">↓ PDF</button>
+        <button class="btn-dark" onclick="openClientPageForPrint()">↓ PDF</button>
       </div>
     </div>
     <div class="editor-body">
@@ -664,6 +664,10 @@ async function saveProjectTitle(){
   currentProject.name=newName;
   currentProject.client=newClient;
   toast('Сохранено','success');
+}
+function openClientPageForPrint(){
+  if(!currentProject)return;
+  window.open(location.origin+'/p/'+currentProject.slug+'?print=1','_blank');
 }
 function printPDF(){
   if(!currentProject)return;

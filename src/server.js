@@ -315,6 +315,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
   </footer>
 </div>
+<script>
+if(new URLSearchParams(window.location.search).get('print')==='1'){
+  window.addEventListener('load',function(){
+    setTimeout(function(){
+      document.title='${esc(project.name).replace(/'/g,"\\'")} Комплектация';
+      window.print();
+    },800);
+  });
+}
+</script>
 </body></html>`;
 }
 
