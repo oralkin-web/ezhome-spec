@@ -281,9 +281,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div style="width:40px;height:40px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:rgba(255,255,255,0.8);flex-shrink:0">ez</div>
       <div>
         <div style="font-size:14px;font-weight:500;color:#fff">${esc(project.designer_name)}</div>
-        ${project.designer_phone ? `<div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:2px">${esc(project.designer_phone)}</div>` : ''}
-        ${project.designer_email ? `<div style="font-size:10px;color:rgba(255,255,255,0.5)">${esc(project.designer_email)}</div>` : ''}
-        ${project.designer_site ? `<a href="https://${esc(project.designer_site)}" target="_blank" style="font-size:10px;color:rgba(200,193,190,0.85);text-decoration:none">${esc(project.designer_site)}</a>` : ''}
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px">Дизайнер интерьеров</div>
       </div>
     </div>
     <div class="hdr-right" style="display:flex;align-items:center;gap:14px">
@@ -291,7 +289,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div style="font-size:16px;font-weight:500;color:#fff">${esc(projectTitle)}</div>
         <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px">${date}</div>
       </div>
-      <button onclick="window.print()" style="background:none;color:#fff;border:1px solid rgba(255,255,255,0.55);border-radius:3px;padding:7px 14px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">↓ PDF</button>
+      <button onclick="printClient()" style="background:none;color:#fff;border:1px solid rgba(255,255,255,0.55);border-radius:3px;padding:7px 14px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">↓ PDF</button>
     </div>
   </div>
 </header>
@@ -305,11 +303,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
   ${sections}
   ${comment ? `<div style="margin-bottom:20px;font-size:12px;color:#8e8e93">${esc(comment)}</div>` : ''}
-  <footer style="padding-top:20px;border-top:1px solid #ddd5d0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
-    <div style="font-size:11px;color:#8e8e93">ezhome.design</div>
-    <div style="font-size:11px;color:#8e8e93">${project.designer_phone ? esc(project.designer_phone) : ''}${project.designer_phone && project.designer_email ? ' · ' : ''}${project.designer_email ? esc(project.designer_email) : ''}</div>
+  <footer style="padding-top:20px;border-top:1px solid #ddd5d0">
+    <div style="font-size:11px;color:#8e8e93;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      ${project.designer_phone ? `<span>${esc(project.designer_phone)}</span>` : ''}
+      ${project.designer_phone && project.designer_email ? `<span>·</span>` : ''}
+      ${project.designer_email ? `<span>${esc(project.designer_email)}</span>` : ''}
+      ${project.designer_site ? `<span>·</span><a href="https://${esc(project.designer_site)}" target="_blank" style="color:#778D7F;text-decoration:none">${esc(project.designer_site)}</a>` : ''}
+    </div>
   </footer>
 </div>
+<script>
+function printClient(){
+  const orig=document.title;
+  document.title='${esc(projectTitle)}';
+  window.print();
+  setTimeout(()=>{document.title=orig},1000);
+}
+</script>
 </body></html>`;
 }
 

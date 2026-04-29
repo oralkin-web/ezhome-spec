@@ -382,7 +382,7 @@ tbody tr:hover td{background:var(--bg2)}
           Удалить
         </button>
         <button class="btn-accent" onclick="copyLink()">🔗 Ссылка клиенту</button>
-        <button class="btn-dark" onclick="window.print()">↓ PDF</button>
+        <button class="btn-dark" onclick="printPDF()">↓ PDF</button>
       </div>
     </div>
     <div class="editor-body">
@@ -499,10 +499,9 @@ function renderProjects(){
   document.getElementById('cnt-done').textContent=projects.filter(p=>p.status==='done').length;
   const statMap={active:'badge-active',draft:'badge-draft'};
   const statLbl={active:'Активен',done:'Завершён',draft:'Черновик'};
-  let html=list.map(p=>`<div class="pcard">
+  let html=list.map(p=>`<div class="pcard" onclick="openProject('${p.id}')">
     <div class="pcard-thumb">
-      <span class="pcard-thumb-lbl">${esc(p.client||'Проект')}</span>
-      ${p.status!=='done'?`<span class="badge ${statMap[p.status]||''}">${statLbl[p.status]||p.status}</span>`:''}
+      <span class="pcard-thumb-lbl">${esc(p.status==='done'?'Завершён':p.status==='draft'?'Черновик':'В работе')}</span>
     </div>
     <div class="pcard-info">
       <div class="pcard-name">${esc(p.name)}</div>
@@ -510,11 +509,9 @@ function renderProjects(){
       <div class="pcard-meta">${p.item_count} поз. · ${new Date(p.updated_at).toLocaleDateString('ru-RU')}</div>
     </div>
     <div class="pcard-foot">
-      <span class="pcard-sum">${p.total?fmt(p.total):'—'}</span>
       <div class="pcard-acts">
         <button class="pbtn" onclick="event.stopPropagation();duplicateProject('${p.id}')">Копия</button>
         <button class="pbtn" onclick="event.stopPropagation();copyProjectLink('${p.slug}')">Ссылка</button>
-        <button class="pbtn pbtn-primary" onclick="openProject('${p.id}')">Открыть</button>
       </div>
     </div>
   </div>`).join('');
@@ -585,6 +582,13 @@ async function saveProjectTitle(){
   await api('/api/projects/'+currentProject.id,{method:'PUT',body:{name:newName,client:currentProject.client,status:currentProject.status}});
   currentProject.name=newName;
   toast('Название сохранено','success');
+}
+function printPDF(){
+  if(!currentProject)return;
+  const orig=document.title;
+  document.title=currentProject.name+(currentProject.client?' — '+currentProject.client:'');
+  window.print();
+  setTimeout(()=>{document.title=orig},1000);
 }
 async function saveComment(){
   if(!currentProject)return;
