@@ -166,7 +166,41 @@ tbody tr:hover td{background:var(--bg2)}
 .empty-state{text-align:center;padding:52px 20px;color:var(--ink3)}
 .empty-state p:first-child{font-size:18px;color:var(--brand);opacity:.6;margin-bottom:5px;font-weight:500}
 
-/* COMMENT BOX — без рамки */
+/* PRINT-ONLY ELEMENTS */
+.print-header{display:none;background:#7B2237;padding:14px 20px;align-items:center;justify-content:space-between;-webkit-print-color-adjust:exact;print-color-adjust:exact;margin-bottom:16px}
+.print-header-left{display:flex;align-items:center;gap:12px}
+.print-logo{width:36px;height:36px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;object-fit:cover}
+.print-logo-sq{width:36px;height:36px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:rgba(255,255,255,0.8)}
+.print-designer{font-size:13px;font-weight:500;color:#fff}
+.print-role{font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px}
+.print-project{font-size:15px;font-weight:500;color:#fff;text-align:right}
+.print-date{font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;text-align:right}
+
+.print-cards{display:none;padding:0 0 16px}
+.print-summary{display:flex;gap:1px;background:#ddd5d0;border:1px solid #ddd5d0;border-radius:4px;overflow:hidden;margin-bottom:20px;flex-wrap:wrap;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.print-sum-cell{flex:1;background:#fff;padding:10px 14px;min-width:80px}
+.print-sum-cell.grand{background:#7B2237;flex:0 0 auto}
+.print-sum-lbl{font-size:9px;color:#8e8e93}
+.print-sum-val{font-size:14px;font-weight:400;color:#000;margin-top:2px;font-variant-numeric:tabular-nums}
+.print-sum-cell.grand .print-sum-lbl{color:rgba(255,255,255,0.4)}
+.print-sum-cell.grand .print-sum-val{color:#fff}
+.print-section{margin-bottom:20px;page-break-inside:avoid}
+.print-room-hdr{display:flex;align-items:baseline;justify-content:space-between;padding-bottom:6px;border-bottom:0.5px solid #000;margin-bottom:10px}
+.print-room-name{font-size:16px;font-weight:500;color:#000}
+.print-room-sum{font-size:11px;color:#8e8e93}
+.print-cards-grid{display:grid;grid-template-columns:1fr;gap:8px}
+.print-card{background:#fff;border:1px solid #ddd5d0;border-radius:4px;overflow:hidden;display:flex;-webkit-print-color-adjust:exact;print-color-adjust:exact;page-break-inside:avoid}
+.print-card-img{width:80px;height:72px;flex-shrink:0;background:#f0ede9;display:flex;align-items:center;justify-content:center;font-size:16px;color:#C8C1BE;overflow:hidden}
+.print-card-img img{width:100%;height:100%;object-fit:contain}
+.print-card-body{flex:1;padding:8px 12px;display:flex;flex-direction:column;justify-content:space-between}
+.print-card-name{font-size:12px;font-weight:500;color:#000;line-height:1.3}
+.print-card-size{font-size:11px;color:#8e8e93;margin-top:2px}
+.print-card-cmt{font-size:11px;color:#8e8e93;font-style:italic;margin-top:2px}
+.print-card-foot{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;padding-top:6px;border-top:1px solid #f0ede9}
+.print-card-qty{font-size:11px;color:#8e8e93}
+.print-card-sum{font-size:13px;font-weight:500;color:#000;font-variant-numeric:tabular-nums}
+.print-comment{font-size:11px;color:#8e8e93;margin-top:12px;padding-top:12px;border-top:1px solid #ddd5d0}
+
 .comment-wrap{background:#fff;border-radius:4px;overflow:hidden;margin-top:12px}
 .comment-wrap-head{padding:8px 16px;border-bottom:1px solid var(--line);background:var(--accent-light);font-size:10px;color:var(--accent-dark)}
 .comment-wrap-body textarea{width:100%;border:none;outline:none;padding:10px 16px;font-size:13px;color:var(--ink);font-family:inherit;resize:none;background:#fff;min-height:60px}
@@ -189,14 +223,26 @@ tbody tr:hover td{background:var(--bg2)}
 
 /* PRINT */
 @media print{
-  .topbar,.sidebar,.editor-topbar,.add-form,.act-cell,.editor-acts,.toast{display:none!important}
-  .editor-page{height:auto}
+  /* Убираем системные колонтитулы браузера */
+  @page{margin:12mm;size:A4;marks:none}
+
+  /* Скрываем интерфейс редактора */
+  .topbar,.sidebar,.editor-topbar,.add-form,.act-cell,.editor-acts,.toast,
+  .dashboard,.comment-wrap,.auth-wrap{display:none!important}
+
+  /* Показываем только страницу редактора */
+  .editor-page{display:block!important;height:auto!important}
   .editor-body{padding:0;overflow:visible}
-  .spec-wrap{border:none}
-  thead th{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:var(--accent)!important}
-  .rhdr td{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:var(--brand-dark)!important}
-  .grand-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:var(--brand)!important}
-  @page{margin:10mm 14mm;size:A4 landscape}
+
+  /* Скрываем таблицу — вместо неё показываем карточки */
+  .spec-wrap{display:none!important}
+  .grand-bar{display:none!important}
+
+  /* Показываем print-шапку */
+  .print-header{display:flex!important}
+
+  /* Показываем карточки */
+  .print-cards{display:block!important}
 }
 </style>
 </head>
@@ -282,6 +328,17 @@ tbody tr:hover td{background:var(--bg2)}
       <div class="mrow"><label>Имя</label><input id="s-name"></div>
       <div class="mrow"><label>Телефон</label><input id="s-phone" placeholder="+7 (999) 000-00-00"></div>
       <div class="mrow"><label>Сайт</label><input id="s-site" placeholder="ezhome.design"></div>
+      <div class="mrow">
+        <label>Логотип</label>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+          <img id="s-logo-preview" src="" style="width:44px;height:44px;border-radius:6px;object-fit:cover;border:1px solid var(--line);display:none" alt="logo">
+          <div id="s-logo-placeholder" style="width:44px;height:44px;border-radius:6px;background:var(--bg2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ink3)">ez</div>
+          <label style="cursor:pointer;font-size:12px;color:var(--accent);text-decoration:underline;text-underline-offset:2px">
+            Загрузить фото
+            <input type="file" accept="image/*" id="s-logo-file" style="display:none" onchange="handleLogoUpload(event)">
+          </label>
+        </div>
+      </div>
       <div class="macts">
         <button class="btn-cancel" onclick="closeModal('settings-modal')">Отмена</button>
         <button class="btn-save" onclick="saveSettings()">Сохранить</button>
@@ -434,6 +491,23 @@ tbody tr:hover td{background:var(--bg2)}
           <textarea id="proj-comment" placeholder="Цены производителя без скидок, доставки и выбора тканей..." onblur="saveComment()"></textarea>
         </div>
       </div>
+
+      <!-- PRINT-ONLY: шапка и карточки -->
+      <div class="print-header" id="print-header">
+        <div class="print-header-left">
+          <img class="print-logo" id="print-logo-img" src="" alt="" style="display:none">
+          <div class="print-logo-sq" id="print-logo-sq">ez</div>
+          <div>
+            <div class="print-designer" id="print-designer-name"></div>
+            <div class="print-role">Дизайнер интерьеров</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="print-project" id="print-project-name"></div>
+          <div class="print-date" id="print-date"></div>
+        </div>
+      </div>
+      <div class="print-cards" id="print-cards"></div>
     </div>
   </div>
 </div>
@@ -478,6 +552,11 @@ async function initApp(){
   const ini=(me.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   document.getElementById('user-avatar').textContent=ini;
   document.getElementById('user-name-top').textContent=me.name||me.email;
+  // Показываем лого дизайнера в топбаре если загружено
+  if(me.logo){
+    const tb=document.querySelector('.topbar-brand img');
+    if(tb)tb.src=me.logo;
+  }
   await loadProjects();
 }
 async function loadProjects(){projects=await api('/api/projects');renderProjects()}
@@ -588,10 +667,75 @@ async function saveProjectTitle(){
 }
 function printPDF(){
   if(!currentProject)return;
+  // Название файла: "Название проекта Комплектация"
   const orig=document.title;
-  document.title=currentProject.name+(currentProject.client?' — '+currentProject.client:'');
+  document.title=currentProject.name+' Комплектация';
+
+  // Заполняем print-шапку
+  document.getElementById('print-designer-name').textContent=currentUser?.name||'';
+  document.getElementById('print-project-name').textContent=currentProject.name;
+  document.getElementById('print-date').textContent=new Date().toLocaleDateString('ru-RU');
+
+  // Лого дизайнера
+  const logoImg=document.getElementById('print-logo-img');
+  const logoSq=document.getElementById('print-logo-sq');
+  if(currentUser?.logo){
+    logoImg.src=currentUser.logo;logoImg.style.display='block';logoSq.style.display='none';
+  }else{logoImg.style.display='none';logoSq.style.display='flex';}
+
+  // Рендерим карточки для печати
+  renderPrintCards();
   window.print();
   setTimeout(()=>{document.title=orig},1000);
+}
+
+function renderPrintCards(){
+  const container=document.getElementById('print-cards');
+  if(!currentItems.length){container.innerHTML='';return;}
+  const grp={};currentItems.forEach(i=>{(grp[i.room]=grp[i.room]||[]).push(i)});
+  const rooms=[...ROOM_ORDER,...Object.keys(grp).filter(r=>!ROOM_ORDER.includes(r))].filter(r=>grp[r]);
+  const roomTot={};
+  rooms.forEach(r=>{roomTot[r]=grp[r].reduce((s,i)=>s+i.price*i.qty,0)});
+  const grand=currentItems.reduce((s,i)=>s+i.price*i.qty,0);
+  const fmt=n=>Number(n).toLocaleString('ru-RU')+'\u202f₽';
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  // Summary
+  let sumHtml='<div class="print-summary">';
+  rooms.forEach(r=>{if(roomTot[r])sumHtml+=`<div class="print-sum-cell"><div class="print-sum-lbl">${esc(r)}</div><div class="print-sum-val">${fmt(roomTot[r])}</div></div>`;});
+  sumHtml+=`<div class="print-sum-cell grand"><div class="print-sum-lbl">Итого</div><div class="print-sum-val">${fmt(grand)}</div></div></div>`;
+
+  // Sections
+  let sectionsHtml='';
+  rooms.forEach(room=>{
+    const cards=grp[room].map(it=>{
+      const sum=it.price*it.qty;
+      const imgHtml=it.img?`<img src="${esc(it.img)}" onerror="this.style.display='none'">`:'◻';
+      return `<div class="print-card">
+        <div class="print-card-img">${it.img?`<img src="${esc(it.img)}" onerror="this.style.display='none';this.parentNode.textContent='◻'">`:'◻'}</div>
+        <div class="print-card-body">
+          <div>
+            <div class="print-card-name">${esc(it.name)}</div>
+            ${it.size?`<div class="print-card-size">${esc(it.size)}</div>`:''}
+            ${it.cmt?`<div class="print-card-cmt">${esc(it.cmt)}</div>`:''}
+          </div>
+          <div class="print-card-foot">
+            <span class="print-card-qty">${it.qty} шт × ${it.price?it.price.toLocaleString('ru-RU')+' ₽':'—'}</span>
+            <span class="print-card-sum">${it.price?fmt(sum):'—'}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    sectionsHtml+=`<div class="print-section">
+      <div class="print-room-hdr"><div class="print-room-name">${esc(room)}</div><div class="print-room-sum">${roomTot[room]?fmt(roomTot[room]):''}</div></div>
+      <div class="print-cards-grid">${cards}</div>
+    </div>`;
+  });
+
+  const comment=document.getElementById('proj-comment').value;
+  const commentHtml=comment?`<div class="print-comment">${esc(comment)}</div>`:'';
+
+  container.innerHTML=sumHtml+sectionsHtml+commentHtml;
 }
 async function saveComment(){
   if(!currentProject)return;
@@ -710,16 +854,34 @@ function renderItems(){
   document.getElementById('grand-val').textContent=fmt(grand);
 }
 
+function handleLogoUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const b64=ev.target.result;
+    currentUser.logoData=b64;
+    document.getElementById('s-logo-preview').src=b64;
+    document.getElementById('s-logo-preview').style.display='block';
+    document.getElementById('s-logo-placeholder').style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
 function openSettings(){
   document.getElementById('user-menu').classList.remove('show');
   document.getElementById('s-name').value=currentUser.name||'';
   document.getElementById('s-phone').value=currentUser.phone||'';
   document.getElementById('s-site').value=currentUser.site||'';
+  const prev=document.getElementById('s-logo-preview');
+  const ph=document.getElementById('s-logo-placeholder');
+  if(currentUser.logo){
+    prev.src=currentUser.logo;prev.style.display='block';ph.style.display='none';
+  }else{prev.style.display='none';ph.style.display='flex';}
   document.getElementById('settings-modal').classList.add('show');
 }
 async function saveSettings(){
-  await api('/api/me',{method:'PUT',body:{name:vv('s-name'),phone:vv('s-phone'),site:vv('s-site')}});
-  currentUser={...currentUser,name:vv('s-name'),phone:vv('s-phone'),site:vv('s-site')};
+  const logo=currentUser.logoData||currentUser.logo||'';
+  await api('/api/me',{method:'PUT',body:{name:vv('s-name'),phone:vv('s-phone'),site:vv('s-site'),logo}});
+  currentUser={...currentUser,name:vv('s-name'),phone:vv('s-phone'),site:vv('s-site'),logo};
   document.getElementById('user-name-top').textContent=currentUser.name;
   closeModal('settings-modal');
   toast('Настройки сохранены','success');

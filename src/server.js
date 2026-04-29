@@ -50,6 +50,7 @@ async function initDB() {
     );
   `);
   await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS comment TEXT DEFAULT ''`);
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS logo TEXT DEFAULT ''`);
   console.log('DB initialized');
 }
 
@@ -93,13 +94,13 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/logout', (req, res) => { req.session.destroy(); res.json({ ok: true }); });
 
 app.get('/api/me', auth, async (req, res) => {
-  const r = await pool.query('SELECT id, email, name, phone, site FROM users WHERE id = $1', [req.session.userId]);
+  const r = await pool.query('SELECT id, email, name, phone, site, logo FROM users WHERE id = $1', [req.session.userId]);
   res.json(r.rows[0]);
 });
 
 app.put('/api/me', auth, async (req, res) => {
-  const { name, phone, site } = req.body;
-  await pool.query('UPDATE users SET name=$1, phone=$2, site=$3 WHERE id=$4', [name, phone, site, req.session.userId]);
+  const { name, phone, site, logo } = req.body;
+  await pool.query('UPDATE users SET name=$1, phone=$2, site=$3, logo=$4 WHERE id=$5', [name, phone, site, logo||'', req.session.userId]);
   res.json({ ok: true });
 });
 
@@ -202,7 +203,7 @@ app.delete('/api/items/:id', auth, async (req, res) => {
 // PUBLIC CLIENT PAGE
 app.get('/p/:slug', async (req, res) => {
   const r = await pool.query(`
-    SELECT p.*, u.name as designer_name, u.phone as designer_phone, u.email as designer_email, u.site as designer_site
+    SELECT p.*, u.name as designer_name, u.phone as designer_phone, u.email as designer_email, u.site as designer_site, u.logo as designer_logo
     FROM projects p JOIN users u ON u.id=p.user_id WHERE p.slug=$1
   `, [req.params.slug]);
   if (!r.rows.length) return res.status(404).send('<h1>Страница не найдена</h1>');
@@ -268,7 +269,7 @@ function buildClientPage(project, items) {
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fdfcfb;color:#000;font-weight:300;font-size:14px;line-height:1.6}
-@media print{.no-print{display:none!important}@page{margin:12mm}}
+@media print{.no-print{display:none!important}@page{margin:12mm;size:A4;marks:none}}
 @media(max-width:600px){
   .hdr-inner{flex-direction:column!important;align-items:flex-start!important;gap:12px!important}
   .hdr-right{width:100%!important;display:flex!important;justify-content:space-between!important;align-items:flex-end!important}
@@ -278,7 +279,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <header style="background:#7B2237" class="no-print">
   <div class="hdr-inner" style="max-width:1100px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px">
     <div style="display:flex;align-items:center;gap:14px">
-      <div style="width:40px;height:40px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:rgba(255,255,255,0.8);flex-shrink:0">ez</div>
+      ${project.designer_logo
+        ? `<img src="${esc(project.designer_logo)}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;border:1px solid rgba(255,255,255,0.2);flex-shrink:0" alt="logo">`
+        : `<div style="width:40px;height:40px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:rgba(255,255,255,0.8);flex-shrink:0">ez</div>`}
       <div>
         <div style="font-size:14px;font-weight:500;color:#fff">${esc(project.designer_name)}</div>
         <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px">Дизайнер интерьеров</div>
@@ -289,7 +292,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div style="font-size:16px;font-weight:500;color:#fff">${esc(projectTitle)}</div>
         <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px">${date}</div>
       </div>
-      <button onclick="(function(){var t=document.title;document.title='${esc(projectTitle).replace(/'/g,"\\'")}';window.print();setTimeout(function(){document.title=t},1000)})()" style="background:none;color:#fff;border:1px solid rgba(255,255,255,0.55);border-radius:3px;padding:7px 14px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">↓ PDF</button>
+      <button onclick="(function(){var t=document.title;document.title='${esc(project.name).replace(/'/g,"\\'")} Комплектация';window.print();setTimeout(function(){document.title=t},1000)})()" style="background:none;color:#fff;border:1px solid rgba(255,255,255,0.55);border-radius:3px;padding:7px 14px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">↓ PDF</button>
     </div>
   </div>
 </header>
