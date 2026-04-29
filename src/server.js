@@ -259,7 +259,7 @@ function buildClientPage(project, items) {
         <h2 style="font-size:20px;font-weight:500;color:#000">${esc(room)}</h2>
         ${roomTot[room] ? `<div style="font-size:12px;color:#8e8e93">${fmt(roomTot[room])}</div>` : ''}
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">${cards}</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">${cards}</div>
     </section>`;
   }).join('');
 
@@ -269,14 +269,14 @@ function buildClientPage(project, items) {
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fdfcfb;color:#000;font-weight:300;font-size:14px;line-height:1.6}
-@media print{.no-print{display:none!important}@page{margin:12mm;size:A4;marks:none}}
+@media print{.no-print{display:none!important}.print-only{display:block!important}@page{margin:12mm;size:A4;marks:none}}
 @media(max-width:600px){
   .hdr-inner{flex-direction:column!important;align-items:flex-start!important;gap:12px!important}
   .hdr-right{width:100%!important;display:flex!important;justify-content:space-between!important;align-items:flex-end!important}
 }
 </style>
 </head><body>
-<header style="background:#7B2237" class="no-print">
+<header style="background:#7B2237">
   <div class="hdr-inner" style="max-width:1100px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px">
     <div style="display:flex;align-items:center;gap:14px">
       ${project.designer_logo
@@ -292,7 +292,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div style="font-size:16px;font-weight:500;color:#fff">${esc(projectTitle)}</div>
         <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px">${date}</div>
       </div>
-      <button onclick="(function(){var t=document.title;document.title='${esc(project.name).replace(/'/g,"\\'")} Комплектация';window.print();setTimeout(function(){document.title=t},1000)})()" style="background:none;color:#fff;border:1px solid rgba(255,255,255,0.55);border-radius:3px;padding:7px 14px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">↓ PDF</button>
+      <button onclick="(function(){var t=document.title;document.title='${esc(project.name).replace(/'/g,"\\'")} Комплектация';window.print();setTimeout(function(){document.title=t},1000)})()" class="no-print" style="background:none;color:#fff;border:1px solid rgba(255,255,255,0.55);border-radius:3px;padding:7px 14px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">↓ PDF</button>
     </div>
   </div>
 </header>
