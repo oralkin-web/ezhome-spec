@@ -280,7 +280,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="hdr-inner" style="max-width:1100px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px">
     <div style="display:flex;align-items:center;gap:14px">
       ${project.designer_logo
-        ? `<img src="${esc(project.designer_logo)}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;border:1px solid rgba(255,255,255,0.2);flex-shrink:0" alt="logo">`
+        ? `<img src="${project.designer_logo}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;border:1px solid rgba(255,255,255,0.2);flex-shrink:0" alt="logo">`
         : `<div style="width:40px;height:40px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:rgba(255,255,255,0.8);flex-shrink:0">ez</div>`}
       <div>
         <div style="font-size:14px;font-weight:500;color:#fff">${esc(project.designer_name)}</div>
