@@ -259,7 +259,7 @@ function buildClientPage(project, items) {
         <h2 style="font-size:20px;font-weight:500;color:#000">${esc(room)}</h2>
         ${roomTot[room] ? `<div style="font-size:12px;color:#8e8e93">${fmt(roomTot[room])}</div>` : ''}
       </div>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">${cards}</div>
+      <div class="cards-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">${cards}</div>
     </section>`;
   }).join('');
 
@@ -269,7 +269,15 @@ function buildClientPage(project, items) {
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fdfcfb;color:#000;font-weight:300;font-size:14px;line-height:1.6}
-@media print{.no-print{display:none!important}.print-only{display:block!important}@page{margin:12mm;size:A4;marks:none}}
+@media print{
+  .no-print{display:none!important}
+  .cards-grid{grid-template-columns:repeat(2,1fr)!important}
+  header{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  .sum-row{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  @page{margin:12mm;size:auto;marks:none}
+  body,html{height:auto!important}
+  *{page-break-inside:avoid!important}
+}
 @media(max-width:600px){
   .hdr-inner{flex-direction:column!important;align-items:flex-start!important;gap:12px!important}
   .hdr-right{width:100%!important;display:flex!important;justify-content:space-between!important;align-items:flex-end!important}
@@ -297,7 +305,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 </header>
 <div style="max-width:1100px;margin:0 auto;padding:28px 24px 64px">
-  <div style="display:flex;gap:1px;background:#ddd5d0;border:1px solid #ddd5d0;border-radius:4px;overflow:hidden;margin-bottom:36px;flex-wrap:wrap">
+  <div class="sum-row" style="display:flex;gap:1px;background:#ddd5d0;border:1px solid #ddd5d0;border-radius:4px;overflow:hidden;margin-bottom:36px;flex-wrap:wrap">
     ${summaryCards}
     <div style="background:#7B2237;padding:12px 16px;min-width:90px;flex:0 0 auto">
       <div style="font-size:9px;color:rgba(255,255,255,0.4)">Итого</div>
