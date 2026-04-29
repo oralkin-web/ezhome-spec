@@ -275,8 +275,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   header{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   .sum-row{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   @page{margin:12mm;size:auto;marks:none}
-  body,html{height:auto!important}
-  *{page-break-inside:avoid!important}
 }
 @media(max-width:600px){
   .hdr-inner{flex-direction:column!important;align-items:flex-start!important;gap:12px!important}
@@ -300,7 +298,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div style="font-size:16px;font-weight:500;color:#fff">${esc(projectTitle)}</div>
         <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px">${date}</div>
       </div>
-      <button onclick="(function(){var t=document.title;document.title='${esc(project.name).replace(/'/g,"\\'")} Комплектация';window.print();setTimeout(function(){document.title=t},1000)})()" class="no-print" style="background:none;color:#fff;border:1px solid rgba(255,255,255,0.55);border-radius:3px;padding:7px 14px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">↓ PDF</button>
+      <button onclick="doPrint()" class="no-print" style="background:none;color:#fff;border:1px solid rgba(255,255,255,0.55);border-radius:3px;padding:7px 14px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">↓ PDF</button>
     </div>
   </div>
 </header>
@@ -324,13 +322,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </footer>
 </div>
 <script>
+function doPrint(){
+  var t=document.title;
+  document.title='${esc(project.name).replace(/'/g,"\\'")} Комплектация';
+  // Устанавливаем высоту страницы равной контенту — без разрывов
+  var h=document.body.scrollHeight;
+  var style=document.createElement('style');
+  style.id='print-size-fix';
+  style.textContent='@page{size:794px '+h+'px;margin:24px}';
+  document.head.appendChild(style);
+  window.print();
+  setTimeout(function(){
+    document.title=t;
+    var el=document.getElementById('print-size-fix');
+    if(el)el.remove();
+  },1000);
+}
 if(new URLSearchParams(window.location.search).get('print')==='1'){
-  window.addEventListener('load',function(){
-    setTimeout(function(){
-      document.title='${esc(project.name).replace(/'/g,"\\'")} Комплектация';
-      window.print();
-    },800);
-  });
+  window.addEventListener('load',function(){setTimeout(doPrint,800)});
 }
 </script>
 </body></html>`;
