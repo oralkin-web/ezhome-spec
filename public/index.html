@@ -373,7 +373,9 @@ tbody tr:hover td{background:var(--bg2)}
     <div class="editor-topbar">
       <button class="editor-back" onclick="backToDash()">← Проекты</button>
       <div class="editor-title-wrap">
-        <input class="editor-title" id="editor-title-input" value="Проект" onblur="saveProjectTitle()">
+        <input class="editor-title" id="editor-title-input" value="Проект" onblur="saveProjectTitle()" placeholder="Название проекта">
+        <span style="font-size:13px;color:var(--ink3);flex-shrink:0">/</span>
+        <input class="editor-title" id="editor-client-input" value="" onblur="saveProjectTitle()" placeholder="Клиент" style="font-weight:300;color:var(--ink3);max-width:200px">
         <div class="editor-title-edit" onclick="document.getElementById('editor-title-input').focus()" title="Переименовать">✎</div>
       </div>
       <div class="editor-acts">
@@ -565,12 +567,11 @@ function copyProjectLink(slug){
 async function openProject(id){
   currentProject=projects.find(p=>p.id===id);
   if(!currentProject)return;
-  const titleInput=document.getElementById('editor-title-input');
-  titleInput.value=currentProject.client||currentProject.name;
+  // Fix: show project name, not client name
+  document.getElementById('editor-title-input').value=currentProject.name;
+  document.getElementById('editor-client-input').value=currentProject.client||'';
   currentItems=await api('/api/projects/'+id+'/items');
-  // load comment
-  const commentEl=document.getElementById('proj-comment');
-  commentEl.value=currentProject.comment||'';
+  document.getElementById('proj-comment').value=currentProject.comment||'';
   document.getElementById('dashboard').style.display='none';
   document.getElementById('editor-page').style.display='flex';
   renderItems();
@@ -578,10 +579,12 @@ async function openProject(id){
 async function saveProjectTitle(){
   if(!currentProject)return;
   const newName=document.getElementById('editor-title-input').value.trim();
+  const newClient=document.getElementById('editor-client-input').value.trim();
   if(!newName)return;
-  await api('/api/projects/'+currentProject.id,{method:'PUT',body:{name:newName,client:currentProject.client,status:currentProject.status}});
+  await api('/api/projects/'+currentProject.id,{method:'PUT',body:{name:newName,client:newClient,status:currentProject.status}});
   currentProject.name=newName;
-  toast('Название сохранено','success');
+  currentProject.client=newClient;
+  toast('Сохранено','success');
 }
 function printPDF(){
   if(!currentProject)return;

@@ -289,7 +289,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div style="font-size:16px;font-weight:500;color:#fff">${esc(projectTitle)}</div>
         <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px">${date}</div>
       </div>
-      <button onclick="printClient()" style="background:none;color:#fff;border:1px solid rgba(255,255,255,0.55);border-radius:3px;padding:7px 14px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">↓ PDF</button>
+      <button onclick="(function(){var t=document.title;document.title='${esc(projectTitle).replace(/'/g,"\\'")}';window.print();setTimeout(function(){document.title=t},1000)})()" style="background:none;color:#fff;border:1px solid rgba(255,255,255,0.55);border-radius:3px;padding:7px 14px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">↓ PDF</button>
     </div>
   </div>
 </header>
@@ -312,14 +312,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
   </footer>
 </div>
-<script>
-function printClient(){
-  const orig=document.title;
-  document.title='${esc(projectTitle)}';
-  window.print();
-  setTimeout(()=>{document.title=orig},1000);
-}
-</script>
 </body></html>`;
 }
 
