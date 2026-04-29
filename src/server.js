@@ -6,15 +6,13 @@ const { Pool } = require('pg');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
-// PostgreSQL connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
-// Init tables
 async function initDB() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -33,6 +31,7 @@ async function initDB() {
       client TEXT DEFAULT '',
       status TEXT DEFAULT 'active',
       slug TEXT UNIQUE NOT NULL,
+      comment TEXT DEFAULT '',
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     );
@@ -50,6 +49,7 @@ async function initDB() {
       sort_order INTEGER DEFAULT 0
     );
   `);
+  await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS comment TEXT DEFAULT ''`);
   console.log('DB initialized');
 }
 
@@ -130,6 +130,14 @@ app.put('/api/projects/:id', auth, async (req, res) => {
   res.json({ ok: true });
 });
 
+app.put('/api/projects/:id/comment', auth, async (req, res) => {
+  const { comment } = req.body;
+  const r = await pool.query('SELECT id FROM projects WHERE id=$1 AND user_id=$2', [req.params.id, req.session.userId]);
+  if (!r.rows.length) return res.status(404).json({ error: 'Не найдено' });
+  await pool.query('UPDATE projects SET comment=$1, updated_at=NOW() WHERE id=$2', [comment || '', req.params.id]);
+  res.json({ ok: true });
+});
+
 app.delete('/api/projects/:id', auth, async (req, res) => {
   const r = await pool.query('SELECT id FROM projects WHERE id=$1 AND user_id=$2', [req.params.id, req.session.userId]);
   if (!r.rows.length) return res.status(404).json({ error: 'Не найдено' });
@@ -143,7 +151,8 @@ app.post('/api/projects/:id/duplicate', auth, async (req, res) => {
   if (!r.rows.length) return res.status(404).json({ error: 'Не найдено' });
   const p = r.rows[0];
   const newId = uuidv4(), newSlug = uuidv4().slice(0, 8);
-  await pool.query('INSERT INTO projects (id, user_id, name, client, slug, status) VALUES ($1,$2,$3,$4,$5,$6)', [newId, req.session.userId, 'Копия — ' + p.name, p.client, newSlug, 'active']);
+  await pool.query('INSERT INTO projects (id, user_id, name, client, slug, status, comment) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+    [newId, req.session.userId, 'Копия — ' + p.name, p.client, newSlug, 'active', p.comment || '']);
   const items = await pool.query('SELECT * FROM items WHERE project_id=$1', [p.id]);
   for (const it of items.rows) {
     await pool.query('INSERT INTO items (id, project_id, room, name, url, img, size, price, qty, cmt, sort_order) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)',
@@ -213,80 +222,92 @@ function buildClientPage(project, items) {
   const date = new Date().toLocaleDateString('ru-RU');
   const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const fmt = n => Number(n).toLocaleString('ru-RU') + '\u202f₽';
+  const projectTitle = project.client || project.name;
+  const comment = project.comment || '';
 
   const summaryCards = rooms.map(r => roomTot[r] ? `
-    <div style="background:#fff;border:1px solid #ddd5d0;border-top:3px solid #778D7F;border-radius:4px;padding:14px 20px;flex:1;min-width:110px">
-      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#8e8e93;font-weight:400">${esc(r)}</div>
-      <div style="font-size:18px;font-weight:400;color:#000;margin-top:4px;font-variant-numeric:tabular-nums;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">${fmt(roomTot[r])}</div>
+    <div style="flex:1;background:#fff;padding:12px 16px;min-width:90px">
+      <div style="font-size:9px;color:#8e8e93">${esc(r)}</div>
+      <div style="font-size:15px;font-weight:400;color:#000;margin-top:3px;font-variant-numeric:tabular-nums">${fmt(roomTot[r])}</div>
     </div>` : '').join('');
 
   const sections = rooms.map(room => {
     const cards = grp[room].map(it => {
       const sum = Number(it.price) * it.qty;
       const imgBlock = it.img
-        ? `<div style="height:180px;background:#f5f3ee;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:4px 4px 0 0"><img src="${esc(it.img)}" style="width:100%;height:100%;object-fit:contain" onerror="this.parentNode.innerHTML='<div style=height:180px;display:flex;align-items:center;justify-content:center;font-size:32px;color:#C8C1BE>&#9633;</div>'"></div>`
-        : `<div style="height:180px;background:#f5f3ee;border-radius:4px 4px 0 0;display:flex;align-items:center;justify-content:center;font-size:32px;color:#C8C1BE">&#9633;</div>`;
+        ? `<div style="height:160px;background:#f0ede9;overflow:hidden;border-radius:4px 4px 0 0;display:flex;align-items:center;justify-content:center"><img src="${esc(it.img)}" style="width:100%;height:100%;object-fit:contain" onerror="this.parentNode.innerHTML='<div style=height:160px;display:flex;align-items:center;justify-content:center;font-size:28px;color:#C8C1BE>&#9633;</div>'"></div>`
+        : `<div style="height:160px;background:#f0ede9;border-radius:4px 4px 0 0;display:flex;align-items:center;justify-content:center;font-size:28px;color:#C8C1BE">&#9633;</div>`;
       const nameEl = it.url
-        ? `<a href="${esc(it.url)}" target="_blank" style="color:#000;font-size:14px;font-weight:400;text-decoration:none;line-height:1.4">${esc(it.name)}</a>`
-        : `<div style="color:#000;font-size:14px;font-weight:400;line-height:1.4">${esc(it.name)}</div>`;
+        ? `<a href="${esc(it.url)}" target="_blank" style="color:#000;font-size:13px;font-weight:400;text-decoration:none;line-height:1.4">${esc(it.name)}</a>`
+        : `<div style="color:#000;font-size:13px;font-weight:400;line-height:1.4">${esc(it.name)}</div>`;
       return `<div style="background:#fff;border:1px solid #ddd5d0;border-radius:4px;overflow:hidden;display:flex;flex-direction:column">
         ${it.url ? `<a href="${esc(it.url)}" target="_blank" style="display:block;text-decoration:none">${imgBlock}</a>` : imgBlock}
-        <div style="padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:5px">
+        <div style="padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:4px">
           ${nameEl}
-          ${it.size ? `<div style="color:#8e8e93;font-size:12px">${esc(it.size)}</div>` : ''}
-          ${it.cmt ? `<div style="color:#778D7F;font-size:12px;font-style:italic">${esc(it.cmt)}</div>` : ''}
-          <div style="margin-top:auto;padding-top:10px;border-top:1px solid #f0ede6;display:flex;justify-content:space-between;align-items:baseline">
-            <div style="font-size:12px;color:#8e8e93;font-weight:300">${it.qty} шт × ${it.price ? Number(it.price).toLocaleString('ru-RU') + ' ₽' : '—'}</div>
-            <div style="font-size:16px;font-weight:500;color:#000;font-variant-numeric:tabular-nums;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">${it.price ? fmt(sum) : '—'}</div>
+          ${it.size ? `<div style="color:#8e8e93;font-size:11px">${esc(it.size)}</div>` : ''}
+          ${it.cmt ? `<div style="color:#8e8e93;font-size:11px;font-style:italic">${esc(it.cmt)}</div>` : ''}
+          <div style="margin-top:auto;padding-top:10px;border-top:1px solid #f0ede9;display:flex;justify-content:space-between;align-items:baseline">
+            <div style="font-size:11px;color:#8e8e93;font-weight:300">${it.qty} шт × ${it.price ? Number(it.price).toLocaleString('ru-RU') + ' ₽' : '—'}</div>
+            <div style="font-size:14px;font-weight:500;color:#000;font-variant-numeric:tabular-nums">${it.price ? fmt(sum) : '—'}</div>
           </div>
         </div>
       </div>`;
     }).join('');
-    return `<section style="margin-bottom:48px">
-      <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:12px;border-bottom:2px solid #7B2237;margin-bottom:18px">
-        <h2 style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:26px;font-weight:500;color:#7B2237">${esc(room)}</h2>
-        ${roomTot[room] ? `<div style="font-size:13px;color:#8e8e93;font-weight:300">${fmt(roomTot[room])}</div>` : ''}
+    return `<section style="margin-bottom:40px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px;border-bottom:0.5px solid #000;margin-bottom:14px">
+        <h2 style="font-size:20px;font-weight:500;color:#000">${esc(room)}</h2>
+        ${roomTot[room] ? `<div style="font-size:12px;color:#8e8e93">${fmt(roomTot[room])}</div>` : ''}
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px">${cards}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">${cards}</div>
     </section>`;
   }).join('');
 
   return `<!DOCTYPE html>
 <html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(project.client || project.name)}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="" rel="stylesheet">
-<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Jost',sans-serif;background:#fdfcfb;color:#000;font-weight:300;font-size:14px;line-height:1.6}
-@media print{.no-print{display:none!important}@page{margin:12mm}}</style>
+<title>${esc(projectTitle)}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fdfcfb;color:#000;font-weight:300;font-size:14px;line-height:1.6}
+@media print{.no-print{display:none!important}@page{margin:12mm}}
+@media(max-width:600px){
+  .hdr-inner{flex-direction:column!important;align-items:flex-start!important;gap:12px!important}
+  .hdr-right{width:100%!important;display:flex!important;justify-content:space-between!important;align-items:flex-end!important}
+}
+</style>
 </head><body>
-<header style="background:#7B2237;padding:20px 40px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap" class="no-print">
-  <div style="display:flex;align-items:center;gap:16px">
-    <div style="width:44px;height:44px;border:1px solid rgba(255,255,255,0.2);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;color:rgba(255,255,255,0.7);font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-weight:500;background:rgba(255,255,255,0.08)">ez</div>
-    <div>
-      <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:19px;font-weight:500;color:#fff">${esc(project.designer_name)}</div>
-      <div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px">Дизайнер интерьеров</div>
+<header style="background:#7B2237" class="no-print">
+  <div class="hdr-inner" style="max-width:1100px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="width:40px;height:40px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:rgba(255,255,255,0.8);flex-shrink:0">ez</div>
+      <div>
+        <div style="font-size:14px;font-weight:500;color:#fff">${esc(project.designer_name)}</div>
+        ${project.designer_phone ? `<div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:2px">${esc(project.designer_phone)}</div>` : ''}
+        ${project.designer_email ? `<div style="font-size:10px;color:rgba(255,255,255,0.5)">${esc(project.designer_email)}</div>` : ''}
+        ${project.designer_site ? `<a href="https://${esc(project.designer_site)}" target="_blank" style="font-size:10px;color:rgba(200,193,190,0.85);text-decoration:none">${esc(project.designer_site)}</a>` : ''}
+      </div>
     </div>
-  </div>
-  <div style="display:flex;gap:12px;align-items:center">
-    <button onclick="window.print()" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:4px;padding:7px 16px;font-size:12px;cursor:pointer;font-family:'Jost',sans-serif">↓ PDF</button>
-    <div style="text-align:right">
-      <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;font-size:18px;font-weight:500;color:#fff">${esc(project.client || project.name)}</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px">${date}</div>
+    <div class="hdr-right" style="display:flex;align-items:center;gap:14px">
+      <div style="text-align:right">
+        <div style="font-size:16px;font-weight:500;color:#fff">${esc(projectTitle)}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px">${date}</div>
+      </div>
+      <button onclick="window.print()" style="background:none;color:#fff;border:1px solid rgba(255,255,255,0.55);border-radius:3px;padding:7px 14px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">↓ PDF</button>
     </div>
   </div>
 </header>
-<div style="max-width:1100px;margin:0 auto;padding:36px 40px 72px">
-  <div style="display:flex;gap:1px;background:#ddd5d0;border:1px solid #ddd5d0;border-radius:4px;overflow:hidden;margin-bottom:44px;flex-wrap:wrap">
+<div style="max-width:1100px;margin:0 auto;padding:28px 24px 64px">
+  <div style="display:flex;gap:1px;background:#ddd5d0;border:1px solid #ddd5d0;border-radius:4px;overflow:hidden;margin-bottom:36px;flex-wrap:wrap">
     ${summaryCards}
-    <div style="background:#7B2237;padding:14px 20px;min-width:110px;flex:0 0 auto">
-      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.45);font-weight:400">Итого</div>
-      <div style="font-size:20px;font-weight:400;color:#fff;margin-top:4px;font-variant-numeric:tabular-nums;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">${fmt(grand)}</div>
+    <div style="background:#7B2237;padding:12px 16px;min-width:90px;flex:0 0 auto">
+      <div style="font-size:9px;color:rgba(255,255,255,0.4)">Итого</div>
+      <div style="font-size:15px;font-weight:400;color:#fff;margin-top:3px;font-variant-numeric:tabular-nums">${fmt(grand)}</div>
     </div>
   </div>
   ${sections}
-  <footer style="padding-top:28px;border-top:1px solid #ddd5d0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px">
-    <div style="font-size:12px;color:#8e8e93">Цены производителя без скидок, доставки и выбора тканей</div>
-    <div style="font-size:12px;color:#8e8e93">${esc(project.designer_phone || '')}${project.designer_phone && project.designer_email ? ' · ' : ''}${esc(project.designer_email || '')}</div>
+  ${comment ? `<div style="margin-bottom:20px;font-size:12px;color:#8e8e93">${esc(comment)}</div>` : ''}
+  <footer style="padding-top:20px;border-top:1px solid #ddd5d0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div style="font-size:11px;color:#8e8e93">ezhome.design</div>
+    <div style="font-size:11px;color:#8e8e93">${project.designer_phone ? esc(project.designer_phone) : ''}${project.designer_phone && project.designer_email ? ' · ' : ''}${project.designer_email ? esc(project.designer_email) : ''}</div>
   </footer>
 </div>
 </body></html>`;
