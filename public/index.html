@@ -460,7 +460,7 @@ tbody tr:hover td{background:var(--bg2)}
             </select>
           </div>
           <div class="fg"><label>Наименование *</label><input id="f-name" style="width:200px" placeholder="Диван Stone"></div>
-          <div class="fg"><label>Ссылка на товар</label><input id="f-url" style="width:185px" placeholder="https://divan.ru/..."></div>
+          <div class="fg"><label>Ссылка на товар</label><div style="display:flex;gap:6px;align-items:center"><input id="f-url" style="width:185px" placeholder="https://divan.ru/..."><button onclick="parseUrl()" id="parse-btn" style="background:var(--accent);color:#fff;border:none;border-radius:3px;padding:7px 10px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">⚡ Заполнить</button></div></div>
           <div class="fg"><label>Фото (прямая ссылка)</label><input id="f-img" style="width:185px" placeholder="https://.../photo.jpg"></div>
           <div class="fg"><label>Размер</label><input id="f-size" style="width:76px" placeholder="140×80"></div>
           <div class="fg"><label>Цена, ₽</label><input id="f-price" type="number" style="width:88px" min="0"></div>
@@ -913,3 +913,4 @@ initApp();
 </script>
 </body>
 </html>
+
