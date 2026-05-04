@@ -535,12 +535,54 @@ function switchTab(tab){
 async function doLogin(){
   const r=await api('/api/login',{method:'POST',body:{email:vv('l-email'),password:vv('l-pass')}});
   if(r.error)return document.getElementById('auth-err').textContent=r.error;
-  await initApp();
+  await 
+async function parseUrl(){
+  const url=document.getElementById('f-url').value.trim();
+  if(!url)return toast('Введите ссылку','');
+  const btn=document.getElementById('parse-btn');
+  btn.textContent='⏳';btn.disabled=true;
+  try{
+    const r=await fetch('https://web-production-b181.up.railway.app/parse',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url})
+    });
+    const d=await r.json();
+    if(!d.ok)throw new Error(d.error||'Ошибка');
+    if(d.name)document.getElementById('f-name').value=d.name;
+    if(d.price)document.getElementById('f-price').value=d.price;
+    if(d.size)document.getElementById('f-size').value=d.size;
+    if(d.image_url)document.getElementById('f-img').value=d.image_url;
+    toast('Данные заполнены','success');
+  }catch(e){toast('Ошибка: '+e.message,'');}
+  finally{btn.textContent='⚡ Заполнить';btn.disabled=false;}
+}
+initApp();
 }
 async function doRegister(){
   const r=await api('/api/register',{method:'POST',body:{name:vv('r-name'),email:vv('r-email'),password:vv('r-pass')}});
   if(r.error)return document.getElementById('reg-err').textContent=r.error;
-  await initApp();
+  await 
+async function parseUrl(){
+  const url=document.getElementById('f-url').value.trim();
+  if(!url)return toast('Введите ссылку','');
+  const btn=document.getElementById('parse-btn');
+  btn.textContent='⏳';btn.disabled=true;
+  try{
+    const r=await fetch('https://web-production-b181.up.railway.app/parse',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url})
+    });
+    const d=await r.json();
+    if(!d.ok)throw new Error(d.error||'Ошибка');
+    if(d.name)document.getElementById('f-name').value=d.name;
+    if(d.price)document.getElementById('f-price').value=d.price;
+    if(d.size)document.getElementById('f-size').value=d.size;
+    if(d.image_url)document.getElementById('f-img').value=d.image_url;
+    toast('Данные заполнены','success');
+  }catch(e){toast('Ошибка: '+e.message,'');}
+  finally{btn.textContent='⚡ Заполнить';btn.disabled=false;}
+}
+initApp();
 }
 async function doLogout(){await api('/api/logout',{method:'POST'});location.reload()}
 async function initApp(){
@@ -909,6 +951,27 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&['l-email','l-pass'].includes(e.target.id))doLogin();
   if(e.key==='Enter'&&['r-name','r-email','r-pass'].includes(e.target.id))doRegister();
 });
+
+async function parseUrl(){
+  const url=document.getElementById('f-url').value.trim();
+  if(!url)return toast('Введите ссылку','');
+  const btn=document.getElementById('parse-btn');
+  btn.textContent='⏳';btn.disabled=true;
+  try{
+    const r=await fetch('https://web-production-b181.up.railway.app/parse',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url})
+    });
+    const d=await r.json();
+    if(!d.ok)throw new Error(d.error||'Ошибка');
+    if(d.name)document.getElementById('f-name').value=d.name;
+    if(d.price)document.getElementById('f-price').value=d.price;
+    if(d.size)document.getElementById('f-size').value=d.size;
+    if(d.image_url)document.getElementById('f-img').value=d.image_url;
+    toast('Данные заполнены','success');
+  }catch(e){toast('Ошибка: '+e.message,'');}
+  finally{btn.textContent='⚡ Заполнить';btn.disabled=false;}
+}
 initApp();
 </script>
 </body>
