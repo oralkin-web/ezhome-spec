@@ -156,6 +156,15 @@ app.post('/api/feedback', auth, async (req, res) => {
   res.json({ ok: true });
 });
 
+
+app.get('/api/feedback/mine', auth, async (req, res) => {
+  const r = await pool.query(
+    'SELECT id, text, created_at FROM feedback WHERE user_id=$1 ORDER BY created_at DESC LIMIT 20',
+    [req.session.userId]
+  );
+  res.json(r.rows);
+});
+
 app.get('/api/feedback', adminAuth, async (req, res) => {
   const r = await pool.query(`
     SELECT f.*, u.name as user_name, u.email as user_email
