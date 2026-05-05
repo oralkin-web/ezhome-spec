@@ -99,10 +99,16 @@ const auth = (req, res, next) => {
   next();
 };
 
-const adminAuth = (req, res, next) => {
+const adminAuth = async (req, res, next) => {
   if (!req.session.userId) return res.status(401).json({ error: 'Unauthorized' });
-  if (req.session.userEmail !== ADMIN_EMAIL) return res.status(403).json({ error: 'Forbidden' });
-  next();
+  // Проверяем email из базы — не из сессии, чтобы старые сессии тоже работали
+  try {
+    const r = await pool.query('SELECT email FROM users WHERE id=$1', [req.session.userId]);
+    if (!r.rows.length || r.rows[0].email !== ADMIN_EMAIL) return res.status(403).json({ error: 'Forbidden' });
+    next();
+  } catch(e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 };
 
 // AUTH
