@@ -7,11 +7,31 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+const ADMIN_EMAIL = 'oralkin@gmail.com';
+const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
+
+async function sendEmail(subject, html) {
+  if (!RESEND_API_KEY) return;
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'ezhome <feedback@ezhome.design>',
+        to: ADMIN_EMAIL,
+        subject,
+        html
+      })
+    });
+  } catch (e) {
+    console.error('Email error:', e.message);
+  }
+}
 
 async function initDB() {
   await pool.query(`
@@ -48,6 +68,12 @@ async function initDB() {
       cmt TEXT DEFAULT '',
       sort_order INTEGER DEFAULT 0
     );
+    CREATE TABLE IF NOT EXISTS feedback (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id),
+      text TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
   `);
   await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS comment TEXT DEFAULT ''`);
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS logo TEXT DEFAULT ''`);
@@ -69,6 +95,12 @@ const auth = (req, res, next) => {
   next();
 };
 
+const adminAuth = (req, res, next) => {
+  if (!req.session.userId) return res.status(401).json({ error: 'Unauthorized' });
+  if (req.session.userEmail !== ADMIN_EMAIL) return res.status(403).json({ error: 'Forbidden' });
+  next();
+};
+
 // AUTH
 app.post('/api/register', async (req, res) => {
   const { email, password, name } = req.body;
@@ -79,6 +111,7 @@ app.post('/api/register', async (req, res) => {
   const id = uuidv4();
   await pool.query('INSERT INTO users (id, email, password, name) VALUES ($1, $2, $3, $4)', [id, email.toLowerCase(), hash, name]);
   req.session.userId = id;
+  req.session.userEmail = email.toLowerCase();
   res.json({ ok: true });
 });
 
@@ -88,6 +121,7 @@ app.post('/api/login', async (req, res) => {
   const user = result.rows[0];
   if (!user || !bcrypt.compareSync(password, user.password)) return res.status(401).json({ error: 'Неверный email или пароль' });
   req.session.userId = user.id;
+  req.session.userEmail = user.email;
   res.json({ ok: true });
 });
 
@@ -95,13 +129,40 @@ app.post('/api/logout', (req, res) => { req.session.destroy(); res.json({ ok: tr
 
 app.get('/api/me', auth, async (req, res) => {
   const r = await pool.query('SELECT id, email, name, phone, site, logo FROM users WHERE id = $1', [req.session.userId]);
-  res.json(r.rows[0]);
+  const user = r.rows[0];
+  user.isAdmin = user.email === ADMIN_EMAIL;
+  res.json(user);
 });
 
 app.put('/api/me', auth, async (req, res) => {
   const { name, phone, site, logo } = req.body;
   await pool.query('UPDATE users SET name=$1, phone=$2, site=$3, logo=$4 WHERE id=$5', [name, phone, site, logo||'', req.session.userId]);
   res.json({ ok: true });
+});
+
+// FEEDBACK
+app.post('/api/feedback', auth, async (req, res) => {
+  const { text } = req.body;
+  if (!text || !text.trim()) return res.status(400).json({ error: 'Текст обязателен' });
+  const id = uuidv4();
+  await pool.query('INSERT INTO feedback (id, user_id, text) VALUES ($1, $2, $3)', [id, req.session.userId, text.trim()]);
+  const userR = await pool.query('SELECT name, email FROM users WHERE id=$1', [req.session.userId]);
+  const user = userR.rows[0];
+  const date = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+  await sendEmail(
+    `Новый отзыв от ${user.name}`,
+    `<p><b>${user.name}</b> (${user.email})</p><p>${date}</p><hr><p style="font-size:16px">${text.trim().replace(/\n/g, '<br>')}</p>`
+  );
+  res.json({ ok: true });
+});
+
+app.get('/api/feedback', adminAuth, async (req, res) => {
+  const r = await pool.query(`
+    SELECT f.*, u.name as user_name, u.email as user_email
+    FROM feedback f JOIN users u ON u.id = f.user_id
+    ORDER BY f.created_at DESC
+  `);
+  res.json(r.rows);
 });
 
 // PROJECTS
@@ -325,7 +386,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 function doPrint(){
   var t=document.title;
   document.title='${esc(project.name).replace(/'/g,"\\'")} Комплектация';
-  // Устанавливаем высоту страницы равной контенту — без разрывов
   var h=document.body.scrollHeight;
   var style=document.createElement('style');
   style.id='print-size-fix';
