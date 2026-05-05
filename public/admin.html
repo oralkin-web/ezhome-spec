@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ezhome · Админ</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f1ef;color:#000;font-size:14px;font-weight:300}
+.topbar{background:#7B2237;padding:0 32px;height:52px;display:flex;align-items:center;justify-content:space-between}
+.topbar-name{font-size:17px;font-weight:500;color:#fff}
+.topbar-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px}
+.wrap{max-width:760px;margin:32px auto;padding:0 24px}
+.card{background:#fff;border:0.5px solid #ddd5d0;border-radius:4px;overflow:hidden;margin-bottom:24px}
+.card-head{background:#621a2c;padding:12px 20px;font-size:13px;font-weight:500;color:#fff;display:flex;align-items:center;justify-content:space-between}
+.card-body{padding:0}
+table{width:100%;border-collapse:collapse}
+thead th{background:#f5f1ef;font-size:10px;color:#8e8e93;font-weight:400;padding:8px 16px;text-align:left;border-bottom:1px solid #ddd5d0}
+tbody td{padding:10px 16px;border-bottom:1px solid #f0ede9;font-size:13px;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#fdfcfb}
+.badge-admin{background:#7B2237;color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;font-weight:500}
+.btn-reset{background:none;border:0.5px solid #ddd5d0;border-radius:3px;padding:5px 12px;font-size:11px;color:#8e8e93;cursor:pointer;font-family:inherit}
+.btn-reset:hover{border-color:#778D7F;color:#778D7F}
+.invite-box{background:#f0ede9;border-radius:3px;padding:14px 16px;font-size:13px;display:flex;align-items:center;gap:12px}
+.invite-url{font-size:12px;color:#7B2237;font-family:monospace;word-break:break-all;flex:1}
+.btn-copy{background:#7B2237;color:#fff;border:none;border-radius:3px;padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn-copy:hover{background:#621a2c}
+.stats{display:flex;gap:1px;background:#ddd5d0;border:1px solid #ddd5d0;border-radius:4px;overflow:hidden;margin-bottom:24px}
+.stat{background:#fff;padding:12px 20px;flex:1}
+.stat-lbl{font-size:9px;color:#8e8e93}
+.stat-val{font-size:22px;font-weight:400;margin-top:2px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#000;color:#fff;padding:8px 18px;border-radius:4px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.empty{padding:32px;text-align:center;color:#8e8e93;font-size:13px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>
+    <div class="topbar-name">ezhome · Админ</div>
+    <div class="topbar-sub">Управление участниками</div>
+  </div>
+  <a href="/" style="color:rgba(255,255,255,0.6);font-size:12px;text-decoration:none">← Приложение</a>
+</div>
+
+<div class="wrap">
+  <div class="stats">
+    <div class="stat"><div class="stat-lbl">Участников</div><div class="stat-val" id="s-total">—</div></div>
+    <div class="stat"><div class="stat-lbl">Осталось мест</div><div class="stat-val" id="s-left">—</div></div>
+    <div class="stat"><div class="stat-lbl">Отзывов</div><div class="stat-val" id="s-feedback">—</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-head">Инвайт-ссылка</div>
+    <div class="card-body" style="padding:16px 20px">
+      <div class="invite-box">
+        <div class="invite-url" id="invite-url">загрузка...</div>
+        <button class="btn-copy" onclick="copyInvite()">Копировать</button>
+      </div>
+      <div style="font-size:11px;color:#8e8e93;margin-top:8px">Отправьте эту ссылку участникам. По ней можно зарегистрироваться. Обычная регистрация закрыта.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <span>Участники</span>
+      <span id="head-count" style="font-size:11px;opacity:0.6"></span>
+    </div>
+    <div class="card-body">
+      <table>
+        <thead><tr>
+          <th>Имя</th>
+          <th>Email</th>
+          <th>Зарегистрирован</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="users-tbody">
+          <tr><td colspan="4" class="empty">Загрузка...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MAX = 15;
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+async function api(url,opts={}){
+  const r=await fetch(url,{headers:{'Content-Type':'application/json'},...opts,body:opts.body?JSON.stringify(opts.body):undefined});
+  return r.json();
+}
+
+function fmtDate(d){
+  return new Date(d).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit'});
+}
+
+async function loadUsers(){
+  const users = await api('/api/admin/users');
+  if(users.error){
+    document.getElementById('users-tbody').innerHTML='<tr><td colspan="4" class="empty">Нет доступа — войдите как администратор</td></tr>';
+    return;
+  }
+  document.getElementById('s-total').textContent = users.length;
+  document.getElementById('s-left').textContent = Math.max(0, MAX - users.length);
+  document.getElementById('head-count').textContent = users.length + ' / ' + MAX;
+
+  if(!users.length){
+    document.getElementById('users-tbody').innerHTML='<tr><td colspan="4" class="empty">Нет участников</td></tr>';
+    return;
+  }
+
+  document.getElementById('users-tbody').innerHTML = users.map(u=>`
+    <tr>
+      <td>${esc(u.name)} ${u.email==='oralkin@gmail.com'?'<span class="badge-admin">admin</span>':''}</td>
+      <td style="color:#8e8e93">${esc(u.email)}</td>
+      <td style="color:#8e8e93">${fmtDate(u.created_at)}</td>
+      <td>${u.email!=='oralkin@gmail.com'?`<button class="btn-reset" onclick="resetPassword('${u.id}','${esc(u.name)}')">Сбросить пароль</button>`:''}</td>
+    </tr>`).join('');
+}
+
+async function loadFeedbackCount(){
+  const r = await api('/api/feedback');
+  if(Array.isArray(r)) document.getElementById('s-feedback').textContent = r.length;
+}
+
+async function resetPassword(userId, name){
+  if(!confirm(`Сбросить пароль для ${name}?\n\nНовый временный пароль будет отправлен на их email.`))return;
+  const r = await api('/api/admin/reset-password',{method:'POST',body:{userId}});
+  if(r.error)return toast('Ошибка: '+r.error);
+  toast(`Пароль сброшен, письмо отправлено`);
+}
+
+function copyInvite(){
+  const url = document.getElementById('invite-url').textContent;
+  navigator.clipboard.writeText(url).then(()=>toast('Ссылка скопирована'));
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+async function init(){
+  // Получаем инвайт-токен из env через специальный роут
+  const r = await api('/api/admin/invite-url');
+  if(r.url) document.getElementById('invite-url').textContent = r.url;
+  loadUsers();
+  loadFeedbackCount();
+}
+
+init();
+</script>
+</body>
+</html>

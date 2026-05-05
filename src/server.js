@@ -16,6 +16,10 @@ const pool = new Pool({
 });
 
 async function sendEmail(subject, html) {
+  await sendEmailTo(ADMIN_EMAIL, subject, html);
+}
+
+async function sendEmailTo(to, subject, html) {
   if (!RESEND_API_KEY) return;
   try {
     await fetch('https://api.resend.com/emails', {
@@ -23,7 +27,7 @@ async function sendEmail(subject, html) {
       headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         from: 'ezhome <feedback@ezhome.design>',
-        to: ADMIN_EMAIL,
+        to,
         subject,
         html
       })
@@ -102,9 +106,21 @@ const adminAuth = (req, res, next) => {
 };
 
 // AUTH
+const INVITE_TOKEN = process.env.INVITE_TOKEN || 'ezhome-beta-2024';
+const MAX_USERS = 15;
+
+// Проверка инвайт-токена
+app.get('/invite/:token', (req, res) => {
+  if (req.params.token !== INVITE_TOKEN) return res.status(404).send('<h1>Ссылка недействительна</h1>');
+  res.sendFile(require('path').join(__dirname, '../public/index.html'));
+});
+
 app.post('/api/register', async (req, res) => {
-  const { email, password, name } = req.body;
+  const { email, password, name, invite } = req.body;
+  if (invite !== INVITE_TOKEN) return res.status(403).json({ error: 'Неверная ссылка для регистрации' });
   if (!email || !password || !name) return res.status(400).json({ error: 'Все поля обязательны' });
+  const count = await pool.query('SELECT COUNT(*) FROM users');
+  if (parseInt(count.rows[0].count) >= MAX_USERS) return res.status(403).json({ error: 'Достигнут лимит участников' });
   const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
   if (existing.rows.length) return res.status(400).json({ error: 'Email уже зарегистрирован' });
   const hash = bcrypt.hashSync(password, 10);
@@ -172,6 +188,43 @@ app.get('/api/feedback', adminAuth, async (req, res) => {
     ORDER BY f.created_at DESC
   `);
   res.json(r.rows);
+});
+
+
+
+// ADMIN PAGE
+app.get('/admin', adminAuth, (req, res) => {
+  res.sendFile(require('path').join(__dirname, '../public/admin.html'));
+});
+
+app.get('/api/admin/invite-url', adminAuth, (req, res) => {
+  const base = process.env.APP_URL || 'https://app.ezhome.design';
+  res.json({ url: base + '/invite/' + INVITE_TOKEN });
+});
+
+// ADMIN — список пользователей и сброс пароля
+app.get('/api/admin/users', adminAuth, async (req, res) => {
+  const r = await pool.query(
+    'SELECT id, email, name, created_at FROM users ORDER BY created_at ASC'
+  );
+  res.json(r.rows);
+});
+
+app.post('/api/admin/reset-password', adminAuth, async (req, res) => {
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ error: 'userId обязателен' });
+  const r = await pool.query('SELECT email, name FROM users WHERE id=$1', [userId]);
+  if (!r.rows.length) return res.status(404).json({ error: 'Пользователь не найден' });
+  const user = r.rows[0];
+  // Генерируем временный пароль
+  const tmpPass = Math.random().toString(36).slice(2, 10);
+  const hash = bcrypt.hashSync(tmpPass, 10);
+  await pool.query('UPDATE users SET password=$1 WHERE id=$2', [hash, userId]);
+  // Отправляем пользователю
+  await sendEmailTo(user.email, 'Новый пароль — ezhome.design',
+    `<p>Привет, ${user.name}!</p><p>Твой временный пароль: <b style="font-size:18px">${tmpPass}</b></p><p>Войди на <a href="https://app.ezhome.design">app.ezhome.design</a> и смени пароль в настройках.</p>`
+  );
+  res.json({ ok: true, tmpPass });
 });
 
 // PROJECTS
