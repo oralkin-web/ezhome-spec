@@ -233,6 +233,17 @@ app.post('/api/admin/reset-password', adminAuth, async (req, res) => {
   res.json({ ok: true, tmpPass });
 });
 
+
+// TEMPORARY — сменить пароль по секретному URL (удалить после использования)
+app.get('/set-my-password', async (req, res) => {
+  const { secret, pass } = req.query;
+  if (secret !== 'ezhome-setup-2025') return res.status(403).send('Forbidden');
+  if (!pass) return res.status(400).send('pass required');
+  const hash = bcrypt.hashSync(pass, 10);
+  await pool.query("UPDATE users SET password=$1 WHERE email='oralkin@gmail.com'", [hash]);
+  res.send('OK — пароль обновлён');
+});
+
 // PROJECTS
 app.get('/api/projects', auth, async (req, res) => {
   const r = await pool.query(`
