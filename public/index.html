@@ -602,8 +602,6 @@ async function parseUrl(){
   }catch(e){toast('Ошибка: '+e.message,'');}
   finally{btn.textContent='⚡ Заполнить';btn.disabled=false;}
 }
-initApp();
-}
 async function doRegister(){
   const invite=sessionStorage.getItem('invite')||'';
   const r=await api('/api/register',{method:'POST',body:{name:vv('r-name'),email:vv('r-email'),password:vv('r-pass'),invite}});
@@ -632,8 +630,6 @@ async function parseUrl(){
     toast('Данные заполнены','success');
   }catch(e){toast('Ошибка: '+e.message,'');}
   finally{btn.textContent='⚡ Заполнить';btn.disabled=false;}
-}
-initApp();
 }
 function goHome(){
   document.getElementById('editor-page').style.display='none';
