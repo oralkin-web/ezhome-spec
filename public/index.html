@@ -536,9 +536,7 @@ tbody tr:hover td{background:var(--bg2)}
 
   <!-- FEEDBACK PAGE -->
   <div class="feedback-page" id="feedback-page">
-    <div class="content-hdr">
-      <span class="content-title">Отзыв о приложении</span>
-    </div>
+    <div class="content-hdr"><span class="content-title">Отзыв о приложении</span></div>
     <div class="feedback-body">
       <div class="feedback-card">
         <div class="feedback-card-head">Поделитесь впечатлениями</div>
@@ -581,67 +579,54 @@ function switchTab(tab){
 async function doLogin(){
   const r=await api('/api/login',{method:'POST',body:{email:vv('l-email'),password:vv('l-pass')}});
   if(r.error)return document.getElementById('auth-err').textContent=r.error;
-  await 
-async function parseUrl(){
-  const url=document.getElementById('f-url').value.trim();
-  if(!url)return toast('Введите ссылку','');
-  const btn=document.getElementById('parse-btn');
-  btn.textContent='⏳';btn.disabled=true;
-  try{
-    const r=await fetch('https://web-production-b181.up.railway.app/parse',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({url})
-    });
-    const d=await r.json();
-    if(!d.ok)throw new Error(d.error||'Ошибка');
-    if(d.name)document.getElementById('f-name').value=d.name;
-    if(d.price)document.getElementById('f-price').value=d.price;
-    if(d.size)document.getElementById('f-size').value=d.size;
-    if(d.image_url)document.getElementById('f-img').value=d.image_url;
-    toast('Данные заполнены','success');
-  }catch(e){toast('Ошибка: '+e.message,'');}
-  finally{btn.textContent='⚡ Заполнить';btn.disabled=false;}
+  await initApp();
 }
 async function doRegister(){
   const invite=sessionStorage.getItem('invite')||'';
   const r=await api('/api/register',{method:'POST',body:{name:vv('r-name'),email:vv('r-email'),password:vv('r-pass'),invite}});
   if(r.error)return document.getElementById('reg-err').textContent=r.error;
-  // Показываем сообщение и переходим в приложение
   document.getElementById('reg-err').style.color='var(--accent)';
   document.getElementById('reg-err').textContent='Добро пожаловать! Загружаем приложение...';
   setTimeout(()=>initApp(), 1200);
-}
-async function parseUrl(){
-  const url=document.getElementById('f-url').value.trim();
-  if(!url)return toast('Введите ссылку','');
-  const btn=document.getElementById('parse-btn');
-  btn.textContent='⏳';btn.disabled=true;
-  try{
-    const r=await fetch('https://web-production-b181.up.railway.app/parse',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({url})
-    });
-    const d=await r.json();
-    if(!d.ok)throw new Error(d.error||'Ошибка');
-    if(d.name)document.getElementById('f-name').value=d.name;
-    if(d.price)document.getElementById('f-price').value=d.price;
-    if(d.size)document.getElementById('f-size').value=d.size;
-    if(d.image_url)document.getElementById('f-img').value=d.image_url;
-    toast('Данные заполнены','success');
-  }catch(e){toast('Ошибка: '+e.message,'');}
-  finally{btn.textContent='⚡ Заполнить';btn.disabled=false;}
 }
 function goHome(){
   document.getElementById('editor-page').style.display='none';
   document.getElementById('feedback-page').style.display='none';
   document.getElementById('dashboard').style.display='flex';
   document.querySelectorAll('.sb-item').forEach((el,i)=>el.classList.toggle('active',i===0));
-  filterMode='all';
-  renderProjects();
+  filterMode='all';renderProjects();
+}
+function showFeedback(){
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('editor-page').style.display='none';
+  document.getElementById('feedback-page').style.display='flex';
+  document.querySelectorAll('.sb-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('sb-feedback').classList.add('active');
+  loadFeedbackHistory();
+}
+async function submitFeedback(){
+  const text=document.getElementById('feedback-text').value.trim();
+  if(!text)return toast('Напишите что-нибудь','');
+  const btn=document.getElementById('feedback-btn');
+  const status=document.getElementById('feedback-status');
+  btn.disabled=true;btn.textContent='Отправляю...';
+  const r=await api('/api/feedback',{method:'POST',body:{text}});
+  if(r.error){toast(r.error,'');btn.disabled=false;btn.textContent='Отправить';return;}
+  document.getElementById('feedback-text').value='';
+  status.textContent='Отправлено, спасибо!';
+  setTimeout(()=>status.textContent='',3000);
+  btn.disabled=false;btn.textContent='Отправить';
+  loadFeedbackHistory();
+}
+async function loadFeedbackHistory(){
+  const r=await api('/api/feedback/mine');
+  if(!r||r.error||!r.length){document.getElementById('feedback-history').style.display='none';return;}
+  document.getElementById('feedback-history').style.display='block';
+  const fmtd=d=>new Date(d).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('feedback-history-list').innerHTML=r.map(f=>`<div class="fitem"><div class="fitem-meta">${fmtd(f.created_at)}</div><div class="fitem-text">${esc(f.text)}</div></div>`).join('');
 }
 async function doLogout(){await api('/api/logout',{method:'POST'});location.reload()}
 async function initApp(){
-  // Сохраняем инвайт-токен из URL если есть
   const urlToken=location.pathname.split('/invite/')[1];
   if(urlToken)sessionStorage.setItem('invite',urlToken);
   const me=await api('/api/me');
@@ -967,35 +952,6 @@ function renderItems(){
   document.getElementById('grand-val').textContent=fmt(grand);
 }
 
-function showFeedback(){
-  document.getElementById('dashboard').style.display='none';
-  document.getElementById('editor-page').style.display='none';
-  document.getElementById('feedback-page').style.display='flex';
-  document.querySelectorAll('.sb-item').forEach(el=>el.classList.remove('active'));
-  document.getElementById('sb-feedback').classList.add('active');
-  loadFeedbackHistory();
-}
-async function submitFeedback(){
-  const text=document.getElementById('feedback-text').value.trim();
-  if(!text)return toast('Напишите что-нибудь','');
-  const btn=document.getElementById('feedback-btn');
-  const status=document.getElementById('feedback-status');
-  btn.disabled=true;btn.textContent='Отправляю...';
-  const r=await api('/api/feedback',{method:'POST',body:{text}});
-  if(r.error){toast(r.error,'');btn.disabled=false;btn.textContent='Отправить';return;}
-  document.getElementById('feedback-text').value='';
-  status.textContent='Отправлено, спасибо!';
-  setTimeout(()=>status.textContent='',3000);
-  btn.disabled=false;btn.textContent='Отправить';
-  loadFeedbackHistory();
-}
-async function loadFeedbackHistory(){
-  const r=await api('/api/feedback/mine');
-  if(!r||r.error||!r.length){document.getElementById('feedback-history').style.display='none';return;}
-  document.getElementById('feedback-history').style.display='block';
-  const fmtd=d=>new Date(d).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-  document.getElementById('feedback-history-list').innerHTML=r.map(f=>`<div class="fitem"><div class="fitem-meta">${fmtd(f.created_at)}</div><div class="fitem-text">${esc(f.text)}</div></div>`).join('');
-}
 function handleLogoUpload(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
