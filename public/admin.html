@@ -73,6 +73,7 @@ tbody tr:hover td{background:#fdfcfb}
           <th>Имя</th>
           <th>Email</th>
           <th>Зарегистрирован</th>
+          <th>Отзывы</th>
           <th></th>
         </tr></thead>
         <tbody id="users-tbody">
@@ -123,7 +124,11 @@ async function loadUsers(){
       <td>${esc(u.name)} ${u.email==='oralkin@gmail.com'?'<span class="badge-admin">admin</span>':''}</td>
       <td style="color:#8e8e93">${esc(u.email)}</td>
       <td style="color:#8e8e93">${fmtDate(u.created_at)}</td>
-      <td>${u.email!=='oralkin@gmail.com'?`<button class="btn-reset" onclick="resetPassword('${u.id}','${esc(u.name)}')">Сбросить пароль</button>`:''}</td>
+      <td style="color:${u.feedback_count>0?'var(--brand)':'#8e8e93'};font-weight:${u.feedback_count>0?'500':'300'}">${u.feedback_count||0}</td>
+      <td style="display:flex;gap:6px">
+        <button class="btn-reset" onclick="resetPassword('${u.id}','${esc(u.name)}')">Сбросить пароль</button>
+        <button class="btn-reset" style="color:#c0392b;border-color:#f5c6cb" onclick="deleteUser('${u.id}','${esc(u.name)}')">Удалить</button>
+      </td>
     </tr>`).join('');
 }
 
@@ -146,6 +151,13 @@ function copyInvite(){
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
+async function deleteUser(userId, name){
+  if(!confirm(`Удалить пользователя ${name}?\n\nБудут удалены все его проекты и отзывы. Действие необратимо.`))return;
+  const r = await api('/api/admin/users/'+userId,{method:'DELETE'});
+  if(r.error)return toast('Ошибка: '+r.error);
+  toast('Пользователь удалён');
+  loadUsers();
+}
 async function init(){
   // Получаем инвайт-токен из env через специальный роут
   const r = await api('/api/admin/invite-url');

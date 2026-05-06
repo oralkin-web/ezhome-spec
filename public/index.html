@@ -372,7 +372,7 @@ tbody tr:hover td{background:var(--bg2)}
     </div>
     <div class="auth-tabs">
       <div class="auth-tab active" onclick="switchTab('login')">Войти</div>
-      <div class="auth-tab" onclick="switchTab('register')">Регистрация</div>
+      <div class="auth-tab" id="tab-register" onclick="switchTab('register')" style="display:none">Регистрация</div>
     </div>
     <div id="login-form">
       <div class="fg2"><label>Email</label><input type="email" id="l-email" placeholder="email@studio.ru"></div>
@@ -393,7 +393,7 @@ tbody tr:hover td{background:var(--bg2)}
 <!-- APP -->
 <div class="app" id="app">
   <div class="topbar">
-    <div class="topbar-brand">
+    <div class="topbar-brand" onclick="goHome()" style="cursor:pointer" title="На главную">
       <img src="data:image/png;base64,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" alt="ezhome">
       <span class="topbar-name">ezhome.design</span>
     </div>
@@ -404,6 +404,7 @@ tbody tr:hover td{background:var(--bg2)}
         <span class="user-name" id="user-name-top">...</span>
         <div class="user-menu" id="user-menu">
           <a onclick="openSettings()">Настройки</a>
+          <a id="admin-link" href="/admin" style="display:none">Админ</a>
           <a onclick="doLogout()">Выйти</a>
         </div>
       </div>
@@ -607,7 +608,11 @@ async function doRegister(){
   const invite=sessionStorage.getItem('invite')||'';
   const r=await api('/api/register',{method:'POST',body:{name:vv('r-name'),email:vv('r-email'),password:vv('r-pass'),invite}});
   if(r.error)return document.getElementById('reg-err').textContent=r.error;
-  await 
+  // Показываем сообщение и переходим в приложение
+  document.getElementById('reg-err').style.color='var(--accent)';
+  document.getElementById('reg-err').textContent='Добро пожаловать! Загружаем приложение...';
+  setTimeout(()=>initApp(), 1200);
+}
 async function parseUrl(){
   const url=document.getElementById('f-url').value.trim();
   if(!url)return toast('Введите ссылку','');
@@ -630,6 +635,14 @@ async function parseUrl(){
 }
 initApp();
 }
+function goHome(){
+  document.getElementById('editor-page').style.display='none';
+  document.getElementById('feedback-page').style.display='none';
+  document.getElementById('dashboard').style.display='flex';
+  document.querySelectorAll('.sb-item').forEach((el,i)=>el.classList.toggle('active',i===0));
+  filterMode='all';
+  renderProjects();
+}
 async function doLogout(){await api('/api/logout',{method:'POST'});location.reload()}
 async function initApp(){
   // Сохраняем инвайт-токен из URL если есть
@@ -638,7 +651,11 @@ async function initApp(){
   const me=await api('/api/me');
   if(me.error){
     document.getElementById('auth-wrap').style.display='flex';
-    if(sessionStorage.getItem('invite'))switchTab('register');
+    if(sessionStorage.getItem('invite')){
+      const tabReg=document.getElementById('tab-register');
+      if(tabReg)tabReg.style.display='block';
+      switchTab('register');
+    }
     return;
   }
   currentUser=me;
@@ -647,6 +664,7 @@ async function initApp(){
   const ini=(me.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   document.getElementById('user-avatar').textContent=ini;
   document.getElementById('user-name-top').textContent=me.name||me.email;
+  if(me.isAdmin){const al=document.getElementById('admin-link');if(al)al.style.display='block';}
   // Показываем лого дизайнера в топбаре если загружено
   if(me.logo){
     const tb=document.querySelector('.topbar-brand img');

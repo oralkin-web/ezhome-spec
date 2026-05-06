@@ -210,9 +210,15 @@ app.get('/api/admin/invite-url', adminAuth, (req, res) => {
 
 // ADMIN — список пользователей и сброс пароля
 app.get('/api/admin/users', adminAuth, async (req, res) => {
-  const r = await pool.query(
-    'SELECT id, email, name, created_at FROM users ORDER BY created_at ASC'
-  );
+  const r = await pool.query(`
+    SELECT u.id, u.email, u.name, u.created_at,
+           COUNT(f.id)::int as feedback_count
+    FROM users u
+    LEFT JOIN feedback f ON f.user_id = u.id
+    WHERE u.email != $1
+    GROUP BY u.id
+    ORDER BY u.created_at ASC
+  `, [ADMIN_EMAIL]);
   res.json(r.rows);
 });
 
@@ -234,14 +240,19 @@ app.post('/api/admin/reset-password', adminAuth, async (req, res) => {
 });
 
 
-// TEMPORARY — сменить пароль по секретному URL (удалить после использования)
-app.get('/set-my-password', async (req, res) => {
-  const { secret, pass } = req.query;
-  if (secret !== 'ezhome-setup-2025') return res.status(403).send('Forbidden');
-  if (!pass) return res.status(400).send('pass required');
-  const hash = bcrypt.hashSync(pass, 10);
-  await pool.query("UPDATE users SET password=$1 WHERE email='oralkin@gmail.com'", [hash]);
-  res.send('OK — пароль обновлён');
+
+
+app.delete('/api/admin/users/:id', adminAuth, async (req, res) => {
+  const { id } = req.params;
+  // Не даём удалить самого себя
+  const r = await pool.query('SELECT email FROM users WHERE id=$1', [id]);
+  if (!r.rows.length) return res.status(404).json({ error: 'Не найдено' });
+  if (r.rows[0].email === ADMIN_EMAIL) return res.status(403).json({ error: 'Нельзя удалить администратора' });
+  await pool.query('DELETE FROM feedback WHERE user_id=$1', [id]);
+  await pool.query('DELETE FROM items WHERE project_id IN (SELECT id FROM projects WHERE user_id=$1)', [id]);
+  await pool.query('DELETE FROM projects WHERE user_id=$1', [id]);
+  await pool.query('DELETE FROM users WHERE id=$1', [id]);
+  res.json({ ok: true });
 });
 
 // PROJECTS
