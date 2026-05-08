@@ -26,7 +26,7 @@ async function sendEmailTo(to, subject, html) {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: 'seta <feedback@seta.design>',
+        from: 'ezhome <feedback@ezhome.design>',
         to,
         subject,
         html
@@ -88,7 +88,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'seta-secret-2024',
+  secret: process.env.SESSION_SECRET || 'ezhome-secret-2024',
   resave: false,
   saveUninitialized: false,
   cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
@@ -112,7 +112,7 @@ const adminAuth = async (req, res, next) => {
 };
 
 // AUTH
-const INVITE_TOKEN = process.env.INVITE_TOKEN || 'seta-beta-2024';
+const INVITE_TOKEN = process.env.INVITE_TOKEN || 'ezhome-beta-2024';
 const MAX_USERS = 15;
 
 // Проверка инвайт-токена
@@ -204,7 +204,7 @@ app.get('/admin', adminAuth, (req, res) => {
 });
 
 app.get('/api/admin/invite-url', adminAuth, (req, res) => {
-  const base = process.env.APP_URL || 'https://app.seta.design';
+  const base = process.env.APP_URL || 'https://app.ezhome.design';
   res.json({ url: base + '/invite/' + INVITE_TOKEN });
 });
 
@@ -233,8 +233,8 @@ app.post('/api/admin/reset-password', adminAuth, async (req, res) => {
   const hash = bcrypt.hashSync(tmpPass, 10);
   await pool.query('UPDATE users SET password=$1 WHERE id=$2', [hash, userId]);
   // Отправляем пользователю
-  await sendEmailTo(user.email, 'Новый пароль — seta.design',
-    `<p>Привет, ${user.name}!</p><p>Твой временный пароль: <b style="font-size:18px">${tmpPass}</b></p><p>Войди на <a href="https://app.seta.design">app.seta.design</a> и смени пароль в настройках.</p>`
+  await sendEmailTo(user.email, 'Новый пароль — ezhome.design',
+    `<p>Привет, ${user.name}!</p><p>Твой временный пароль: <b style="font-size:18px">${tmpPass}</b></p><p>Войди на <a href="https://app.ezhome.design">app.ezhome.design</a> и смени пароль в настройках.</p>`
   );
   res.json({ ok: true, tmpPass });
 });
@@ -495,8 +495,14 @@ if(new URLSearchParams(window.location.search).get('print')==='1'){
 </body></html>`;
 }
 
+// SPA fallback — всё кроме /api, /p/:slug, /admin, /invite/:token отдаём index.html
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/p/') || req.path.startsWith('/admin') || req.path.startsWith('/invite/')) return next();
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
 initDB().then(() => {
-  app.listen(PORT, () => console.log(`seta-spec running on port ${PORT}`));
+  app.listen(PORT, () => console.log(`ezhome-spec running on port ${PORT}`));
 }).catch(err => {
   console.error('DB init error:', err);
   process.exit(1);
