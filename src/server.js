@@ -6,6 +6,30 @@ const { Pool } = require('pg');
 const path = require('path');
 
 const app = express();
+
+const loginAttempts = {};
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const entry = loginAttempts[ip];
+  if (entry && entry.lockedUntil && now < entry.lockedUntil) {
+    const mins = Math.ceil((entry.lockedUntil - now) / 60000);
+    return `Слишком много попыток. Попробуйте через ${mins} мин.`;
+  }
+  return null;
+}
+function recordFailedLogin(ip) {
+  const now = Date.now();
+  if (!loginAttempts[ip]) loginAttempts[ip] = { count: 0 };
+  const entry = loginAttempts[ip];
+  if (entry.lockedUntil && now > entry.lockedUntil) entry.count = 0;
+  entry.count++;
+  entry.lastAttempt = now;
+  if (entry.count >= 5) entry.lockedUntil = now + 30 * 60 * 1000;
+}
+function clearLoginAttempts(ip) {
+  delete loginAttempts[ip];
+}
+
 const ALLOWED_ORIGINS = ['https://useseta.com', 'https://www.useseta.com', 'http://localhost:5173'];
 app.use((req, res, next) => {
   const origin = req.headers.origin;
@@ -106,7 +130,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'seta-secret-2024',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
+  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'none' }
 }));
 
 const auth = (req, res, next) => {
@@ -153,10 +177,17 @@ app.post('/api/register', async (req, res) => {
 });
 
 app.post('/api/login', async (req, res) => {
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const limited = checkRateLimit(ip);
+  if (limited) return res.status(429).json({ error: limited });
   const { email, password } = req.body;
   const result = await pool.query('SELECT * FROM users WHERE email = $1', [email?.toLowerCase()]);
   const user = result.rows[0];
-  if (!user || !bcrypt.compareSync(password, user.password)) return res.status(401).json({ error: 'Неверный email или пароль' });
+  if (!user || !bcrypt.compareSync(password, user.password)) {
+    recordFailedLogin(ip);
+    return res.status(401).json({ error: 'Неверный email или пароль' });
+  }
+  clearLoginAttempts(ip);
   req.session.userId = user.id;
   req.session.userEmail = user.email;
   res.json({ ok: true });
