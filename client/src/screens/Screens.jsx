@@ -3,7 +3,7 @@ import { Icon, Sidebar } from '../components/shared';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
-const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+const isValidEmail = (v) => v.trim().includes('@') && v.trim().includes('.') && v.trim().length > 5;
 
 function SettingsSection({ title, description, children }) {
   return (
