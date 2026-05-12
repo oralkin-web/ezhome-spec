@@ -6,6 +6,19 @@ const { Pool } = require('pg');
 const path = require('path');
 
 const app = express();
+const ALLOWED_ORIGINS = ['https://useseta.com', 'https://www.useseta.com', 'http://localhost:5173'];
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 const PORT = process.env.PORT || 8080;
 const ADMIN_EMAIL = 'oralkin@gmail.com';
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
