@@ -120,7 +120,7 @@ export function Settings({ onNav, logoUrl, onChangeLogo }) {
         <SettingsSection title="Профиль" description="Эти данные видите только вы и команда SETA.">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="settings-grid">
             <div className="field"><label className="label">Имя</label><input className="input" defaultValue="Анна Полякова" /></div>
-            <div className="field"><label className="label">Email</label><input className="input" type="email" defaultValue="anna@asterandfield.ru" /></div>
+            <div className="field"><label className="label">Email</label><input className="input" type="text" defaultValue="anna@asterandfield.ru" /></div>
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end" }}><button className="btn btn-primary">Сохранить</button></div>
         </SettingsSection>
@@ -129,7 +129,7 @@ export function Settings({ onNav, logoUrl, onChangeLogo }) {
 
         <SettingsSection title="Контакты для клиента" description="Отображаются в футере страницы, которую вы отправляете клиенту.">
           <div className="field"><label className="label">Телефон</label><input className="input" type="tel" defaultValue="+7 (495) 555 01 88" /></div>
-          <div className="field"><label className="label">Email</label><input className="input" type="email" defaultValue="hello@asterandfield.ru" /></div>
+          <div className="field"><label className="label">Email</label><input className="input" type="text" defaultValue="hello@asterandfield.ru" /></div>
           <div className="field"><label className="label">Сайт</label><input className="input" defaultValue="asterandfield.ru" /></div>
           <div style={{ display: "flex", justifyContent: "flex-end" }}><button className="btn btn-primary">Сохранить</button></div>
         </SettingsSection>
@@ -434,7 +434,7 @@ function ResetCard({ back }) {
           <p style={{ margin: "0 0 24px", color: "var(--ink-3)", fontSize: 13, lineHeight: 1.5 }}>Укажите email — мы отправим ссылку для входа.</p>
           <div className="field">
             <label className="label">Email</label>
-            <input className="input lg" type="email" placeholder="you@studio.ru"
+            <input className="input lg" type="text" placeholder="you@studio.ru"
               value={email} onChange={e => { setEmail(e.target.value); setEmailErr(""); }}
               style={{ borderColor: emailErr ? "var(--danger)" : undefined }} />
             {emailErr && <div style={{ fontSize: 12, color: "var(--danger)", marginTop: 4 }}>{emailErr}</div>}
@@ -490,7 +490,7 @@ function AuthCard({ mode, setMode, onLogin, onRegister }) {
           <p style={{ margin: "0 0 24px", color: "var(--ink-3)", fontSize: 13 }}>Войдите, чтобы продолжить работу с вашими комплектациями.</p>
           <div className="field">
             <label className="label">Email</label>
-            <input className="input lg" type="email" placeholder="you@studio.ru"
+            <input className="input lg" type="text" placeholder="you@studio.ru"
               value={emailVal}
               onChange={e => { setEmailVal(e.target.value); setEmailErr(""); setError(""); }}
               style={{ borderColor: emailErr ? "var(--danger)" : undefined }} />
@@ -514,7 +514,7 @@ function AuthCard({ mode, setMode, onLogin, onRegister }) {
           <div className="field"><label className="label">Имя</label><input className="input lg" placeholder="Ваше имя" value={regName} onChange={e => setRegName(e.target.value)} /></div>
           <div className="field">
             <label className="label">Email</label>
-            <input className="input lg" type="email" placeholder="you@studio.ru"
+            <input className="input lg" type="text" placeholder="you@studio.ru"
               value={regEmail}
               onChange={e => { setRegEmail(e.target.value); setRegEmailErr(""); }}
               style={{ borderColor: regEmailErr ? "var(--danger)" : undefined }} />
