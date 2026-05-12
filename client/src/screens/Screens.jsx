@@ -3,6 +3,8 @@ import { Icon, Sidebar } from '../components/shared';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
+const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+
 function SettingsSection({ title, description, children }) {
   return (
     <section className="settings-section" style={{ display: "grid", gridTemplateColumns: "260px 1fr", gap: 48, padding: "32px 0", borderTop: "1px solid var(--hairline)" }}>
@@ -450,8 +452,6 @@ function ResetCard({ back }) {
     </div>
   );
 }
-
-const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 function AuthCard({ mode, setMode, onLogin, onRegister }) {
   const [error, setError] = useState("");
