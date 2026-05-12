@@ -1,12 +1,41 @@
 import React from 'react';
 import { Icon, Placeholder, Editable, Sidebar } from '../components/shared';
 
+function formatDate(ts) {
+  if (!ts) return "";
+  const now = Date.now();
+  const diff = now - ts;
+  const min = Math.floor(diff / 60000);
+  const hrs = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (min < 2) return "Только что";
+  if (min < 60) return `${min} мин. назад`;
+  if (hrs < 24) return `${hrs} ч. назад`;
+  if (days === 1) return "Вчера";
+  if (days < 7) return `${days} дн. назад`;
+  const d = new Date(ts);
+  return d.toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
+}
+
+const COVER_COLORS = [
+  { hue: 28,  name: "Янтарь"   },
+  { hue: 18,  name: "Терракота"},
+  { hue: 145, name: "Шалфей"   },
+  { hue: 75,  name: "Оливка"   },
+  { hue: 215, name: "Туман"    },
+  { hue: 200, name: "Сталь"    },
+  { hue: 270, name: "Лаванда"  },
+  { hue: 320, name: "Пыльная роза"},
+  { hue: 50,  name: "Песок"    },
+  { hue: 0,   name: "Мел"      },
+];
+
 // Screen 1: Dashboard / project list.
-function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onNav }) {
+function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, onUnarchive, onChangeCover, onNav, isArchive = false }) {
   const list = projects;
   return (
     <div style={{ display: "flex", minHeight: "100vh" }} data-screen-label="01 Dashboard">
-      <Sidebar active="projects" onNav={onNav} />
+      <Sidebar active={isArchive ? "archive" : "projects"} onNav={onNav} />
       <main style={{ flex: 1, padding: "44px 56px 80px", maxWidth: 1280 }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 36, gap: 24 }}>
@@ -15,10 +44,10 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onNav }) {
               Рабочее пространство
             </div>
             <h1 className="serif" style={{ margin: 0, fontSize: 56, lineHeight: 1, letterSpacing: "-0.02em" }}>
-              Мои проекты
+              {isArchive ? "Архив" : "Мои проекты"}
             </h1>
             <div style={{ marginTop: 10, color: "var(--ink-2)", fontSize: 13 }}>
-              {list.length} {list.length === 1 ? "проект" : (list.length >= 2 && list.length <= 4 ? "проекта" : "проектов")} · Последняя активность 28 апреля
+              {list.length} {list.length === 1 ? "проект" : (list.length >= 2 && list.length <= 4 ? "проекта" : "проектов")}{!isArchive && " · Последняя активность 28 апреля"}
             </div>
           </div>
           <div style={{ display: "flex", gap: 10, alignItems: "center", flexShrink: 0 }}>
@@ -44,7 +73,7 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onNav }) {
 
         {/* Grid or empty */}
         {list.length === 0 ? (
-          <EmptyState onCreate={onCreate} />
+          isArchive ? <EmptyArchive /> : <EmptyState onCreate={onCreate} />
         ) : (
           <div style={{
             display: "grid",
@@ -58,6 +87,10 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onNav }) {
                 onOpen={() => onOpen(p.id)}
                 onRename={(name) => onRename(p.id, name)}
                 onDelete={() => onDelete(p.id)}
+                onArchive={onArchive ? () => onArchive(p.id) : null}
+                onUnarchive={onUnarchive ? () => onUnarchive(p.id) : null}
+                onChangeCover={onChangeCover ? (hue) => onChangeCover(p.id, hue) : null}
+                isArchive={isArchive}
               />
             ))}
           </div>
@@ -67,10 +100,11 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onNav }) {
   );
 }
 
-function ProjectCard({ project, onOpen, onRename, onDelete }) {
+function ProjectCard({ project, onOpen, onRename, onDelete, onArchive, onUnarchive, onChangeCover, isArchive }) {
   const [hover, setHover] = React.useState(false);
   const [menu, setMenu] = React.useState(false);
   const [confirm, setConfirm] = React.useState(false);
+  const [showColorPicker, setShowColorPicker] = React.useState(false);
   return (
     <div
       onClick={onOpen}
@@ -91,7 +125,7 @@ function ProjectCard({ project, onOpen, onRename, onDelete }) {
       <div style={{ aspectRatio: "16 / 10", position: "relative" }}>
         <Placeholder
           hue={project.cover.hue}
-          label={project.cover.label}
+          label=""
           style={{ width: "100%", height: "100%" }}
         />
         {/* Item count chip */}
@@ -128,12 +162,44 @@ function ProjectCard({ project, onOpen, onRename, onDelete }) {
               position: "absolute", top: 44, right: 10,
               background: "var(--surface)", borderRadius: 8,
               boxShadow: "0 8px 24px rgba(0,0,0,0.12), 0 0 0 1px var(--hairline)",
-              padding: 4, minWidth: 140, zIndex: 5,
+              padding: 4, minWidth: 160, zIndex: 5,
             }}
           >
-            <MenuItem icon="copy" label="Дублировать" />
-            <MenuItem icon="archive" label="В архив" />
+            {!isArchive && <MenuItem icon="copy" label="Дублировать" />}
+            {!isArchive && onArchive && (
+              <MenuItem icon="archive" label="В архив" onClick={() => { setMenu(false); onArchive(); }} />
+            )}
+            {isArchive && onUnarchive && (
+              <MenuItem icon="folder" label="Вернуть из архива" onClick={() => { setMenu(false); onUnarchive(); }} />
+            )}
+            {!isArchive && (
+              <MenuItem icon="image" label="Изменить обложку" onClick={() => { setShowColorPicker(v => !v); }} />
+            )}
             <MenuItem icon="trash" label="Удалить" danger onClick={() => { setMenu(false); setConfirm(true); }} />
+            {showColorPicker && (
+              <div style={{ padding: "8px 6px 4px", borderTop: "1px solid var(--hairline)", marginTop: 4 }}>
+                <div style={{ fontSize: 10, color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6, paddingLeft: 4 }}>Цвет обложки</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 4 }}>
+                  {COVER_COLORS.map(c => {
+                    const a = `oklch(0.92 0.04 ${c.hue})`;
+                    const b = `oklch(0.86 0.05 ${c.hue})`;
+                    const isActive = project.cover.hue === c.hue;
+                    return (
+                      <button
+                        key={c.hue}
+                        title={c.name}
+                        onClick={() => { onChangeCover?.(c.hue); setShowColorPicker(false); setMenu(false); }}
+                        style={{
+                          width: 28, height: 28, borderRadius: 6, border: isActive ? "2px solid var(--ink)" : "2px solid transparent",
+                          background: `repeating-linear-gradient(135deg, ${a} 0 5px, ${b} 5px 10px)`,
+                          cursor: "pointer", padding: 0,
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
         {confirm && (
@@ -175,7 +241,7 @@ function ProjectCard({ project, onOpen, onRename, onDelete }) {
                 <button
                   className="btn"
                   onClick={() => { setConfirm(false); onDelete(); }}
-                  style={{ background: "var(--danger)", color: "#fff" }}
+                  style={{ background: "var(--danger)", color: "#fff", justifyContent: "center" }}
                 >
                   Удалить
                 </button>
@@ -204,7 +270,7 @@ function ProjectCard({ project, onOpen, onRename, onDelete }) {
           fontSize: 11, color: "var(--ink-3)",
           letterSpacing: "0.02em",
         }}>
-          <span>{project.date}</span>
+          <span>{formatDate(project.updatedAt)}</span>
         </div>
       </div>
     </div>
@@ -260,6 +326,32 @@ function EmptyState({ onCreate }) {
         </button>
         <button className="btn btn-secondary">Шаблоны</button>
       </div>
+    </div>
+  );
+}
+
+function EmptyArchive() {
+  return (
+    <div className="fade-in" style={{
+      display: "grid", placeItems: "center",
+      padding: "80px 20px",
+      textAlign: "center",
+    }}>
+      <div style={{
+        width: 88, height: 88, borderRadius: 20,
+        background: "var(--hairline)",
+        display: "grid", placeItems: "center",
+        color: "var(--ink-3)",
+        marginBottom: 24,
+      }}>
+        <Icon name="archive" size={36} stroke={1.4} />
+      </div>
+      <h2 className="serif" style={{ fontSize: 36, margin: "0 0 10px", letterSpacing: "-0.01em" }}>
+        Архив пуст
+      </h2>
+      <p style={{ color: "var(--ink-2)", maxWidth: 360, margin: 0, fontSize: 14, lineHeight: 1.5 }}>
+        Проекты, которые вы отправите в архив, появятся здесь.
+      </p>
     </div>
   );
 }

@@ -1,10 +1,10 @@
 export const SETA_PROJECTS = [
-  { id: "p1", name: "Таунхаус на Холловэй", client: "Мара и Идрис Холловэй", items: 47, date: "Обновлено 28 апр", cover: { hue: 28, label: "ПРИХОЖАЯ · ОРЕХ" } },
-  { id: "p2", name: "Апартаменты в Парк-Слоуп", client: "Лена Восс", items: 23, date: "Обновлено 22 апр", cover: { hue: 145, label: "ГОСТИНАЯ · ЛЁН" } },
-  { id: "p3", name: "Лофт на Калле Очо", client: "Группа Алмейда", items: 61, date: "Обновлено 19 апр", cover: { hue: 215, label: "ЛОФТ · БЕТОН" } },
-  { id: "p4", name: "Дом на склоне в Марине", client: "Девон Сато", items: 38, date: "Обновлено 14 апр", cover: { hue: 75, label: "ЭКСТЕРЬЕР · КЕДР" } },
-  { id: "p5", name: "Студия в Гринвич-Виллидж", client: "Петра Линдквист", items: 14, date: "Обновлено 11 апр", cover: { hue: 320, label: "СТУДИЯ · ДУБ" } },
-  { id: "p6", name: "Шале «Розвуд»", client: "Йонас и Ария Уитфилд", items: 52, date: "Обновлено 03 апр", cover: { hue: 18, label: "ШАЛЕ · РОЗОВОЕ ДЕРЕВО" } },
+  { id: "p1", name: "Таунхаус на Холловэй", client: "Мара и Идрис Холловэй", updatedAt: 1778443007336, cover: { hue: 28 } },
+  { id: "p2", name: "Апартаменты в Парк-Слоуп", client: "Лена Восс", updatedAt: 1777931807336, cover: { hue: 145 } },
+  { id: "p3", name: "Лофт на Калле Очо", client: "Группа Алмейда", updatedAt: 1777672607336, cover: { hue: 215 } },
+  { id: "p4", name: "Дом на склоне в Марине", client: "Девон Сато", updatedAt: 1777240607336, cover: { hue: 75 } },
+  { id: "p5", name: "Студия в Гринвич-Виллидж", client: "Петра Линдквист", updatedAt: 1776981407336, cover: { hue: 320 } },
+  { id: "p6", name: "Шале «Розвуд»", client: "Йонас и Ария Уитфилд", updatedAt: 1776290207336, cover: { hue: 18 } },
 ];
 
 export const SETA_CATEGORIES = [

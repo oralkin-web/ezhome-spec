@@ -1,164 +1,327 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useParams, Navigate } from 'react-router-dom';
-import { SETA_PROJECTS, SETA_CATEGORIES } from './data';
 import Dashboard from './screens/Dashboard';
 import Editor from './screens/Editor';
 import ClientPage from './screens/ClientPage';
 import { Settings, Feedback, Admin, Auth } from './screens/Screens';
 
+// ─── API helpers ────────────────────────────────────────────────────────────
+const api = {
+  get:    (url)       => fetch(url,             { credentials: 'include' }).then(r => r.json()),
+  post:   (url, body) => fetch(url, { method: 'POST',   credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()),
+  put:    (url, body) => fetch(url, { method: 'PUT',    credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()),
+  delete: (url)       => fetch(url, { method: 'DELETE', credentials: 'include' }).then(r => r.json()),
+};
+
+// Преобразуем проект из БД в формат фронтенда
+function mapProject(p) {
+  return {
+    id:        p.id,
+    name:      p.name,
+    client:    p.client || '',
+    updatedAt: p.updated_at ? new Date(p.updated_at).getTime() : Date.now(),
+    archived:  p.status === 'archive',
+    cover:     { hue: p.cover_hue || 28 },
+    slug:      p.slug,
+    note:      p.comment || '',
+  };
+}
+
+// Преобразуем товары из БД в категории для фронтенда
+function mapCategories(items) {
+  const map = {};
+  items.forEach(i => {
+    if (!map[i.room]) map[i.room] = { id: i.room, name: i.room, products: [] };
+    map[i.room].products.push({
+      id:         i.id,
+      name:       i.name,
+      brand:      i.cmt || '',
+      url:        i.url || '',
+      photoUrl:   i.img || '',
+      dimensions: i.size || '',
+      qty:        i.qty || 1,
+      price:      Number(i.price) || 0,
+      swatch:     30,
+    });
+  });
+  return Object.values(map);
+}
+
+// ─── App ─────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [authed, setAuthed] = useState(true);
-  const [authMode, setAuthMode] = useState("login");
-  const [adminTab, setAdminTab] = useState("users");
-  const [projects, setProjects] = useState(SETA_PROJECTS);
-  const [categories, setCategories] = useState(SETA_CATEGORIES);
+  const [user, setUser]         = useState(null);   // null = не проверили, false = не авторизован
+  const [authMode, setAuthMode] = useState('login');
+  const [loading, setLoading]   = useState(true);
 
-  const renameProject = (id, name) => setProjects(ps => ps.map(p => p.id === id ? { ...p, name } : p));
-  const renameClient = (id, client) => setProjects(ps => ps.map(p => p.id === id ? { ...p, client } : p));
-  const createProject = (navigate) => {
-    const id = "p" + Math.random().toString(36).slice(2, 7);
-    setProjects(ps => [{ id, name: "Новый проект", client: "Новый клиент", items: 0, date: "Создан сегодня", cover: { hue: Math.floor(Math.random() * 360), label: "НОВЫЙ · ЧЕРНОВИК" } }, ...ps]);
-    navigate('/project/' + id);
-  };
-  const deleteProject = (id, navigate) => {
-    setProjects(ps => ps.filter(p => p.id !== id));
-    navigate('/');
+  // Проверяем сессию при загрузке
+  useEffect(() => {
+    api.get('/api/me')
+      .then(data => {
+        if (data.error) { setUser(false); }
+        else            { setUser(data); }
+      })
+      .catch(() => setUser(false))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleLogin = async ({ email, password }) => {
+    const r = await api.post('/api/login', { email, password });
+    if (r.error) return r.error;
+    const me = await api.get('/api/me');
+    setUser(me);
+    return null;
   };
 
-  if (!authed) return <Auth mode={authMode} setMode={setAuthMode} onEnter={() => setAuthed(true)} />;
+  const handleRegister = async ({ email, password, name }) => {
+    const invite = new URLSearchParams(window.location.search).get('invite') || localStorage.getItem('invite') || '';
+    const r = await api.post('/api/register', { email, password, name, invite });
+    if (r.error) return r.error;
+    const me = await api.get('/api/me');
+    setUser(me);
+    return null;
+  };
+
+  const handleLogout = async () => {
+    await api.post('/api/logout', {});
+    setUser(false);
+    setAuthMode('login');
+  };
+
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg)' }}>
+      <div style={{ fontSize: 13, color: 'var(--ink-3)' }}>Загрузка…</div>
+    </div>
+  );
+
+  if (!user) return (
+    <Auth
+      mode={authMode}
+      setMode={setAuthMode}
+      onLogin={handleLogin}
+      onRegister={handleRegister}
+    />
+  );
 
   return (
     <BrowserRouter>
-      <AppRoutes
-        projects={projects}
-        categories={categories}
-        setCategories={setCategories}
-        adminTab={adminTab}
-        setAdminTab={setAdminTab}
-        renameProject={renameProject}
-        renameClient={renameClient}
-        createProject={createProject}
-        deleteProject={deleteProject}
-        onLogout={() => { setAuthed(false); setAuthMode("login"); }}
-      />
+      <AppRoutes user={user} setUser={setUser} onLogout={handleLogout} />
     </BrowserRouter>
   );
 }
 
-function AppRoutes({ projects, categories, setCategories, adminTab, setAdminTab, renameProject, renameClient, createProject, deleteProject, onLogout }) {
+// ─── AppRoutes ────────────────────────────────────────────────────────────────
+function AppRoutes({ user, setUser, onLogout }) {
   const navigate = useNavigate();
+  const [projects, setProjects]     = useState([]);
+  const [adminTab, setAdminTab]     = useState('users');
+  const [logoUrl, setLogoUrl]       = useState(user.logo || null);
+
+  // Загружаем проекты при монтировании
+  const loadProjects = useCallback(async () => {
+    const data = await api.get('/api/projects');
+    if (Array.isArray(data)) setProjects(data.map(mapProject));
+  }, []);
+
+  useEffect(() => { loadProjects(); }, [loadProjects]);
+
+  // Сохранить лого в БД и state
+  const handleChangeLogo = async (url) => {
+    setLogoUrl(url);
+    await api.put('/api/me', { name: user.name, phone: user.phone || '', site: user.site || '', logo: url || '' });
+  };
+
+  // ── Проекты ──
+  const createProject = async () => {
+    const slug = 'p-' + Math.random().toString(36).slice(2, 9);
+    const r = await api.post('/api/projects', { name: 'Новый проект', client: '', slug, cover_hue: Math.floor(Math.random() * 360) });
+    if (r.id) {
+      await loadProjects();
+      navigate('/project/' + r.id);
+    }
+  };
+
+  const deleteProject = async (id) => {
+    await api.delete('/api/projects/' + id);
+    await loadProjects();
+    navigate('/');
+  };
+
+  const archiveProject = async (id) => {
+    await api.put('/api/projects/' + id, { status: 'archive' });
+    setProjects(ps => ps.map(p => p.id === id ? { ...p, archived: true, updatedAt: Date.now() } : p));
+  };
+
+  const unarchiveProject = async (id) => {
+    await api.put('/api/projects/' + id, { status: 'active' });
+    setProjects(ps => ps.map(p => p.id === id ? { ...p, archived: false, updatedAt: Date.now() } : p));
+  };
+
+  const renameProject = async (id, name) => {
+    setProjects(ps => ps.map(p => p.id === id ? { ...p, name, updatedAt: Date.now() } : p));
+    await api.put('/api/projects/' + id, { name });
+  };
+
+  const renameClient = async (id, client) => {
+    setProjects(ps => ps.map(p => p.id === id ? { ...p, client, updatedAt: Date.now() } : p));
+    await api.put('/api/projects/' + id, { client });
+  };
+
+  const changeCover = async (id, hue) => {
+    setProjects(ps => ps.map(p => p.id === id ? { ...p, cover: { hue }, updatedAt: Date.now() } : p));
+    await api.put('/api/projects/' + id, { cover_hue: hue });
+  };
+
+  const saveNote = async (id, note) => {
+    setProjects(ps => ps.map(p => p.id === id ? { ...p, note } : p));
+    await api.put('/api/projects/' + id, { comment: note });
+  };
+
+  const nav = screen => navigate('/' + (screen === 'dashboard' ? '' : screen));
 
   return (
-    <>
-      <Routes>
-        <Route path="/" element={
-          <Dashboard
-            projects={projects}
-            onOpen={id => navigate('/project/' + id)}
-            onRename={renameProject}
-            onCreate={() => createProject(navigate)}
-            onDelete={id => deleteProject(id, navigate)}
-            onNav={screen => navigate('/' + (screen === 'dashboard' ? '' : screen))}
-          />
-        } />
-        <Route path="/project/:id" element={
-          <EditorRoute
-            projects={projects}
-            categories={categories}
-            setCategories={setCategories}
-            renameProject={renameProject}
-            renameClient={renameClient}
-          />
-        } />
-        <Route path="/project/:id/client" element={
-          <ClientRoute projects={projects} categories={categories} />
-        } />
-        <Route path="/settings" element={<Settings onNav={screen => navigate('/' + (screen === 'dashboard' ? '' : screen))} />} />
-        <Route path="/feedback" element={<Feedback onNav={screen => navigate('/' + (screen === 'dashboard' ? '' : screen))} />} />
-        <Route path="/admin" element={<Admin onNav={screen => navigate('/' + (screen === 'dashboard' ? '' : screen))} tab={adminTab} setTab={setAdminTab} />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      <ScreenSwitcher onLogout={onLogout} />
-    </>
+    <Routes>
+      <Route path="/" element={
+        <Dashboard
+          projects={projects.filter(p => !p.archived)}
+          onOpen={id => navigate('/project/' + id)}
+          onRename={renameProject}
+          onCreate={createProject}
+          onDelete={id => deleteProject(id)}
+          onArchive={id => archiveProject(id)}
+          onChangeCover={(id, hue) => changeCover(id, hue)}
+          onNav={nav}
+        />
+      } />
+      <Route path="/archive" element={
+        <Dashboard
+          projects={projects.filter(p => p.archived)}
+          onOpen={id => navigate('/project/' + id)}
+          onRename={renameProject}
+          onCreate={createProject}
+          onDelete={id => deleteProject(id)}
+          onUnarchive={id => unarchiveProject(id)}
+          onNav={nav}
+          isArchive={true}
+        />
+      } />
+      <Route path="/project/:id" element={
+        <EditorRoute
+          projects={projects}
+          onRename={renameProject}
+          onRenameClient={renameClient}
+          onSaveNote={saveNote}
+          onProjectsReload={loadProjects}
+        />
+      } />
+      <Route path="/project/:id/client" element={
+        <ClientRoute projects={projects} logoUrl={logoUrl} />
+      } />
+      <Route path="/settings" element={
+        <Settings
+          onNav={nav}
+          user={user}
+          logoUrl={logoUrl}
+          onChangeLogo={handleChangeLogo}
+          onLogout={onLogout}
+        />
+      } />
+      <Route path="/feedback" element={<Feedback onNav={nav} />} />
+      <Route path="/admin" element={<Admin onNav={nav} tab={adminTab} setTab={setAdminTab} />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
-function EditorRoute({ projects, categories, setCategories, renameProject, renameClient }) {
+// ─── EditorRoute ──────────────────────────────────────────────────────────────
+function EditorRoute({ projects, onRename, onRenameClient, onSaveNote, onProjectsReload }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const project = projects.find(p => p.id === id);
+  const [categories, setCategories] = useState([]);
+  const [loadingItems, setLoadingItems] = useState(true);
+
+  // Загружаем товары проекта
+  const loadItems = useCallback(async () => {
+    setLoadingItems(true);
+    const data = await api.get('/api/projects/' + id + '/items');
+    if (Array.isArray(data)) setCategories(mapCategories(data));
+    setLoadingItems(false);
+  }, [id]);
+
+  useEffect(() => { loadItems(); }, [loadItems]);
+
   if (!project) return <Navigate to="/" replace />;
+  if (loadingItems) return (
+    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg)' }}>
+      <div style={{ fontSize: 13, color: 'var(--ink-3)' }}>Загрузка товаров…</div>
+    </div>
+  );
+
+  // Синхронизируем categories с БД при каждом изменении
+  const syncCategories = async (updater) => {
+    setCategories(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      // Сохраняем в БД асинхронно
+      syncToDB(id, next);
+      return next;
+    });
+  };
+
   return (
     <Editor
       project={project}
       categories={categories}
-      setCategories={setCategories}
+      setCategories={syncCategories}
       onBack={() => navigate('/')}
       onShare={() => navigate('/project/' + id + '/client')}
-      onRename={n => renameProject(id, n)}
-      onRenameClient={n => renameClient(id, n)}
+      onRename={n => onRename(id, n)}
+      onRenameClient={n => onRenameClient(id, n)}
+      note={project.note || ''}
+      onNoteChange={n => onSaveNote(id, n)}
     />
   );
 }
 
-function ClientRoute({ projects, categories }) {
+// Сохраняем все товары проекта в БД
+async function syncToDB(projectId, categories) {
+  const items = categories.flatMap(cat =>
+    cat.products.map((p, idx) => ({
+      id:         p.id,
+      room:       cat.name,
+      name:       p.name,
+      url:        p.url || '',
+      img:        p.photoUrl || '',
+      size:       p.dimensions || '',
+      price:      p.price || 0,
+      qty:        p.qty || 1,
+      cmt:        p.brand || '',
+      sort_order: idx,
+    }))
+  );
+  await api.put('/api/projects/' + projectId + '/items', { items });
+}
+
+// ─── ClientRoute ──────────────────────────────────────────────────────────────
+function ClientRoute({ projects, logoUrl }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const project = projects.find(p => p.id === id);
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    if (!project) return;
+    api.get('/api/projects/' + id + '/items')
+      .then(data => { if (Array.isArray(data)) setCategories(mapCategories(data)); });
+  }, [id, project]);
+
   if (!project) return <Navigate to="/" replace />;
   return (
     <ClientPage
       project={project}
       categories={categories}
+      logoUrl={logoUrl}
+      note={project.note || ''}
       onBack={() => navigate('/project/' + id)}
     />
-  );
-}
-
-function ScreenSwitcher({ onLogout }) {
-  const navigate = useNavigate();
-  const { id } = useParams() || {};
-
-  // Определяем активный экран по URL
-  const path = window.location.pathname;
-  const screen =
-    path === '/' ? 'dashboard' :
-    path.endsWith('/client') ? 'client' :
-    path.startsWith('/project/') ? 'editor' :
-    path.slice(1) || 'dashboard';
-
-  const hasActive = path.startsWith('/project/');
-
-  const tab = (key, label, num, to) => {
-    const isActive = screen === key;
-    const disabled = !hasActive && (key === "editor" || key === "client");
-    return (
-      <button
-        key={key}
-        onClick={() => !disabled && navigate(to)}
-        disabled={disabled}
-        style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 12px", borderRadius: 999, background: isActive ? "var(--ink)" : "transparent", color: isActive ? "#fff" : disabled ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.7)", fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", cursor: disabled ? "not-allowed" : "pointer", border: "none" }}
-      >
-        <span style={{ opacity: 0.6, fontFamily: "JetBrains Mono, monospace", fontSize: 10 }}>0{num}</span>{label}
-      </button>
-    );
-  };
-
-  // Извлекаем project id из URL для editor/client табов
-  const projectId = path.match(/\/project\/([^/]+)/)?.[1];
-
-  return (
-    <div style={{ position: "fixed", bottom: 16, left: "50%", transform: "translateX(-50%)", background: "rgba(26,26,26,0.92)", backdropFilter: "blur(10px)", borderRadius: 999, padding: 4, display: "flex", gap: 2, alignItems: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.06)", zIndex: 100, maxWidth: "calc(100vw - 24px)", overflowX: "auto" }}>
-      {tab("dashboard", "Дашборд", 1, "/")}
-      {tab("editor", "Редактор", 2, projectId ? '/project/' + projectId : '/')}
-      {tab("client", "Клиент", 3, projectId ? '/project/' + projectId + '/client' : '/')}
-      {tab("settings", "Настройки", 4, "/settings")}
-      {tab("feedback", "Связь", 5, "/feedback")}
-      {tab("admin", "Админ", 6, "/admin")}
-      <div style={{ width: 1, height: 18, background: "rgba(255,255,255,0.12)", margin: "0 4px" }} />
-      <button onClick={onLogout} style={{ padding: "8px 12px", borderRadius: 999, color: "rgba(255,255,255,0.7)", fontSize: 12, fontWeight: 500, display: "flex", alignItems: "center", gap: 4, border: "none", background: "none", cursor: "pointer" }}>
-        <span style={{ opacity: 0.6, fontFamily: "JetBrains Mono, monospace", fontSize: 10 }}>07</span>Вход
-      </button>
-    </div>
   );
 }

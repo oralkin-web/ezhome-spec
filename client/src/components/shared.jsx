@@ -136,6 +136,11 @@ export function Sidebar({ active = "projects", onNav, admin = false }) {
           <path d="M57.0879 18.2345C60.575 20.0362 59.2938 25.3068 55.3687 25.3068H25.3398C23.1307 25.3068 21.3398 27.0976 21.3398 29.3068V46.9152C21.3398 49.1243 19.549 50.9152 17.3398 50.9152H4C1.79086 50.9152 0 49.1243 0 46.9152V19.7042C0 17.4951 1.79086 15.7042 4 15.7042H11.291C13.5002 15.7042 15.291 13.9134 15.291 11.7042V4.0051C15.291 1.03923 18.4056 -0.895154 21.0642 0.419583L57.0879 18.2345Z" fill="currentColor"/>
           <path d="M11.633 60.7443C8.8466 59.3512 9.83792 55.1515 12.9532 55.1515H44.8147C47.0238 55.1515 48.8147 53.3607 48.8147 51.1515V33.5431C48.8147 31.334 50.6055 29.5431 52.8147 29.5431L66.1545 29.5431C68.3637 29.5431 70.1545 31.334 70.1545 33.5431L70.1545 60.755C70.1545 62.9642 68.3637 64.755 66.1545 64.755H58.8635C56.6544 64.755 54.8635 66.5459 54.8635 68.755V76.3498C54.8635 79.3406 51.7013 81.2735 49.0396 79.9098L11.633 60.7443Z" fill="currentColor"/>
         </svg>
+        <span style={{
+          fontSize: 9, padding: "2px 5px", borderRadius: 3,
+          background: "var(--hairline-strong)", color: "var(--ink-3)",
+          letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600, alignSelf: "flex-start",
+        }}>Beta</span>
         {admin && (
           <span style={{
             fontSize: 9, padding: "2px 5px", borderRadius: 3,
@@ -151,7 +156,6 @@ export function Sidebar({ active = "projects", onNav, admin = false }) {
         {!admin && item("settings", "settings", "Настройки")}
         {!admin && item("feedback", "message", "Обратная связь")}
         {admin && item("admin-users", "users", "Пользователи")}
-        {admin && item("admin-subs", "card", "Подписки")}
         {admin && item("admin-feedback", "message", "Обратная связь")}
       </div>
 

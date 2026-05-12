@@ -1,80 +1,157 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Icon, Placeholder } from '../components/shared';
 import { SETA_DESIGNER } from '../data';
 
 const fmt = n => n.toLocaleString("ru-RU", { style: "currency", currency: "RUB", minimumFractionDigits: 0 });
+const CLIENT_LINK = "useseta.com/c/holloway-tx-w8x4";
 
-export default function ClientPage({ project, categories, onBack }) {
-  const allProducts = categories.flatMap(c => c.products.map(p => ({ ...p, category: c.name })));
-  const total = allProducts.reduce((s, p) => s + p.qty * p.price, 0);
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return isMobile;
+}
+
+export default function ClientPage({ project, categories, logoUrl, note, onBack }) {
+  const [copied, setCopied] = useState(false);
+  const [viewMode, setViewMode] = useState("grid");
+  const isMobile = useIsMobile();
+  const total = categories.flatMap(c => c.products).reduce((s, p) => s + p.qty * p.price, 0);
+
+  const copyLink = () => {
+    navigator.clipboard.writeText("https://" + CLIENT_LINK).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const hPad = isMobile ? "16px" : "64px";
+  const vPad = isMobile ? "24px" : "44px";
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
-      {/* Preview bar */}
-      <div style={{ background: "var(--ink)", color: "#fff", fontSize: 12, padding: "8px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, color: "rgba(255,255,255,0.7)" }}>
-          <Icon name="link" size={13} />
-          <span className="mono">seta.design/c/holloway-tx-w8x4</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>Предпросмотр · так видит клиент</span>
+      {/* Preview bar — скрыт на мобиле чтобы не мешать */}
+      {!isMobile && (
+        <div style={{ background: "var(--ink)", color: "#fff", fontSize: 12, padding: "8px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <button onClick={onBack} className="btn btn-sm" style={{ color: "#fff", background: "rgba(255,255,255,0.12)", height: 26 }}>
             <Icon name="back" size={12} />Выйти из предпросмотра
           </button>
+          <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>Предпросмотр · так видит клиент</span>
         </div>
-      </div>
+      )}
 
       {/* Header */}
-      <header style={{ padding: "44px 64px 28px", background: "var(--surface)", borderBottom: "1px solid var(--hairline)" }}>
-        <div style={{ maxWidth: 1280, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 8, background: "var(--ink)", display: "grid", placeItems: "center", color: "#fff", fontWeight: 600, fontSize: 14 }}>{SETA_DESIGNER.initials}</div>
-            <div>
-              <div style={{ fontSize: 12, color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase" }}>{SETA_DESIGNER.studio}</div>
-              <h1 className="serif" style={{ margin: "4px 0 0", fontSize: 32, letterSpacing: "-0.01em", lineHeight: 1.1 }}>{project.name}</h1>
-              <div style={{ color: "var(--ink-2)", marginTop: 4, fontSize: 13 }}>Подготовлено для {project.client}</div>
+      <header style={{ padding: `${vPad} ${hPad} ${isMobile ? "20px" : "28px"}`, background: "var(--surface)", borderBottom: "1px solid var(--hairline)" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          {/* Лого + название */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: isMobile ? 16 : 0 }}>
+            <div style={{ width: isMobile ? 36 : 44, height: isMobile ? 36 : 44, borderRadius: 8, background: "var(--ink)", display: "grid", placeItems: "center", color: "#fff", fontWeight: 600, fontSize: isMobile ? 12 : 14, overflow: "hidden", flexShrink: 0 }}>
+              {logoUrl ? (
+                <img src={logoUrl} alt="Логотип" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              ) : (
+                <span>{SETA_DESIGNER.initials}</span>
+              )}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h1 className="serif" style={{ margin: "0 0 2px", fontSize: isMobile ? 22 : 32, letterSpacing: "-0.01em", lineHeight: 1.15 }}>{project.name}</h1>
+              <div style={{ color: "var(--ink-2)", fontSize: isMobile ? 12 : 13 }}>{project.client}</div>
             </div>
           </div>
-          <button className="btn btn-secondary"><Icon name="download" size={14} />Скачать PDF</button>
+
+          {/* Кнопки — на мобиле в строку под заголовком */}
+          <div style={{
+            display: "flex", gap: 8, marginTop: isMobile ? 0 : 16,
+            justifyContent: isMobile ? "stretch" : "flex-end",
+            flexDirection: isMobile ? "row" : "row",
+          }}>
+            <button onClick={copyLink} className="btn btn-secondary" style={{ flex: isMobile ? 1 : "none", justifyContent: "center" }}>
+              <Icon name={copied ? "check" : "link"} size={14} />
+              {copied ? "Скопировано" : "Ссылка"}
+            </button>
+            <button className="btn btn-secondary" style={{ flex: isMobile ? 1 : "none", justifyContent: "center" }}>
+              <Icon name="download" size={14} />PDF
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Body */}
-      <main style={{ maxWidth: 1280, margin: "0 auto", padding: "56px 64px 40px" }}>
+      <main style={{ maxWidth: 1280, margin: "0 auto", padding: isMobile ? "28px 16px 40px" : "56px 64px 40px" }}>
+        {/* Переключатель режима просмотра */}
+        <div style={{ display: "flex", gap: 4, marginBottom: isMobile ? 20 : 28, background: "var(--surface)", borderRadius: 8, padding: 3, boxShadow: "var(--shadow-card)", alignSelf: "flex-start", width: "fit-content" }}>
+          {[["grid", "image"], ["list", "menu"]].map(([mode, icon]) => (
+            <button key={mode} onClick={() => setViewMode(mode)}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, border: "none", background: viewMode === mode ? "var(--ink)" : "transparent", color: viewMode === mode ? "#fff" : "var(--ink-3)", fontSize: 12, fontWeight: 500, cursor: "pointer", transition: "all 120ms ease" }}>
+              <Icon name={icon} size={14} />
+              {mode === "grid" ? "Сетка" : "Список"}
+            </button>
+          ))}
+        </div>
+
         {categories.map(cat => (
-          <section key={cat.id} style={{ marginBottom: 56 }}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 24, paddingBottom: 14, borderBottom: "1px solid var(--hairline-strong)" }}>
-              <h2 className="serif" style={{ margin: 0, fontSize: 30, letterSpacing: "-0.01em" }}>{cat.name}</h2>
-              <span style={{ fontSize: 12, color: "var(--ink-3)", letterSpacing: "0.04em" }}>{cat.products.length} позиций</span>
+          <section key={cat.id} style={{ marginBottom: isMobile ? 36 : 56 }}>
+            {/* Заголовок комнаты */}
+            <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: isMobile ? 16 : 24, paddingBottom: isMobile ? 10 : 14, borderBottom: "1px solid var(--hairline-strong)" }}>
+              <h2 className="serif" style={{ margin: 0, fontSize: isMobile ? 22 : 30, letterSpacing: "-0.01em" }}>{cat.name}</h2>
+              <span style={{ fontSize: 11, color: "var(--ink-3)", letterSpacing: "0.04em" }}>{cat.products.length} позиций</span>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 24 }}>
-              {cat.products.map(p => <ClientCard key={p.id} product={p} />)}
-            </div>
+
+            {/* Сетка товаров:
+                мобил  — 2 колонки
+                планшет — 3 колонки
+                десктоп — 5 колонок */}
+            {viewMode === "grid" ? (
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(180px, 1fr))", gap: isMobile ? 12 : 24 }}>
+                {cat.products.map(p => <ClientCard key={p.id} product={p} isMobile={isMobile} />)}
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                {cat.products.map(p => <ClientListRow key={p.id} product={p} isMobile={isMobile} />)}
+              </div>
+            )}
           </section>
         ))}
 
-        <div style={{ marginTop: 24, padding: "28px 32px", background: "var(--surface)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" }}>
-          <div style={{ fontSize: 11, color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 10 }}>Заметка от вашего дизайнера</div>
-          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: "var(--ink-2)", maxWidth: 720 }}>
-            Сроки поставки изделий Hewn Workshop — 12–14 недель. Если хочется более мягких стульев для ежедневных ужинов, можем заменить «Spindle» на их же версию с мягкой обивкой.
-          </p>
+        {/* Общая сумма */}
+        <div style={{ marginTop: 36, display: "flex", justifyContent: "space-between", alignItems: "baseline", paddingTop: 24, borderTop: "2px solid var(--ink)" }}>
+          <div style={{ fontSize: 11, color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase" }}>Общая сумма</div>
+          <div className="serif" style={{ fontSize: isMobile ? 32 : 48, lineHeight: 1, letterSpacing: "-0.02em" }}>{fmt(total)}</div>
         </div>
 
-        <div style={{ marginTop: 36, display: "flex", justifyContent: "space-between", alignItems: "baseline", paddingTop: 24, borderTop: "2px solid var(--ink)" }}>
-          <div style={{ fontSize: 11, color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase" }}>Итого по проекту</div>
-          <div className="serif" style={{ fontSize: 48, lineHeight: 1, letterSpacing: "-0.02em" }}>{fmt(total)}</div>
-        </div>
+        {/* Комментарии дизайнера */}
+        {note && (
+          <div style={{ marginTop: 24, padding: isMobile ? "18px 20px" : "28px 32px", background: "var(--surface)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" }}>
+            <div style={{ fontSize: 11, color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 10 }}>Комментарии дизайнера</div>
+            <p style={{ margin: 0, fontSize: isMobile ? 14 : 15, lineHeight: 1.6, color: "var(--ink-2)" }}>{note}</p>
+          </div>
+        )}
       </main>
 
       {/* Footer */}
-      <footer style={{ borderTop: "1px solid var(--hairline)", padding: "20px 64px", background: "var(--surface)" }}>
-        <div style={{ maxWidth: 1280, margin: "0 auto", display: "flex", alignItems: "center", fontSize: 13, color: "var(--ink-2)" }}>
-          <a href={`tel:${SETA_DESIGNER.phone}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{SETA_DESIGNER.phone}</a>
-          <Sep />
-          <a href={`mailto:${SETA_DESIGNER.email}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{SETA_DESIGNER.email}</a>
-          <Sep />
-          <a href={`https://${SETA_DESIGNER.website}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{SETA_DESIGNER.website}</a>
-          <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--ink-3)", letterSpacing: "0.06em" }}>СДЕЛАНО В SETA</span>
+      <footer style={{ borderTop: "1px solid var(--hairline)", padding: isMobile ? "16px" : "20px 64px", background: "var(--surface)" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          {isMobile ? (
+            // Мобил: контакты стопкой
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13, color: "var(--ink-2)" }}>
+              <a href={`tel:${SETA_DESIGNER.phone}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{SETA_DESIGNER.phone}</a>
+              <a href={`mailto:${SETA_DESIGNER.email}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{SETA_DESIGNER.email}</a>
+              <a href={`https://${SETA_DESIGNER.website}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{SETA_DESIGNER.website}</a>
+              <div style={{ marginTop: 8, paddingTop: 12, borderTop: "1px solid var(--hairline)", fontSize: 10, color: "var(--ink-3)", letterSpacing: "0.06em" }}>СДЕЛАНО В SETA</div>
+            </div>
+          ) : (
+            // Десктоп: контакты в строку
+            <div style={{ display: "flex", alignItems: "center", fontSize: 13, color: "var(--ink-2)" }}>
+              <a href={`tel:${SETA_DESIGNER.phone}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{SETA_DESIGNER.phone}</a>
+              <Sep />
+              <a href={`mailto:${SETA_DESIGNER.email}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{SETA_DESIGNER.email}</a>
+              <Sep />
+              <a href={`https://${SETA_DESIGNER.website}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{SETA_DESIGNER.website}</a>
+              <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--ink-3)", letterSpacing: "0.06em" }}>СДЕЛАНО В SETA</span>
+            </div>
+          )}
         </div>
       </footer>
     </div>
@@ -85,19 +162,64 @@ function Sep() {
   return <span style={{ margin: "0 14px", color: "var(--ink-3)" }}>·</span>;
 }
 
-function ClientCard({ product }) {
+function ClientCard({ product, isMobile }) {
   const [hover, setHover] = useState(false);
   return (
-    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
-      style={{ background: "var(--surface)", borderRadius: "var(--radius)", boxShadow: hover ? "var(--shadow-card-hover)" : "var(--shadow-card)", transition: "box-shadow 180ms ease, transform 180ms ease", transform: hover ? "translateY(-2px)" : "none", overflow: "hidden" }}>
-      <Placeholder hue={product.swatch} label="PRODUCT IMAGE" style={{ width: "100%", aspectRatio: "1 / 1" }} />
-      <div style={{ padding: "14px 14px 16px" }}>
-        <div style={{ fontSize: 14, fontWeight: 500, color: "var(--ink)", lineHeight: 1.35, marginBottom: 4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", minHeight: 38 }}>{product.name}</div>
-        <div style={{ fontSize: 11, color: "var(--ink-3)", marginBottom: 12 }}>{product.brand}</div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", paddingTop: 10, borderTop: "1px solid var(--hairline)" }}>
-          <div style={{ fontSize: 11, color: "var(--ink-3)" }}>Кол-во {product.qty}</div>
-          <div style={{ fontSize: 14, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{fmt(product.price)}</div>
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        background: "var(--surface)",
+        borderRadius: "var(--radius)",
+        boxShadow: hover ? "var(--shadow-card-hover)" : "var(--shadow-card)",
+        transition: "box-shadow 180ms ease, transform 180ms ease",
+        transform: hover && !isMobile ? "translateY(-2px)" : "none",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div style={{ width: "100%", aspectRatio: "1 / 1", background: "#F0EDE8", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+        {product.photoUrl ? (
+          <img src={product.photoUrl} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center" }} />
+        ) : (
+          <Placeholder hue={product.swatch} label="ФОТО" style={{ width: "100%", height: "100%" }} />
+        )}
+      </div>
+      <div style={{ padding: isMobile ? "10px 10px 12px" : "14px 14px 16px", display: "flex", flexDirection: "column", flex: 1 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: isMobile ? 12 : 14, fontWeight: 500, color: "var(--ink)", lineHeight: 1.35, marginBottom: 3, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", wordBreak: "break-word" }}>{product.name}</div>
+          <div style={{ fontSize: isMobile ? 10 : 11, color: "var(--ink-3)", marginBottom: product.dimensions ? 3 : 0 }}>{product.brand}</div>
+          {product.dimensions && (
+            <div style={{ fontSize: isMobile ? 10 : 11, color: "var(--ink-3)" }}>{product.dimensions}</div>
+          )}
         </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", paddingTop: isMobile ? 7 : 10, marginTop: isMobile ? 7 : 10, borderTop: "1px solid var(--hairline)" }}>
+          <div style={{ fontSize: isMobile ? 10 : 11, color: "var(--ink-3)" }}>× {product.qty}</div>
+          <div style={{ fontSize: isMobile ? 12 : 14, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{fmt(product.price)}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ClientListRow({ product, isMobile }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 12 : 20, padding: isMobile ? "12px 0" : "14px 0", borderBottom: "1px solid var(--hairline)" }}>
+      <div style={{ width: isMobile ? 52 : 72, height: isMobile ? 52 : 72, borderRadius: 8, background: "#F0EDE8", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+        {product.photoUrl ? (
+          <img src={product.photoUrl} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+        ) : (
+          <Placeholder hue={product.swatch} label="" style={{ width: "100%", height: "100%" }} />
+        )}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 500, color: "var(--ink)", lineHeight: 1.3, marginBottom: 3 }}>{product.name}</div>
+        <div style={{ fontSize: 11, color: "var(--ink-3)" }}>{product.brand}{product.dimensions ? ` · ${product.dimensions}` : ""}</div>
+      </div>
+      <div style={{ textAlign: "right", flexShrink: 0 }}>
+        <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 600, fontVariantNumeric: "tabular-nums", color: "var(--ink)" }}>{fmt(product.price)}</div>
+        <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 2 }}>× {product.qty}</div>
       </div>
     </div>
   );

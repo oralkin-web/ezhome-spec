@@ -56,6 +56,7 @@ async function initDB() {
       status TEXT DEFAULT 'active',
       slug TEXT UNIQUE NOT NULL,
       comment TEXT DEFAULT '',
+      cover_hue INTEGER DEFAULT 28,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     );
@@ -80,6 +81,7 @@ async function initDB() {
     );
   `);
   await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS comment TEXT DEFAULT ''`);
+  await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS cover_hue INTEGER DEFAULT 28`);
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS logo TEXT DEFAULT ''`);
   console.log('DB initialized');
 }
@@ -275,10 +277,21 @@ app.post('/api/projects', auth, async (req, res) => {
 });
 
 app.put('/api/projects/:id', auth, async (req, res) => {
-  const { name, client, status } = req.body;
-  const r = await pool.query('SELECT id FROM projects WHERE id=$1 AND user_id=$2', [req.params.id, req.session.userId]);
+  const { name, client, status, comment, cover_hue } = req.body;
+  const r = await pool.query('SELECT id, name, client, status, comment, cover_hue FROM projects WHERE id=$1 AND user_id=$2', [req.params.id, req.session.userId]);
   if (!r.rows.length) return res.status(404).json({ error: 'Не найдено' });
-  await pool.query('UPDATE projects SET name=$1, client=$2, status=$3, updated_at=NOW() WHERE id=$4', [name, client, status, req.params.id]);
+  const cur = r.rows[0];
+  await pool.query(
+    'UPDATE projects SET name=$1, client=$2, status=$3, comment=$4, cover_hue=$5, updated_at=NOW() WHERE id=$6',
+    [
+      name      !== undefined ? name      : cur.name,
+      client    !== undefined ? client    : cur.client,
+      status    !== undefined ? status    : cur.status,
+      comment   !== undefined ? comment   : cur.comment,
+      cover_hue !== undefined ? cover_hue : cur.cover_hue,
+      req.params.id
+    ]
+  );
   res.json({ ok: true });
 });
 
@@ -342,6 +355,33 @@ app.put('/api/items/:id', auth, async (req, res) => {
   await pool.query('UPDATE items SET room=$1, name=$2, url=$3, img=$4, size=$5, price=$6, qty=$7, cmt=$8 WHERE id=$9',
     [room, name, url||'', img||'', size||'', price||0, qty||1, cmt||'', req.params.id]);
   res.json({ ok: true });
+});
+
+app.put('/api/projects/:id/items', auth, async (req, res) => {
+  const r = await pool.query('SELECT id FROM projects WHERE id=$1 AND user_id=$2', [req.params.id, req.session.userId]);
+  if (!r.rows.length) return res.status(404).json({ error: 'Не найдено' });
+  const { items } = req.body;
+  if (!Array.isArray(items)) return res.status(400).json({ error: 'items должен быть массивом' });
+
+  // Удаляем старые, вставляем новые одной транзакцией
+  await pool.query('BEGIN');
+  try {
+    await pool.query('DELETE FROM items WHERE project_id=$1', [req.params.id]);
+    for (const it of items) {
+      const id = it.id && it.id.startsWith('i') ? it.id : require('uuid').v4();
+      await pool.query(
+        'INSERT INTO items (id, project_id, room, name, url, img, size, price, qty, cmt, sort_order) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)',
+        [id, req.params.id, it.room||'', it.name||'', it.url||'', it.img||'', it.size||'', it.price||0, it.qty||1, it.cmt||'', it.sort_order||0]
+      );
+    }
+    await pool.query('UPDATE projects SET updated_at=NOW() WHERE id=$1', [req.params.id]);
+    await pool.query('COMMIT');
+    res.json({ ok: true });
+  } catch(e) {
+    await pool.query('ROLLBACK');
+    console.error('syncItems error:', e.message);
+    res.status(500).json({ error: 'Ошибка сохранения' });
+  }
 });
 
 app.delete('/api/items/:id', auth, async (req, res) => {
