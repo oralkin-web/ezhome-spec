@@ -1,0 +1,5 @@
+[phases.build]
+cmds = ["cd client && npm install && npm run build && cp -r dist/* ../public/"]
+
+[start]
+cmd = "node src/server.js"
