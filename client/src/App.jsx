@@ -118,6 +118,7 @@ export default function App() {
         setMode={setAuthMode}
         onLogin={handleLogin}
         onRegister={handleRegister}
+        isInvite={!!inviteToken}
       />
     </BrowserRouter>
   );

@@ -453,7 +453,7 @@ function ResetCard({ back }) {
   );
 }
 
-function AuthCard({ mode, setMode, onLogin, onRegister }) {
+function AuthCard({ mode, setMode, onLogin, onRegister, isInvite }) {
   const [error, setError] = useState("");
   const [emailVal, setEmailVal] = useState("");
   const [emailErr, setEmailErr] = useState("");
@@ -480,10 +480,12 @@ function AuthCard({ mode, setMode, onLogin, onRegister }) {
 
   return (
     <div className="auth-card" style={{ width: "100%", maxWidth: 420, background: "var(--surface)", borderRadius: "var(--radius-lg)", boxShadow: "0 1px 2px rgba(20,16,10,0.04), 0 24px 60px -20px rgba(20,16,10,0.18)", padding: 32 }}>
-      <div className="tabs" style={{ marginBottom: 28 }}>
-        <button className={`tab ${mode === "login" ? "active" : ""}`} onClick={() => { setMode("login"); setError(""); setEmailErr(""); }}>Вход</button>
-        <button className={`tab ${mode === "register" ? "active" : ""}`} onClick={() => { setMode("register"); setRegEmailErr(""); }}>Регистрация</button>
-      </div>
+      {!isInvite && (
+        <div className="tabs" style={{ marginBottom: 28 }}>
+          <button className={`tab ${mode === "login" ? "active" : ""}`} onClick={() => { setMode("login"); setError(""); setEmailErr(""); }}>Вход</button>
+          <button className={`tab ${mode === "register" ? "active" : ""}`} onClick={() => { setMode("register"); setRegEmailErr(""); }}>Регистрация</button>
+        </div>
+      )}
       {mode === "login" ? (
         <div className="fade-in">
           <h1 className="serif" style={{ margin: "0 0 6px", fontSize: 30, letterSpacing: "-0.01em" }}>С возвращением</h1>
@@ -531,7 +533,7 @@ function AuthCard({ mode, setMode, onLogin, onRegister }) {
   );
 }
 
-export function Auth({ onLogin, onRegister, mode, setMode }) {
+export function Auth({ onLogin, onRegister, mode, setMode, isInvite }) {
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", display: "grid", placeItems: "center", padding: "24px 16px", paddingBottom: "calc(24px + env(safe-area-inset-bottom))" }}>
       {/* П1: логотип SETA с бета-бейджем */}
@@ -546,7 +548,7 @@ export function Auth({ onLogin, onRegister, mode, setMode }) {
         </svg>
         <span style={{ fontSize: 9, padding: "2px 5px", borderRadius: 3, background: "var(--hairline-strong)", color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Beta</span>
       </div>
-      {mode === "reset" ? <ResetCard back={() => setMode("login")} /> : <AuthCard mode={mode} setMode={setMode} onLogin={onLogin} onRegister={onRegister} />}
+      {mode === "reset" ? <ResetCard back={() => setMode("login")} /> : <AuthCard mode={mode} setMode={setMode} onLogin={onLogin} onRegister={onRegister} isInvite={isInvite} />}
     </div>
   );
 }
