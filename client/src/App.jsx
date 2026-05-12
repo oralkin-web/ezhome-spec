@@ -197,7 +197,11 @@ function AppRoutes({ user, setUser, onLogout }) {
     await api.put('/api/projects/' + id, { comment: note });
   };
 
-  const nav = screen => navigate('/' + (screen === 'dashboard' ? '' : screen));
+  const nav = screen => {
+    if (screen === 'admin-users') { setAdminTab('users'); navigate('/admin'); }
+    else if (screen === 'admin-feedback') { setAdminTab('feedback'); navigate('/admin'); }
+    else navigate('/' + (screen === 'dashboard' ? '' : screen));
+  };
 
   return (
     <Routes>
@@ -211,6 +215,7 @@ function AppRoutes({ user, setUser, onLogout }) {
           onArchive={id => archiveProject(id)}
           onChangeCover={(id, hue) => changeCover(id, hue)}
           onNav={nav}
+          user={user}
         />
       } />
       <Route path="/archive" element={
@@ -223,6 +228,7 @@ function AppRoutes({ user, setUser, onLogout }) {
           onUnarchive={id => unarchiveProject(id)}
           onNav={nav}
           isArchive={true}
+          user={user}
         />
       } />
       <Route path="/project/:id" element={

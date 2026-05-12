@@ -31,11 +31,11 @@ const COVER_COLORS = [
 ];
 
 // Screen 1: Dashboard / project list.
-function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, onUnarchive, onChangeCover, onNav, isArchive = false }) {
+function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, onUnarchive, onChangeCover, onNav, isArchive = false, user }) {
   const list = projects;
   return (
     <div style={{ display: "flex", minHeight: "100vh" }} data-screen-label="01 Dashboard">
-      <Sidebar active={isArchive ? "archive" : "projects"} onNav={onNav} />
+      <Sidebar active={isArchive ? "archive" : "projects"} onNav={onNav} isAdmin={user?.isAdmin} />
       <main style={{ flex: 1, padding: "44px 56px 80px", maxWidth: 1280 }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 36, gap: 24 }}>

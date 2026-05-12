@@ -83,7 +83,7 @@ export function Editable({ value, onChange, as: Tag = "span", className = "", st
   );
 }
 
-export function Sidebar({ active = "projects", onNav, admin = false }) {
+export function Sidebar({ active = "projects", onNav, admin = false, isAdmin = false }) {
   const item = (key, icon, label) => {
     const isActive = active === key;
     return (
@@ -160,6 +160,26 @@ export function Sidebar({ active = "projects", onNav, admin = false }) {
       </div>
 
       <div style={{ flex: 1 }} />
+      {isAdmin && (
+        <button
+          onClick={() => onNav?.(admin ? 'projects' : 'admin-users')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            width: '100%', padding: '9px 12px',
+            borderRadius: 8,
+            background: admin ? 'var(--accent-soft)' : 'transparent',
+            color: admin ? 'var(--accent)' : 'var(--ink-3)',
+            fontSize: 13, fontWeight: 500,
+            border: 'none', cursor: 'pointer',
+            marginBottom: 4,
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = admin ? 'var(--accent-soft)' : 'rgba(20,16,10,0.04)'}
+          onMouseLeave={e => e.currentTarget.style.background = admin ? 'var(--accent-soft)' : 'transparent'}
+        >
+          <Icon name="shield" size={16} />
+          {admin ? 'Режим пользователя' : 'Режим админа'}
+        </button>
+      )}
     </aside>
   );
 }
