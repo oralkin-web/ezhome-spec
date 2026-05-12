@@ -6,11 +6,12 @@ import ClientPage from './screens/ClientPage';
 import { Settings, Feedback, Admin, Auth } from './screens/Screens';
 
 // ─── API helpers ────────────────────────────────────────────────────────────
+const API_BASE = import.meta.env.VITE_API_URL || '';
 const api = {
-  get:    (url)       => fetch(url,             { credentials: 'include' }).then(r => r.json()),
-  post:   (url, body) => fetch(url, { method: 'POST',   credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()),
-  put:    (url, body) => fetch(url, { method: 'PUT',    credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()),
-  delete: (url)       => fetch(url, { method: 'DELETE', credentials: 'include' }).then(r => r.json()),
+  get:    (url)       => fetch(API_BASE + url,             { credentials: 'include' }).then(r => r.json()),
+  post:   (url, body) => fetch(API_BASE + url, { method: 'POST',   credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()),
+  put:    (url, body) => fetch(API_BASE + url, { method: 'PUT',    credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()),
+  delete: (url)       => fetch(API_BASE + url, { method: 'DELETE', credentials: 'include' }).then(r => r.json()),
 };
 
 // Преобразуем проект из БД в формат фронтенда
