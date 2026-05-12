@@ -48,10 +48,23 @@ function mapCategories(items) {
   return Object.values(map);
 }
 
+
+// ─── InviteRoute ──────────────────────────────────────────────────────────────
+function InviteRoute({ setAuthMode, setInviteToken }) {
+  const { token } = useParams();
+  useEffect(() => {
+    localStorage.setItem('inviteToken', token);
+    setInviteToken(token);
+    setAuthMode('register');
+  }, [token]);
+  return null;
+}
+
 // ─── App ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const [user, setUser]         = useState(null);   // null = не проверили, false = не авторизован
   const [authMode, setAuthMode] = useState('login');
+  const [inviteToken, setInviteToken] = useState('');
   const [loading, setLoading]   = useState(true);
 
   // Проверяем сессию при загрузке
@@ -74,7 +87,7 @@ export default function App() {
   };
 
   const handleRegister = async ({ email, password, name }) => {
-    const invite = new URLSearchParams(window.location.search).get('invite') || localStorage.getItem('invite') || '';
+    const invite = localStorage.getItem('inviteToken') || '';
     const r = await api.post('/api/register', { email, password, name, invite });
     if (r.error) return r.error;
     const me = await api.get('/api/me');
@@ -95,12 +108,18 @@ export default function App() {
   );
 
   if (!user) return (
-    <Auth
-      mode={authMode}
-      setMode={setAuthMode}
-      onLogin={handleLogin}
-      onRegister={handleRegister}
-    />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/invite/:token" element={<InviteRoute setAuthMode={setAuthMode} setInviteToken={setInviteToken} />} />
+        <Route path="*" element={null} />
+      </Routes>
+      <Auth
+        mode={authMode}
+        setMode={setAuthMode}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+      />
+    </BrowserRouter>
   );
 
   return (
