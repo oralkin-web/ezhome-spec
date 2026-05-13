@@ -220,7 +220,19 @@ export function Feedback({ onNav }) {
                   </div>
                 )}
                 {/* П3: кнопка с текстом по центру */}
-                <button className="btn btn-primary" onClick={() => setSent(true)} style={{ width: "100%", height: 44, fontSize: 14, justifyContent: "center" }}>Отправить</button>
+                <button className="btn btn-primary" onClick={async () => {
+                  if (!msg.trim()) return;
+                  try {
+                    const r = await fetch(window.API_BASE + '/api/feedback', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ topic, text: msg.trim() })
+                    });
+                    if (r.ok) setSent(true);
+                    else alert('Ошибка отправки, попробуйте ещё раз');
+                  } catch(e) { alert('Ошибка: ' + e.message); }
+                }} style={{ width: "100%", height: 44, fontSize: 14, justifyContent: "center" }}>Отправить</button>
               </div>
             </div>
           ) : (
