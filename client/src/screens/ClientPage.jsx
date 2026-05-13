@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Icon, Placeholder } from '../components/shared';
 
 const fmt = n => n.toLocaleString("ru-RU", { style: "currency", currency: "RUB", minimumFractionDigits: 0 });
-const CLIENT_LINK = "useseta.com/c/holloway-tx-w8x4";
+
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
@@ -32,7 +32,7 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
   };
 
   const copyLink = () => {
-    navigator.clipboard.writeText("https://" + CLIENT_LINK).then(() => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
