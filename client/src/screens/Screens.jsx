@@ -1,6 +1,8 @@
 import { useState, useEffect} from 'react';
 import { Icon, Sidebar } from '../components/shared';
 
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
 const isValidEmail = (v) => v.trim().includes('@') && v.trim().includes('.') && v.trim().length > 5;
@@ -353,9 +355,17 @@ export function Admin({ onNav, tab, setTab }) {
 
 function AdminUsers() {
   const [q, setQ] = useState("");
-  const [users, setUsers] = useState(ADMIN_USERS);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const filtered = users.filter(u => (u.name + u.email).toLowerCase().includes(q.toLowerCase()));
+
+  useEffect(() => {
+    fetch(API_BASE + '/api/admin/users', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setUsers(data); })
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="fade-in">
@@ -373,18 +383,20 @@ function AdminUsers() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((u, i) => (
-              <tr key={i} onMouseEnter={e => e.currentTarget.style.background = "#FCFBF8"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+            {loading ? (
+              <tr><td colSpan={6} style={{ padding: "28px 16px", textAlign: "center", color: "var(--ink-3)", fontSize: 13 }}>Загрузка…</td></tr>
+            ) : filtered.map((u, i) => (
+              <tr key={u.id || i} onMouseEnter={e => e.currentTarget.style.background = "#FCFBF8"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                 <td style={{ padding: "14px 16px", borderTop: "1px solid var(--hairline)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--hairline)", display: "grid", placeItems: "center", fontSize: 11, fontWeight: 600, color: "var(--ink-2)", flexShrink: 0 }}>{u.name.split(" ").map(s => s[0]).join("")}</div>
+                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--hairline)", display: "grid", placeItems: "center", fontSize: 11, fontWeight: 600, color: "var(--ink-2)", flexShrink: 0 }}>{(u.name || '?').split(" ").map(s => s[0]).join("")}</div>
                     <span style={{ fontWeight: 500 }}>{u.name}</span>
                   </div>
                 </td>
                 <td style={{ padding: "14px 16px", borderTop: "1px solid var(--hairline)", color: "var(--ink-2)" }}>{u.email}</td>
-                <td style={{ padding: "14px 16px", borderTop: "1px solid var(--hairline)" }}>{u.projects}</td>
-                <td style={{ padding: "14px 16px", borderTop: "1px solid var(--hairline)", color: "var(--ink-2)" }}>{u.joined}</td>
-                <td style={{ padding: "14px 16px", borderTop: "1px solid var(--hairline)", color: "var(--ink-2)" }}>{u.last}</td>
+                <td style={{ padding: "14px 16px", borderTop: "1px solid var(--hairline)" }}>{u.project_count ?? 0}</td>
+                <td style={{ padding: "14px 16px", borderTop: "1px solid var(--hairline)", color: "var(--ink-2)" }}>{u.created_at ? new Date(u.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</td>
+                <td style={{ padding: "14px 16px", borderTop: "1px solid var(--hairline)", color: "var(--ink-2)" }}>—</td>
                 <td style={{ padding: "14px 16px", borderTop: "1px solid var(--hairline)", textAlign: "right" }}>
                   <button onClick={() => setConfirmDelete(u)}
                     style={{ display: "grid", placeItems: "center", width: 28, height: 28, borderRadius: 6, border: "none", background: "transparent", color: "var(--ink-3)", cursor: "pointer" }}
@@ -412,7 +424,10 @@ function AdminUsers() {
             </p>
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
               <button className="btn btn-secondary" onClick={() => setConfirmDelete(null)}>Отмена</button>
-              <button className="btn" onClick={() => { setUsers(us => us.filter(u => u.email !== confirmDelete.email)); setConfirmDelete(null); }} style={{ background: "var(--danger)", color: "#fff", justifyContent: "center" }}>Удалить</button>
+              <button className="btn" onClick={() => {
+                fetch(API_BASE + '/api/admin/users/' + confirmDelete.id, { method: 'DELETE', credentials: 'include' })
+                  .then(() => { setUsers(us => us.filter(u => u.id !== confirmDelete.id)); setConfirmDelete(null); });
+              }} style={{ background: "var(--danger)", color: "#fff", justifyContent: "center" }}>Удалить</button>
             </div>
           </div>
         </div>
@@ -424,22 +439,34 @@ function AdminUsers() {
 
 
 function AdminFeedback() {
-  const tagColor = t => ({ "Ошибка": { bg: "rgba(220,70,60,0.1)", fg: "var(--danger)" }, "Функция": { bg: "var(--accent-soft)", fg: "var(--accent)" }, "Вопрос": { bg: "var(--hairline)", fg: "var(--ink-2)" } }[t]);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(API_BASE + '/api/feedback', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setMessages(data); })
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div style={{ padding: 32, color: "var(--ink-3)", fontSize: 13 }}>Загрузка…</div>;
+  if (!messages.length) return <div style={{ padding: 32, color: "var(--ink-3)", fontSize: 13 }}>Сообщений пока нет</div>;
+
   return (
     <div className="fade-in" style={{ background: "var(--surface)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)", overflow: "hidden" }}>
-      {ADMIN_FEEDBACK.map((m, i) => {
-        const tc = tagColor(m.tag);
+      {messages.map((m, i) => {
+        const userName = m.user_name || '?';
+        const initials = userName.split(" ").map(s => s[0]).join("").slice(0, 2);
+        const msgDate = m.created_at ? new Date(m.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : '';
         return (
           <div key={m.id} style={{ borderTop: i ? "1px solid var(--hairline)" : "none", padding: "20px 24px", display: "flex", gap: 16 }}>
-            <div style={{ width: 36, height: 36, borderRadius: "50%", flexShrink: 0, background: "var(--hairline)", display: "grid", placeItems: "center", fontSize: 12, fontWeight: 600, color: "var(--ink-2)", marginTop: 2 }}>{m.user.split(" ").map(s => s[0]).join("")}</div>
+            <div style={{ width: 36, height: 36, borderRadius: "50%", flexShrink: 0, background: "var(--hairline)", display: "grid", placeItems: "center", fontSize: 12, fontWeight: 600, color: "var(--ink-2)", marginTop: 2 }}>{initials}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 13, fontWeight: 600 }}>{m.user}</span>
-                <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 3, background: tc.bg, color: tc.fg, fontWeight: 600, textTransform: "uppercase" }}>{m.tag}</span>
-                <span style={{ fontSize: 12, color: "var(--ink-3)", marginLeft: "auto" }}>{m.date}</span>
+                <span style={{ fontSize: 13, fontWeight: 600 }}>{userName}</span>
+                <span style={{ fontSize: 12, color: "var(--ink-3)", marginLeft: "auto" }}>{msgDate}</span>
               </div>
-              <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 6 }}>{m.title}</div>
-              <div style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.6 }}>{m.preview}</div>
+              <div style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.6 }}>{m.text}</div>
             </div>
           </div>
         );
