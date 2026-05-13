@@ -227,7 +227,7 @@ export function Feedback({ onNav }) {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       credentials: 'include',
-                      body: JSON.stringify({ topic, text: msg.trim() })
+                      body: JSON.stringify({ topic, text: msg.trim(), image: image?.src || null })
                     });
                     if (r.ok) setSent(true);
                     else alert('Ошибка отправки, попробуйте ещё раз');

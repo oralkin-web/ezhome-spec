@@ -211,16 +211,17 @@ app.put('/api/me', auth, async (req, res) => {
 
 // FEEDBACK
 app.post('/api/feedback', auth, async (req, res) => {
-  const { text } = req.body;
+  const { text, image, topic } = req.body;
   if (!text || !text.trim()) return res.status(400).json({ error: 'Текст обязателен' });
   const id = uuidv4();
   await pool.query('INSERT INTO feedback (id, user_id, text) VALUES ($1, $2, $3)', [id, req.session.userId, text.trim()]);
   const userR = await pool.query('SELECT name, email FROM users WHERE id=$1', [req.session.userId]);
   const user = userR.rows[0];
   const date = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+  const imageHtml = image ? `<br><img src="${image}" style="max-width:600px;border-radius:8px;margin-top:12px">` : '';
   await sendEmail(
-    `Новый отзыв от ${user.name}`,
-    `<p><b>${user.name}</b> (${user.email})</p><p>${date}</p><hr><p style="font-size:16px">${text.trim().replace(/\n/g, '<br>')}</p>`
+    `Новый отзыв от ${user.name}${topic ? ' — ' + topic : ''}`,
+    `<p><b>${user.name}</b> (${user.email})</p><p>${date}</p><hr><p style="font-size:16px">${text.trim().replace(/\n/g, '<br>')}</p>${imageHtml}`
   );
   res.json({ ok: true });
 });
