@@ -670,7 +670,7 @@ function AuthCard({ mode, setMode, onLogin, onRegister, isInvite }) {
           <div className="field"><label className="label">Пароль</label><PasswordFieldLg value={regPasswordVal} onChange={setRegPasswordVal} /></div>
           <button className="btn btn-primary" onClick={handleRegister} style={{ width: "100%", height: 48, fontSize: 14, marginTop: 4, justifyContent: "center" }}>Создать аккаунт</button>
           <p style={{ margin: "16px 0 0", fontSize: 11, color: "var(--ink-3)", textAlign: "center", lineHeight: 1.5 }}>
-            Регистрируясь, вы соглашаетесь с <a href="#" style={{ color: "var(--ink-2)" }}>Политикой конфиденциальности</a>.
+            Регистрируясь, вы соглашаетесь с <a href="/privacy" target="_blank" style={{ color: "var(--ink-2)" }}>Политикой конфиденциальности</a>.
           </p>
         </div>
       )}

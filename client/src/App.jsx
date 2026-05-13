@@ -115,6 +115,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/project/:id/client" element={<PublicClientRoute />} />
+          <Route path="/privacy" element={<Privacy />} />
         </Routes>
       </BrowserRouter>
     );
@@ -335,6 +336,7 @@ function AppRoutes({ user, setUser, onLogout, banner, setBanner }) {
       } />
       <Route path="/feedback" element={<Feedback onNav={nav} />} />
       <Route path="/admin" element={<Admin onNav={nav} tab={adminTab} setTab={setAdminTab} banner={banner} setBanner={setBanner} />} />
+      <Route path="/privacy" element={<Privacy />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
