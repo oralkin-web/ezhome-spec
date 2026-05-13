@@ -37,7 +37,7 @@ function PasswordField({ label }) {
 
 // ─── LOGO SECTION ──────────────────────────────────────────────────────────
 
-function LogoSection({ logoUrl, onChangeLogo }) {
+function LogoSection({ logoUrl, onChangeLogo, name }) {
   const logo = logoUrl;
   const setLogo = onChangeLogo;
   const [drag, setDrag] = useState(false);
@@ -74,7 +74,7 @@ function LogoSection({ logoUrl, onChangeLogo }) {
           {logo ? (
             <img src={logo} alt="Логотип" style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center" }} />
           ) : (
-            <span>АП</span>
+            <span>{(name || 'АП').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase()}</span>
           )}
           {/* Кнопка удаления при наведении */}
           {logo && hover && (
@@ -152,7 +152,7 @@ export function Settings({ onNav, logoUrl, onChangeLogo }) {
           </div>
         </SettingsSection>
 
-        <LogoSection logoUrl={logoUrl} onChangeLogo={onChangeLogo} />
+        <LogoSection logoUrl={logoUrl} onChangeLogo={onChangeLogo} name={profile.name} />
 
         <SettingsSection title="Контакты для клиента" description="Отображаются в футере страницы, которую вы отправляете клиенту.">
           <div className="field"><label className="label">Телефон</label><input className="input" type="tel" value={contacts.phone} onChange={e => setContacts(c => ({ ...c, phone: e.target.value }))} /></div>
