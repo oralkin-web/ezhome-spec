@@ -214,6 +214,7 @@ app.put('/api/me', auth, async (req, res) => {
 // FEEDBACK
 app.post('/api/feedback', auth, async (req, res) => {
   const { text, image, topic } = req.body;
+  console.log('feedback image:', image ? image.slice(0, 50) : 'none', 'topic:', topic);
   if (!text || !text.trim()) return res.status(400).json({ error: 'Текст обязателен' });
   const id = uuidv4();
   await pool.query('INSERT INTO feedback (id, user_id, text) VALUES ($1, $2, $3)', [id, req.session.userId, text.trim()]);
