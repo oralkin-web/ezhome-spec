@@ -54,6 +54,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button className="btn btn-secondary"><Icon name="download" size={14} />Скачать PDF</button>
+            <button className="btn btn-secondary" onClick={() => window.open('/project/' + project.id + '/client', '_blank')}><Icon name="eye" size={14} />Предпросмотр</button>
             <button className="btn btn-primary" onClick={copyClientLink}><Icon name={copied ? "check" : "link"} size={14} />{copied ? "Скопировано" : "Ссылка клиенту"}</button>
           </div>
         </div>
