@@ -57,7 +57,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
             <div style={{ fontSize: 12, color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Комплектация</div>
             <Editable as="h1" value={project.name} onChange={onRename} className="serif" style={{ margin: "0 0 6px", fontSize: 42, lineHeight: 1, letterSpacing: "-0.02em", fontWeight: 400 }} />
             <div style={{ fontSize: 15, color: "var(--ink-2)", display: "flex", alignItems: "center", gap: 6 }}>
-              <Editable as="span" value={project.client} onChange={onRenameClient} style={{ color: "var(--ink-2)" }} />
+              <Editable as="span" value={project.client} onChange={onRenameClient} placeholder="Имя клиента" style={{ color: project.client ? "var(--ink-2)" : "var(--ink-3)" }} />
               <span style={{ color: "var(--ink-3)" }}>&nbsp;·&nbsp;</span>
               <span>{totalItems} {totalItems === 1 ? "позиция" : totalItems >= 2 && totalItems <= 4 ? "позиции" : "позиций"} в {categories.length} {categories.length === 1 ? "комнате" : "комнатах"}</span>
             </div>
@@ -206,7 +206,7 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded }) {
         {/* Фото: бокс 96×96, contain по центру */}
         <div style={{ width: 80, height: 80, borderRadius: 8, overflow: "hidden", background: "#F0EDE8", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           {product.photoUrl ? (
-            <img src={product.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center" }} onError={e => { e.currentTarget.style.display = "none"; }} />
+            <img src={product.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} onError={e => { e.currentTarget.style.display = "none"; }} />
           ) : (
             <Placeholder hue={product.swatch} label="IMG" style={{ width: "100%", height: "100%" }} />
           )}
@@ -247,10 +247,10 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded }) {
               <input value={draft.color || ""} onChange={e => updateDraft({ color: e.target.value })} placeholder="напр. Серый велюр" style={inputStyle} />
             </FieldGroup>
             <FieldGroup label="Цена, ₽">
-              <input type="number" value={draft.price || ""} onChange={e => updateDraft({ price: parseFloat(e.target.value) || 0 })} placeholder="0" style={{ ...inputStyle, textAlign: "right" }} />
+              <input type="number" value={draft.price || ""} onChange={e => updateDraft({ price: parseFloat(e.target.value) || 0 })} placeholder="0" style={{ ...inputStyle, textAlign: "right", MozAppearance: "textfield" }} className="no-arrows" />
             </FieldGroup>
             <FieldGroup label="Кол-во">
-              <input type="number" value={draft.qty} min={1} onChange={e => updateDraft({ qty: parseInt(e.target.value) || 1 })} placeholder="1" style={{ ...inputStyle, textAlign: "right" }} />
+              <input type="number" value={draft.qty} min={1} onChange={e => updateDraft({ qty: parseInt(e.target.value) || 1 })} placeholder="1" style={{ ...inputStyle, textAlign: "left", paddingLeft: 12, MozAppearance: "textfield" }} className="no-arrows" />
             </FieldGroup>
           </div>
           {/* Строка 3: Ссылка на товар + Заполнить */}
