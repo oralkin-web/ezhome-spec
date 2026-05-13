@@ -107,6 +107,17 @@ export default function App() {
     </div>
   );
 
+  // Публичный роут — показываем без Auth
+  if (!user && window.location.pathname.match(/^\/project\/[^/]+\/client$/)) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/project/:id/client" element={<PublicClientRoute />} />
+        </Routes>
+      </BrowserRouter>
+    );
+  }
+
   if (!user) return (
     <BrowserRouter>
       <Routes>
