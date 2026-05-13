@@ -223,7 +223,7 @@ export function Feedback({ onNav }) {
                 <button className="btn btn-primary" onClick={async () => {
                   if (!msg.trim()) return;
                   try {
-                    const r = await fetch(window.API_BASE + '/api/feedback', {
+                    const r = await fetch((import.meta.env.VITE_API_URL || '') + '/api/feedback', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       credentials: 'include',
