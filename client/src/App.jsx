@@ -397,13 +397,19 @@ function ClientRoute({ projects, logoUrl, user }) {
   const navigate = useNavigate();
   const project = projects.find(p => p.id === id);
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!project) return;
     api.get('/api/projects/' + id + '/items')
-      .then(data => { if (Array.isArray(data)) setCategories(mapCategories(data)); });
-  }, [id, project]);
+      .then(data => { if (Array.isArray(data)) setCategories(mapCategories(data)); })
+      .finally(() => setLoading(false));
+  }, [id]);
 
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg)' }}>
+      <div style={{ fontSize: 13, color: 'var(--ink-3)' }}>Загрузка…</div>
+    </div>
+  );
   if (!project) return <Navigate to="/" replace />;
 
   const designer = {
