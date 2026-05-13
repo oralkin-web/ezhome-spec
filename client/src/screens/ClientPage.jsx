@@ -43,45 +43,31 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
-      {/* Preview bar — скрыт на мобиле чтобы не мешать */}
-      {!isMobile && (
-        <div style={{ background: "var(--ink)", color: "#fff", fontSize: 12, padding: "8px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <button onClick={onBack} className="btn btn-sm" style={{ color: "#fff", background: "rgba(255,255,255,0.12)", height: 26 }}>
-            <Icon name="back" size={12} />Выйти из предпросмотра
-          </button>
-          <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>Предпросмотр · так видит клиент</span>
-        </div>
-      )}
+
 
       {/* Header */}
       <header style={{ padding: `${vPad} ${hPad} ${isMobile ? "20px" : "28px"}`, background: "var(--surface)", borderBottom: "1px solid var(--hairline)" }}>
-        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          {/* Лого + название */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: isMobile ? 16 : 0 }}>
-            <div style={{ width: isMobile ? 36 : 44, height: isMobile ? 36 : 44, borderRadius: 8, background: "var(--ink)", display: "grid", placeItems: "center", color: "#fff", fontWeight: 600, fontSize: isMobile ? 12 : 14, overflow: "hidden", flexShrink: 0 }}>
-              {logoUrl ? (
-                <img src={logoUrl} alt="Логотип" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-              ) : (
-                <span>{initials}</span>
-              )}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 className="serif" style={{ margin: "0 0 2px", fontSize: isMobile ? 22 : 32, letterSpacing: "-0.01em", lineHeight: 1.15 }}>{project.name}</h1>
-              <div style={{ color: "var(--ink-2)", fontSize: isMobile ? 12 : 13 }}>{project.client}</div>
-            </div>
+        <div style={{ maxWidth: 1280, margin: "0 auto", display: "flex", alignItems: "center", gap: 16 }}>
+          {/* Лого */}
+          <div style={{ width: isMobile ? 36 : 44, height: isMobile ? 36 : 44, borderRadius: 8, background: "var(--ink)", display: "grid", placeItems: "center", color: "#fff", fontWeight: 600, fontSize: isMobile ? 12 : 14, overflow: "hidden", flexShrink: 0 }}>
+            {logoUrl ? (
+              <img src={logoUrl} alt="Логотип" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+            ) : (
+              <span>{initials}</span>
+            )}
           </div>
-
-          {/* Кнопки — на мобиле в строку под заголовком */}
-          <div style={{
-            display: "flex", gap: 8, marginTop: isMobile ? 0 : 16,
-            justifyContent: isMobile ? "stretch" : "flex-end",
-            flexDirection: isMobile ? "row" : "row",
-          }}>
-            <button onClick={copyLink} className="btn btn-secondary" style={{ flex: isMobile ? 1 : "none", justifyContent: "center" }}>
+          {/* Название + клиент */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h1 className="serif" style={{ margin: "0 0 2px", fontSize: isMobile ? 18 : 26, letterSpacing: "-0.01em", lineHeight: 1.15 }}>{project.name}</h1>
+            <div style={{ color: "var(--ink-2)", fontSize: isMobile ? 11 : 13 }}>{project.client}</div>
+          </div>
+          {/* Кнопки */}
+          <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+            <button onClick={copyLink} className="btn btn-secondary">
               <Icon name={copied ? "check" : "link"} size={14} />
               {copied ? "Скопировано" : "Ссылка"}
             </button>
-            <button className="btn btn-secondary" onClick={handlePDF} style={{ flex: isMobile ? 1 : "none", justifyContent: "center" }}>
+            <button className="btn btn-secondary" onClick={handlePDF}>
               <Icon name="download" size={14} />PDF
             </button>
           </div>
