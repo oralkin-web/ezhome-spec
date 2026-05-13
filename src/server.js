@@ -445,7 +445,27 @@ app.delete('/api/items/:id', auth, async (req, res) => {
   res.json({ ok: true });
 });
 
-// PUBLIC CLIENT PAGE
+// PUBLIC CLIENT PAGE (React — отдаёт данные для фронта)
+app.get('/api/public/projects/:id', async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT p.*, u.name as designer_name, u.logo as designer_logo,
+             u.phone as designer_phone, u.email as designer_email, u.site as designer_site
+      FROM projects p JOIN users u ON u.id=p.user_id WHERE p.id=$1
+    `, [req.params.id]);
+    if (!r.rows.length) return res.status(404).json({ error: 'Не найдено' });
+    res.json(r.rows[0]);
+  } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.get('/api/public/projects/:id/items', async (req, res) => {
+  try {
+    const r = await pool.query('SELECT * FROM items WHERE project_id=$1 ORDER BY sort_order, room, id', [req.params.id]);
+    res.json(r.rows);
+  } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// PUBLIC CLIENT PAGE (старый HTML-рендер по slug)
 app.get('/p/:slug', async (req, res) => {
   const r = await pool.query(`
     SELECT p.*, u.name as designer_name, u.phone as designer_phone, u.email as designer_email, u.site as designer_site, u.logo as designer_logo

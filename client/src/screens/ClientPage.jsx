@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Icon, Placeholder } from '../components/shared';
-import { SETA_DESIGNER } from '../data';
 
 const fmt = n => n.toLocaleString("ru-RU", { style: "currency", currency: "RUB", minimumFractionDigits: 0 });
 const CLIENT_LINK = "useseta.com/c/holloway-tx-w8x4";
@@ -15,11 +14,22 @@ function useIsMobile() {
   return isMobile;
 }
 
-export default function ClientPage({ project, categories, logoUrl, note, onBack }) {
+export default function ClientPage({ project, categories, logoUrl, designerName, designer, note, onBack }) {
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState("grid");
   const isMobile = useIsMobile();
   const total = categories.flatMap(c => c.products).reduce((s, p) => s + p.qty * p.price, 0);
+
+  const initials = designerName
+    ? designerName.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
+    : '?';
+
+  const handlePDF = () => {
+    const prev = document.title;
+    document.title = (project.name || 'Комплектация') + ' Комплектация';
+    window.print();
+    setTimeout(() => { document.title = prev; }, 1000);
+  };
 
   const copyLink = () => {
     navigator.clipboard.writeText("https://" + CLIENT_LINK).then(() => {
@@ -52,7 +62,7 @@ export default function ClientPage({ project, categories, logoUrl, note, onBack 
               {logoUrl ? (
                 <img src={logoUrl} alt="Логотип" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
               ) : (
-                <span>{SETA_DESIGNER.initials}</span>
+                <span>{initials}</span>
               )}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -71,7 +81,7 @@ export default function ClientPage({ project, categories, logoUrl, note, onBack 
               <Icon name={copied ? "check" : "link"} size={14} />
               {copied ? "Скопировано" : "Ссылка"}
             </button>
-            <button className="btn btn-secondary" style={{ flex: isMobile ? 1 : "none", justifyContent: "center" }}>
+            <button className="btn btn-secondary" onClick={handlePDF} style={{ flex: isMobile ? 1 : "none", justifyContent: "center" }}>
               <Icon name="download" size={14} />PDF
             </button>
           </div>
@@ -86,7 +96,7 @@ export default function ClientPage({ project, categories, logoUrl, note, onBack 
             <button key={mode} onClick={() => setViewMode(mode)}
               style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, border: "none", background: viewMode === mode ? "var(--ink)" : "transparent", color: viewMode === mode ? "#fff" : "var(--ink-3)", fontSize: 12, fontWeight: 500, cursor: "pointer", transition: "all 120ms ease" }}>
               <Icon name={icon} size={14} />
-              {mode === "grid" ? "Сетка" : "Список"}
+              {mode === "grid" ? "Плитка" : "Список"}
             </button>
           ))}
         </div>
@@ -136,19 +146,17 @@ export default function ClientPage({ project, categories, logoUrl, note, onBack 
           {isMobile ? (
             // Мобил: контакты стопкой
             <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13, color: "var(--ink-2)" }}>
-              <a href={`tel:${SETA_DESIGNER.phone}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{SETA_DESIGNER.phone}</a>
-              <a href={`mailto:${SETA_DESIGNER.email}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{SETA_DESIGNER.email}</a>
-              <a href={`https://${SETA_DESIGNER.website}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{SETA_DESIGNER.website}</a>
+              {designer?.phone && <a href={`tel:${designer.phone}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{designer.phone}</a>}
+              {designer?.email && <a href={`mailto:${designer.email}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{designer.email}</a>}
+              {designer?.site && <a href={`https://${designer.site}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{designer.site}</a>}
               <div style={{ marginTop: 8, paddingTop: 12, borderTop: "1px solid var(--hairline)", fontSize: 10, color: "var(--ink-3)", letterSpacing: "0.06em" }}>СДЕЛАНО В SETA</div>
             </div>
           ) : (
             // Десктоп: контакты в строку
             <div style={{ display: "flex", alignItems: "center", fontSize: 13, color: "var(--ink-2)" }}>
-              <a href={`tel:${SETA_DESIGNER.phone}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{SETA_DESIGNER.phone}</a>
-              <Sep />
-              <a href={`mailto:${SETA_DESIGNER.email}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{SETA_DESIGNER.email}</a>
-              <Sep />
-              <a href={`https://${SETA_DESIGNER.website}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{SETA_DESIGNER.website}</a>
+              {designer?.phone && <><a href={`tel:${designer.phone}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{designer.phone}</a>{(designer.email || designer.site) && <Sep />}</>}
+              {designer?.email && <><a href={`mailto:${designer.email}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{designer.email}</a>{designer.site && <Sep />}</>}
+              {designer?.site && <a href={`https://${designer.site}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{designer.site}</a>}
               <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--ink-3)", letterSpacing: "0.06em" }}>СДЕЛАНО В SETA</span>
             </div>
           )}

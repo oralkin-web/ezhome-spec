@@ -111,6 +111,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/invite/:token" element={<InviteRoute setAuthMode={setAuthMode} setInviteToken={setInviteToken} />} />
+        <Route path="/project/:id/client" element={<PublicClientRoute />} />
         <Route path="*" element={null} />
       </Routes>
       <Auth
@@ -127,6 +128,57 @@ export default function App() {
     <BrowserRouter>
       <AppRoutes user={user} setUser={setUser} onLogout={handleLogout} />
     </BrowserRouter>
+  );
+}
+
+// ─── PublicClientRoute — без авторизации ─────────────────────────────────────
+function PublicClientRoute() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [project, setProject]       = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [designer, setDesigner]     = useState(null);
+  const [loading, setLoading]       = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      fetch(API_BASE + '/api/public/projects/' + id).then(r => r.json()),
+      fetch(API_BASE + '/api/public/projects/' + id + '/items').then(r => r.json()),
+    ]).then(([proj, items]) => {
+      if (proj.error) { setLoading(false); return; }
+      setProject(mapProject(proj));
+      setDesigner({
+        name:    proj.designer_name,
+        logoUrl: proj.designer_logo  || null,
+        phone:   proj.designer_phone || '',
+        email:   proj.designer_email || '',
+        site:    proj.designer_site  || '',
+      });
+      if (Array.isArray(items)) setCategories(mapCategories(items));
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [id]);
+
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg)' }}>
+      <div style={{ fontSize: 13, color: 'var(--ink-3)' }}>Загрузка…</div>
+    </div>
+  );
+  if (!project) return (
+    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg)' }}>
+      <div style={{ fontSize: 13, color: 'var(--ink-3)' }}>Проект не найден</div>
+    </div>
+  );
+  return (
+    <ClientPage
+      project={project}
+      categories={categories}
+      logoUrl={designer?.logoUrl}
+      designerName={designer?.name}
+      designer={designer}
+      note={project.note || ''}
+      onBack={null}
+    />
   );
 }
 
@@ -241,7 +293,7 @@ function AppRoutes({ user, setUser, onLogout }) {
         />
       } />
       <Route path="/project/:id/client" element={
-        <ClientRoute projects={projects} logoUrl={logoUrl} />
+        <ClientRoute projects={projects} logoUrl={logoUrl} user={user} />
       } />
       <Route path="/settings" element={
         <Settings
@@ -329,7 +381,7 @@ async function syncToDB(projectId, categories) {
 }
 
 // ─── ClientRoute ──────────────────────────────────────────────────────────────
-function ClientRoute({ projects, logoUrl }) {
+function ClientRoute({ projects, logoUrl, user }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const project = projects.find(p => p.id === id);
@@ -342,11 +394,22 @@ function ClientRoute({ projects, logoUrl }) {
   }, [id, project]);
 
   if (!project) return <Navigate to="/" replace />;
+
+  const designer = {
+    name:    user.name,
+    logoUrl: logoUrl || null,
+    phone:   user.phone || '',
+    email:   user.email || '',
+    site:    user.site  || '',
+  };
+
   return (
     <ClientPage
       project={project}
       categories={categories}
       logoUrl={logoUrl}
+      designerName={user.name}
+      designer={designer}
       note={project.note || ''}
       onBack={() => navigate('/project/' + id)}
     />
