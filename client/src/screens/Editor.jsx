@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { Icon, Placeholder, Editable, Sidebar } from '../components/shared';
 
+const PARSER_URL = 'https://web-production-b181.up.railway.app';
+
 const fmt = n => n.toLocaleString("ru-RU", { style: "currency", currency: "RUB", minimumFractionDigits: 0 });
 
 
 export default function Editor({ project, onBack, onShare, onRename, onRenameClient, categories, setCategories, note, onNoteChange }) {
   const grandTotal = categories.reduce((sum, c) => sum + c.products.reduce((s, p) => s + p.qty * p.price, 0), 0);
+
+  const [parsing, setParsing] = useState(false);
 
   const updateProduct = (cId, pId, patch) =>
     setCategories(cs => cs.map(c => c.id === cId ? { ...c, products: c.products.map(p => p.id === pId ? { ...p, ...patch } : p) } : c));
@@ -251,11 +255,36 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded }) {
             <div style={{ display: "flex", gap: 8 }}>
               <input value={draft.url || ""} onChange={e => updateDraft({ url: e.target.value })} placeholder="https://..." style={{ ...inputStyle, flex: 1 }} />
               <button
-                onClick={() => alert("Заполнить: " + (draft.url || "ссылка не указана"))}
+                onClick={async () => {
+                  if (!draft.url) return;
+                  setParsing(true);
+                  try {
+                    const r = await fetch(PARSER_URL + '/parse', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ url: draft.url })
+                    });
+                    const d = await r.json();
+                    if (d.ok) {
+                      updateDraft({
+                        name: d.name || draft.name,
+                        price: d.price || draft.price,
+                        dimensions: d.size || draft.dimensions,
+                        photoUrl: d.image_url || draft.photoUrl,
+                      });
+                    } else {
+                      alert('Не удалось загрузить данные');
+                    }
+                  } catch(e) {
+                    alert('Ошибка: ' + e.message);
+                  } finally {
+                    setParsing(false);
+                  }
+                }}
                 style={{ padding: "7px 14px", borderRadius: 6, background: "var(--ink)", color: "#fff", fontSize: 12, fontWeight: 500, border: "none", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
                 onMouseEnter={e => e.currentTarget.style.opacity = "0.82"}
                 onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
-                Заполнить
+                {parsing ? 'Загрузка...' : 'Заполнить'}
               </button>
             </div>
           </FieldGroup>
