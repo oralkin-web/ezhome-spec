@@ -7,6 +7,14 @@ const fmt = n => n.toLocaleString("ru-RU", { style: "currency", currency: "RUB",
 
 
 export default function Editor({ project, onBack, onShare, onRename, onRenameClient, categories, setCategories, note, onNoteChange }) {
+  const [copied, setCopied] = useState(false);
+  const copyClientLink = () => {
+    const url = window.location.origin + '/project/' + project.id + '/client';
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
   const grandTotal = categories.reduce((sum, c) => sum + c.products.reduce((s, p) => s + p.qty * p.price, 0), 0);
 
   const updateProduct = (cId, pId, patch) =>
@@ -46,7 +54,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button className="btn btn-secondary"><Icon name="download" size={14} />Скачать PDF</button>
-            <button className="btn btn-primary" onClick={onShare}><Icon name="link" size={14} />Ссылка клиенту</button>
+            <button className="btn btn-primary" onClick={copyClientLink}><Icon name={copied ? "check" : "link"} size={14} />{copied ? "Скопировано" : "Ссылка клиенту"}</button>
           </div>
         </div>
 
