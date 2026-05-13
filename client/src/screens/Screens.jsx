@@ -140,6 +140,15 @@ export function Settings({ onNav, logoUrl, onChangeLogo }) {
           <PasswordField label="Подтвердите новый пароль" />
           <div style={{ display: "flex", justifyContent: "flex-end" }}><button className="btn btn-primary">Изменить пароль</button></div>
         </SettingsSection>
+
+        <SettingsSection title="Сессия" description="Выйдите из аккаунта на этом устройстве.">
+          <button className="btn" onClick={async () => {
+            await fetch((import.meta.env.VITE_API_URL || '') + '/api/logout', { method: 'POST', credentials: 'include' });
+            window.location.href = '/';
+          }} style={{ color: "var(--danger)", border: "1px solid rgba(220,70,60,0.3)", background: "transparent" }}>
+            Выйти из аккаунта
+          </button>
+        </SettingsSection>
       </main>
     </div>
   );
