@@ -130,3 +130,21 @@ input[type=number].no-arrows::-webkit-inner-spin-button {
 input[type=number].no-arrows {
   -moz-appearance: textfield;
 }
+
+/* Убрать стрелки у number inputs */
+input[type=number].no-arrows::-webkit-outer-spin-button,
+input[type=number].no-arrows::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number].no-arrows {
+  -moz-appearance: textfield;
+}
+
+/* Placeholder для contentEditable */
+.editable:empty:before,
+.editable[data-placeholder]:not(:focus):empty:before {
+  content: attr(data-placeholder);
+  color: var(--ink-3);
+  pointer-events: none;
+}
