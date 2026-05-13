@@ -63,7 +63,7 @@ async function sendEmailTo(to, subject, html) {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: 'SETA <feedback@useseta.com>',
+        from: 'SETA <onboarding@resend.dev>',
         to,
         subject,
         html
