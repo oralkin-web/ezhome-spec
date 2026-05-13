@@ -197,6 +197,7 @@ function PublicClientRoute() {
 function AppRoutes({ user, setUser, onLogout }) {
   const navigate = useNavigate();
   const [projects, setProjects]     = useState([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
   const [adminTab, setAdminTab]     = useState('users');
   const [logoUrl, setLogoUrl]       = useState(user.logo || null);
 
@@ -204,6 +205,7 @@ function AppRoutes({ user, setUser, onLogout }) {
   const loadProjects = useCallback(async () => {
     const data = await api.get('/api/projects');
     if (Array.isArray(data)) setProjects(data.map(mapProject));
+    setProjectsLoading(false);
   }, []);
 
   useEffect(() => { loadProjects(); }, [loadProjects]);
@@ -304,7 +306,7 @@ function AppRoutes({ user, setUser, onLogout }) {
         />
       } />
       <Route path="/project/:id/client" element={
-        <ClientRoute projects={projects} logoUrl={logoUrl} user={user} />
+        <ClientRoute projects={projects} projectsLoading={projectsLoading} logoUrl={logoUrl} user={user} />
       } />
       <Route path="/settings" element={
         <Settings
@@ -392,20 +394,20 @@ async function syncToDB(projectId, categories) {
 }
 
 // ─── ClientRoute ──────────────────────────────────────────────────────────────
-function ClientRoute({ projects, logoUrl, user }) {
+function ClientRoute({ projects, projectsLoading, logoUrl, user }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const project = projects.find(p => p.id === id);
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [itemsLoading, setItemsLoading] = useState(true);
 
   useEffect(() => {
     api.get('/api/projects/' + id + '/items')
       .then(data => { if (Array.isArray(data)) setCategories(mapCategories(data)); })
-      .finally(() => setLoading(false));
+      .finally(() => setItemsLoading(false));
   }, [id]);
 
-  if (loading) return (
+  if (projectsLoading || itemsLoading) return (
     <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg)' }}>
       <div style={{ fontSize: 13, color: 'var(--ink-3)' }}>Загрузка…</div>
     </div>
