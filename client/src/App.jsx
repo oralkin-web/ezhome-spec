@@ -126,6 +126,7 @@ export default function App() {
       <Routes>
         <Route path="/invite/:token" element={<InviteRoute setAuthMode={setAuthMode} setInviteToken={setInviteToken} />} />
         <Route path="/project/:id/client" element={<PublicClientRoute />} />
+        <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={null} />
       </Routes>
       <Auth
