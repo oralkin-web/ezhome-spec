@@ -129,13 +129,13 @@ export default function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={null} />
       </Routes>
-      <Auth
+      {!window.location.pathname.startsWith('/privacy') && <Auth
         mode={authMode}
         setMode={setAuthMode}
         onLogin={handleLogin}
         onRegister={handleRegister}
         isInvite={!!inviteToken}
-      />
+      />}
     </BrowserRouter>
   );
 
