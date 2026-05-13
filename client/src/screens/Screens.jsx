@@ -108,6 +108,30 @@ function LogoSection({ logoUrl, onChangeLogo }) {
 // ─── SCREEN 4: SETTINGS ────────────────────────────────────────────────────
 
 export function Settings({ onNav, logoUrl, onChangeLogo }) {
+  const API = import.meta.env.VITE_API_URL || '';
+  const [profile, setProfile] = useState({ name: '', email: '', phone: '', site: '' });
+  const [contacts, setContacts] = useState({ phone: '', email: '', site: '' });
+  const [saved, setSaved] = useState('');
+
+  useEffect(() => {
+    fetch(API + '/api/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(u => {
+        setProfile({ name: u.name || '', email: u.email || '' });
+        setContacts({ phone: u.phone || '', email: u.email || '', site: u.site || '' });
+      }).catch(() => {});
+  }, []);
+
+  const saveProfile = async () => {
+    await fetch(API + '/api/profile', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: profile.name }) });
+    setSaved('profile'); setTimeout(() => setSaved(''), 2000);
+  };
+
+  const saveContacts = async () => {
+    await fetch(API + '/api/profile', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: contacts.phone, site: contacts.site }) });
+    setSaved('contacts'); setTimeout(() => setSaved(''), 2000);
+  };
+
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar active="settings" onNav={onNav} />
@@ -119,19 +143,25 @@ export function Settings({ onNav, logoUrl, onChangeLogo }) {
 
         <SettingsSection title="Профиль" description="Эти данные видите только вы и команда SETA.">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="settings-grid">
-            <div className="field"><label className="label">Имя</label><input className="input" defaultValue="Анна Полякова" /></div>
-            <div className="field"><label className="label">Email</label><input className="input" type="text" defaultValue="anna@asterandfield.ru" /></div>
+            <div className="field"><label className="label">Имя</label><input className="input" value={profile.name} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} /></div>
+            <div className="field"><label className="label">Email</label><input className="input" type="text" value={profile.email} readOnly style={{ opacity: 0.6 }} /></div>
           </div>
-          <div style={{ display: "flex", justifyContent: "flex-end" }}><button className="btn btn-primary">Сохранить</button></div>
+          <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12 }}>
+            {saved === 'profile' && <span style={{ fontSize: 13, color: "var(--accent)" }}>Сохранено ✓</span>}
+            <button className="btn btn-primary" onClick={saveProfile}>Сохранить</button>
+          </div>
         </SettingsSection>
 
         <LogoSection logoUrl={logoUrl} onChangeLogo={onChangeLogo} />
 
         <SettingsSection title="Контакты для клиента" description="Отображаются в футере страницы, которую вы отправляете клиенту.">
-          <div className="field"><label className="label">Телефон</label><input className="input" type="tel" defaultValue="+7 (495) 555 01 88" /></div>
-          <div className="field"><label className="label">Email</label><input className="input" type="text" defaultValue="hello@asterandfield.ru" /></div>
-          <div className="field"><label className="label">Сайт</label><input className="input" defaultValue="asterandfield.ru" /></div>
-          <div style={{ display: "flex", justifyContent: "flex-end" }}><button className="btn btn-primary">Сохранить</button></div>
+          <div className="field"><label className="label">Телефон</label><input className="input" type="tel" value={contacts.phone} onChange={e => setContacts(c => ({ ...c, phone: e.target.value }))} /></div>
+          <div className="field"><label className="label">Email</label><input className="input" type="text" value={contacts.email} readOnly style={{ opacity: 0.6 }} /></div>
+          <div className="field"><label className="label">Сайт</label><input className="input" value={contacts.site} onChange={e => setContacts(c => ({ ...c, site: e.target.value }))} /></div>
+          <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12 }}>
+            {saved === 'contacts' && <span style={{ fontSize: 13, color: "var(--accent)" }}>Сохранено ✓</span>}
+            <button className="btn btn-primary" onClick={saveContacts}>Сохранить</button>
+          </div>
         </SettingsSection>
 
         <SettingsSection title="Пароль" description="Используйте надёжную комбинацию букв, цифр и символов. Мы рекомендуем не менее 8 символов.">
