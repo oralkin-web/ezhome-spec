@@ -128,19 +128,7 @@ function ProjectCard({ project, onOpen, onRename, onDelete, onArchive, onUnarchi
           label=""
           style={{ width: "100%", height: "100%" }}
         />
-        {/* Item count chip */}
-        <div style={{
-          position: "absolute", top: 12, left: 12,
-          background: "rgba(255, 255, 255, 0.9)",
-          backdropFilter: "blur(6px)",
-          padding: "5px 9px",
-          borderRadius: 6,
-          fontSize: 11, fontWeight: 500,
-          color: "var(--ink)",
-          letterSpacing: "0.02em",
-        }}>
-          {project.items} позиций
-        </div>
+
         {/* Hover overlay menu */}
         <button
           onClick={(e) => { e.stopPropagation(); setMenu((v) => !v); }}
@@ -252,15 +240,9 @@ function ProjectCard({ project, onOpen, onRename, onDelete, onArchive, onUnarchi
       </div>
       {/* Body */}
       <div style={{ padding: "16px 18px 18px" }}>
-        <Editable
-          as="div"
-          value={project.name}
-          onChange={onRename}
-          style={{
-            fontSize: 16, fontWeight: 600, color: "var(--ink)",
-            marginBottom: 4, lineHeight: 1.3,
-          }}
-        />
+        <div style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", marginBottom: 4, lineHeight: 1.3 }}>
+          {project.name}
+        </div>
         <div style={{ color: "var(--ink-2)", fontSize: 13, marginBottom: 14 }}>
           {project.client}
         </div>
