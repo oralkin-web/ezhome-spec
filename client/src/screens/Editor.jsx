@@ -16,7 +16,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
     setCategories(cs => cs.map(c => c.id === cId ? {
       ...c, products: [...c.products, {
         id: newId,
-        name: "Новый товар", brand: "Бренд", url: "", photoUrl: "", dimensions: "", qty: 1, price: 0, swatch: 30
+        name: "Новый товар", brand: "Бренд", url: "", photoUrl: "", dimensions: "", color: "", qty: 1, price: 0, swatch: 30
       }]
     } : c));
     return newId;
@@ -218,6 +218,7 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded }) {
           </div>
           <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>{product.brand}</div>
           {product.dimensions && <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 1 }}>{product.dimensions}</div>}
+          {product.color && <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 1 }}>{product.color}</div>}
         </div>
         {/* Кол-во — только отображение, редактирование в форме */}
         <div style={{ textAlign: "right", fontSize: 13, color: "var(--ink)", fontVariantNumeric: "tabular-nums" }}>{product.qty}</div>
@@ -241,6 +242,9 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
             <FieldGroup label="Размеры">
               <input value={draft.dimensions || ""} onChange={e => updateDraft({ dimensions: e.target.value })} placeholder="напр. 240 × 90 × 80 см" style={inputStyle} />
+            </FieldGroup>
+            <FieldGroup label="Цвет / материал">
+              <input value={draft.color || ""} onChange={e => updateDraft({ color: e.target.value })} placeholder="напр. Серый велюр" style={inputStyle} />
             </FieldGroup>
             <FieldGroup label="Цена, ₽">
               <input type="number" value={draft.price || ""} onChange={e => updateDraft({ price: parseFloat(e.target.value) || 0 })} placeholder="0" style={{ ...inputStyle, textAlign: "right" }} />
@@ -269,6 +273,7 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded }) {
                         name: d.name || draft.name,
                         price: d.price || draft.price,
                         dimensions: d.size || draft.dimensions,
+                        color: d.color || draft.color,
                         photoUrl: d.image_url || draft.photoUrl,
                       });
                     } else {
