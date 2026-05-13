@@ -442,6 +442,11 @@ function AdminFeedback() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const deleteMessage = (id) => {
+    fetch(API_BASE + '/api/feedback/' + id, { method: 'DELETE', credentials: 'include' })
+      .then(() => setMessages(ms => ms.filter(m => m.id !== id)));
+  };
+
   useEffect(() => {
     fetch(API_BASE + '/api/feedback', { credentials: 'include' })
       .then(r => r.json())
@@ -465,6 +470,7 @@ function AdminFeedback() {
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 13, fontWeight: 600 }}>{userName}</span>
                 <span style={{ fontSize: 12, color: "var(--ink-3)", marginLeft: "auto" }}>{msgDate}</span>
+                <button onClick={() => deleteMessage(m.id)} style={{ display: "grid", placeItems: "center", width: 26, height: 26, borderRadius: 6, border: "none", background: "transparent", color: "var(--ink-3)", cursor: "pointer", flexShrink: 0 }} onMouseEnter={e => { e.currentTarget.style.background = "rgba(220,70,60,0.08)"; e.currentTarget.style.color = "var(--danger)"; }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--ink-3)"; }}><Icon name="trash" size={13} /></button>
               </div>
               <div style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.6 }}>{m.text}</div>
             </div>

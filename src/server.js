@@ -243,6 +243,13 @@ app.get('/api/feedback/mine', auth, async (req, res) => {
   res.json(r.rows);
 });
 
+app.delete('/api/feedback/:id', adminAuth, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM feedback WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
 app.get('/api/feedback', adminAuth, async (req, res) => {
   const r = await pool.query(`
     SELECT f.*, u.name as user_name, u.email as user_email
