@@ -206,7 +206,9 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded }) {
         {/* Фото: бокс 96×96, contain по центру */}
         <div style={{ width: 80, height: 80, borderRadius: 8, overflow: "hidden", background: "#F0EDE8", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           {product.photoUrl ? (
-            <img src={product.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} onError={e => { e.currentTarget.style.display = "none"; }} />
+            <img src={product.photoUrl} alt="" crossOrigin="anonymous" style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center" }}
+              onLoad={e => { try { const img = e.currentTarget; const c = document.createElement("canvas"); c.width = img.naturalWidth; c.height = img.naturalHeight; const ctx = c.getContext("2d"); ctx.drawImage(img, 0, 0); const px = ctx.getImageData(0, 0, 1, 1).data; img.parentElement.style.background = `rgb(${px[0]},${px[1]},${px[2]})`; } catch(err) {} }}
+              onError={e => { e.currentTarget.style.display = "none"; }} />
           ) : (
             <Placeholder hue={product.swatch} label="IMG" style={{ width: "100%", height: "100%" }} />
           )}
