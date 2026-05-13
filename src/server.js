@@ -116,6 +116,14 @@ async function initDB() {
       created_at TIMESTAMP DEFAULT NOW()
     );
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL DEFAULT ''
+    );
+  `);
+  await pool.query(`INSERT INTO settings (key, value) VALUES ('banner_active', 'false') ON CONFLICT DO NOTHING`);
+  await pool.query(`INSERT INTO settings (key, value) VALUES ('banner_text', '') ON CONFLICT DO NOTHING`);
   await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS comment TEXT DEFAULT ''`);
   await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS cover_hue INTEGER DEFAULT 28`);
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS logo TEXT DEFAULT ''`);
@@ -319,6 +327,24 @@ app.delete('/api/admin/users/:id', adminAuth, async (req, res) => {
 });
 
 // PROJECTS
+// BANNER
+app.get('/api/banner', async (req, res) => {
+  try {
+    const r = await pool.query("SELECT key, value FROM settings WHERE key IN ('banner_active','banner_text')");
+    const s = Object.fromEntries(r.rows.map(row => [row.key, row.value]));
+    res.json({ active: s.banner_active === 'true', text: s.banner_text || '' });
+  } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.put('/api/admin/banner', adminAuth, async (req, res) => {
+  try {
+    const { active, text } = req.body;
+    await pool.query("UPDATE settings SET value=$1 WHERE key='banner_active'", [active ? 'true' : 'false']);
+    await pool.query("UPDATE settings SET value=$1 WHERE key='banner_text'", [text || '']);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
 app.get('/api/projects', auth, async (req, res) => {
   const r = await pool.query(`
     SELECT p.*, COUNT(i.id) as item_count, COALESCE(SUM(i.price * i.qty), 0) as total

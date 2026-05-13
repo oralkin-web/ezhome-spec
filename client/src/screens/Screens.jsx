@@ -332,7 +332,7 @@ function StatCard({ label, value, delta, accent }) {
   );
 }
 
-export function Admin({ onNav, tab, setTab }) {
+export function Admin({ onNav, tab, setTab, banner, setBanner }) {
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg)" }}>
       <Sidebar admin onNav={onNav} active={`admin-${tab}`} />
@@ -345,9 +345,11 @@ export function Admin({ onNav, tab, setTab }) {
         <div className="tabs" style={{ maxWidth: 480, marginBottom: 28 }}>
           <button className={`tab ${tab === "users" ? "active" : ""}`} onClick={() => setTab("users")}>Пользователи</button>
           <button className={`tab ${tab === "feedback" ? "active" : ""}`} onClick={() => setTab("feedback")}>Обратная связь</button>
+          <button className={`tab ${tab === "banner" ? "active" : ""}`} onClick={() => setTab("banner")}>Баннер</button>
         </div>
         {tab === "users" && <AdminUsers />}
         {tab === "feedback" && <AdminFeedback />}
+        {tab === "banner" && <AdminBanner banner={banner} setBanner={setBanner} />}
       </main>
     </div>
   );
@@ -477,6 +479,65 @@ function AdminFeedback() {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// ─── AdminBanner ─────────────────────────────────────────────────────────────
+function AdminBanner({ banner, setBanner }) {
+  const [text, setText] = useState(banner?.text || '');
+  const [active, setActive] = useState(banner?.active || false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const save = async (newActive, newText) => {
+    setSaving(true);
+    await fetch(API_BASE + '/api/admin/banner', {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: newActive, text: newText }),
+    });
+    setBanner({ active: newActive, text: newText });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  return (
+    <div className="fade-in" style={{ maxWidth: 560 }}>
+      <div style={{ background: "var(--surface)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)", padding: 28 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 16 }}>Системное сообщение для всех пользователей</div>
+
+        {/* Превью */}
+        {text && (
+          <div style={{ background: "var(--ink)", color: "#fff", borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 13, display: "flex", alignItems: "center", gap: 10 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+            <span style={{ color: "rgba(255,255,255,0.9)" }}>{text}</span>
+          </div>
+        )}
+
+        <div className="field" style={{ marginBottom: 16 }}>
+          <label className="label">Текст сообщения</label>
+          <textarea className="input" rows={3} value={text} onChange={e => setText(e.target.value)}
+            placeholder="Ведутся технические работы. Если вы вышли из аккаунта — просто войдите снова, все проекты сохранены."
+            style={{ resize: "vertical", lineHeight: 1.5 }} />
+        </div>
+
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <button className="btn btn-primary" onClick={() => { setActive(true); save(true, text); }} disabled={saving || !text.trim()}>
+            {saving ? 'Сохранение…' : saved ? '✓ Сохранено' : 'Включить и сохранить'}
+          </button>
+          {active && (
+            <button className="btn btn-secondary" onClick={() => { setActive(false); save(false, text); }}>
+              Выключить баннер
+            </button>
+          )}
+        </div>
+        <div style={{ marginTop: 12, fontSize: 12, color: "var(--ink-3)" }}>
+          Статус: {active ? <span style={{ color: "oklch(0.42 0.13 145)", fontWeight: 500 }}>Активен</span> : <span>Выключен</span>}
+        </div>
+      </div>
     </div>
   );
 }
