@@ -56,18 +56,15 @@ async function sendEmail(subject, html) {
   await sendEmailTo(ADMIN_EMAIL, subject, html);
 }
 
-async function sendEmailTo(to, subject, html) {
+async function sendEmailTo(to, subject, html, attachments = []) {
   if (!RESEND_API_KEY) return;
   try {
+    const body = { from: 'SETA <onboarding@resend.dev>', to, subject, html };
+    if (attachments.length) body.attachments = attachments;
     const resp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from: 'SETA <onboarding@resend.dev>',
-        to,
-        subject,
-        html
-      })
+      body: JSON.stringify(body)
     });
     const data = await resp.json();
     console.log('Resend response:', resp.status, JSON.stringify(data));
@@ -221,10 +218,18 @@ app.post('/api/feedback', auth, async (req, res) => {
   const userR = await pool.query('SELECT name, email FROM users WHERE id=$1', [req.session.userId]);
   const user = userR.rows[0];
   const date = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
-  const imageHtml = image ? `<br><img src="${image}" style="max-width:600px;border-radius:8px;margin-top:12px">` : '';
-  await sendEmail(
+  const attachments = [];
+  if (image && image.startsWith('data:')) {
+    const matches = image.match(/^data:(image\/\w+);base64,(.+)$/);
+    if (matches) {
+      attachments.push({ filename: 'screenshot.png', content: matches[2] });
+    }
+  }
+  await sendEmailTo(
+    ADMIN_EMAIL,
     `Новый отзыв от ${user.name}${topic ? ' — ' + topic : ''}`,
-    `<p><b>${user.name}</b> (${user.email})</p><p>${date}</p><hr><p style="font-size:16px">${text.trim().replace(/\n/g, '<br>')}</p>${imageHtml}`
+    `<p><b>${user.name}</b> (${user.email})</p><p><b>Тема:</b> ${topic || '—'}</p><p>${date}</p><hr><p style="font-size:16px">${text.trim().replace(/\n/g, '<br>')}</p>${attachments.length ? '<p><i>Скриншот прикреплён во вложении</i></p>' : ''}`,
+    attachments
   );
   res.json({ ok: true });
 });
