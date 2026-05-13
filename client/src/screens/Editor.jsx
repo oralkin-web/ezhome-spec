@@ -9,8 +9,6 @@ const fmt = n => n.toLocaleString("ru-RU", { style: "currency", currency: "RUB",
 export default function Editor({ project, onBack, onShare, onRename, onRenameClient, categories, setCategories, note, onNoteChange }) {
   const grandTotal = categories.reduce((sum, c) => sum + c.products.reduce((s, p) => s + p.qty * p.price, 0), 0);
 
-  const [parsing, setParsing] = useState(false);
-
   const updateProduct = (cId, pId, patch) =>
     setCategories(cs => cs.map(c => c.id === cId ? { ...c, products: c.products.map(p => p.id === pId ? { ...p, ...patch } : p) } : c));
   const addProduct = (cId) => {
@@ -196,6 +194,7 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded }) {
   const handleSave = () => { onChange(draft); setExpanded(false); };
   const handleDiscard = () => { setDraft({ ...product }); setExpanded(false); };
   const updateDraft = (patch) => setDraft(d => ({ ...d, ...patch }));
+  const [parsing, setParsing] = useState(false);
 
   return (
     <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{ borderTop: "1px solid var(--hairline)" }}>
