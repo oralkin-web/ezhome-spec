@@ -59,7 +59,7 @@ async function sendEmail(subject, html) {
 async function sendEmailTo(to, subject, html) {
   if (!RESEND_API_KEY) return;
   try {
-    await fetch('https://api.resend.com/emails', {
+    const resp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -69,6 +69,8 @@ async function sendEmailTo(to, subject, html) {
         html
       })
     });
+    const data = await resp.json();
+    console.log('Resend response:', resp.status, JSON.stringify(data));
   } catch (e) {
     console.error('Email error:', e.message);
   }
