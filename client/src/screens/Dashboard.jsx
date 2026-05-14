@@ -33,6 +33,7 @@ const COVER_COLORS = [
 // Screen 1: Dashboard / project list.
 function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, onUnarchive, onChangeCover, onNav, isArchive = false, user }) {
   const list = projects;
+  const [deleteTarget, setDeleteTarget] = React.useState(null); // { id, name }
   return (
     <div style={{ display: "flex", minHeight: "100vh" }} data-screen-label="01 Dashboard">
       <Sidebar active={isArchive ? "archive" : "projects"} onNav={onNav} isAdmin={user?.isAdmin} />
@@ -47,7 +48,7 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
               {isArchive ? "Архив" : "Мои проекты"}
             </h1>
             <div style={{ marginTop: 10, color: "var(--ink-2)", fontSize: 13 }}>
-              {list.length} {list.length === 1 ? "проект" : (list.length >= 2 && list.length <= 4 ? "проекта" : "проектов")}{!isArchive && " · Последняя активность 28 апреля"}
+              {list.length} {list.length === 1 ? "проект" : (list.length >= 2 && list.length <= 4 ? "проекта" : "проектов")}
             </div>
           </div>
           <div style={{ display: "flex", gap: 10, alignItems: "center", flexShrink: 0 }}>
@@ -64,10 +65,12 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
                 style={{ border: "none", background: "transparent", outline: "none", flex: 1, color: "var(--ink)" }}
               />
             </div>
+{list.length > 0 && (
             <button className="btn btn-primary" onClick={onCreate}>
               <Icon name="plus" size={14} />
               Новый проект
             </button>
+            )}
           </div>
         </div>
 
@@ -86,7 +89,7 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
                 project={p}
                 onOpen={() => onOpen(p.id)}
                 onRename={(name) => onRename(p.id, name)}
-                onDelete={() => onDelete(p.id)}
+                onDelete={() => setDeleteTarget({ id: p.id, name: p.name })}
                 onArchive={onArchive ? () => onArchive(p.id) : null}
                 onUnarchive={onUnarchive ? () => onUnarchive(p.id) : null}
                 onChangeCover={onChangeCover ? (hue) => onChangeCover(p.id, hue) : null}
@@ -96,6 +99,28 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
           </div>
         )}
       </main>
+
+      {/* Глобальный диалог удаления — без лага экрана */}
+      {deleteTarget && (
+        <div
+          onClick={() => setDeleteTarget(null)}
+          style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(20, 16, 10, 0.5)", display: "grid", placeItems: "center", padding: 20, animation: "fadeIn 140ms ease both" }}
+        >
+          <div onClick={e => e.stopPropagation()} style={{ background: "var(--surface)", borderRadius: "var(--radius-lg)", boxShadow: "0 24px 60px -10px rgba(20,16,10,0.3)", padding: 28, maxWidth: 420, width: "100%", cursor: "default" }}>
+            <div style={{ width: 44, height: 44, borderRadius: 10, background: "rgba(220, 70, 60, 0.1)", color: "var(--danger)", display: "grid", placeItems: "center", marginBottom: 16 }}>
+              <Icon name="trash" size={20} />
+            </div>
+            <h3 className="serif" style={{ margin: "0 0 8px", fontSize: 22, letterSpacing: "-0.01em" }}>Удалить проект?</h3>
+            <p style={{ margin: "0 0 24px", color: "var(--ink-2)", fontSize: 14, lineHeight: 1.5 }}>
+              Проект «{deleteTarget.name}» и все его позиции будут удалены безвозвратно. Это действие нельзя отменить.
+            </p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <button className="btn btn-secondary" onClick={() => setDeleteTarget(null)}>Отмена</button>
+              <button className="btn" onClick={() => { const id = deleteTarget.id; setDeleteTarget(null); onDelete(id); }} style={{ background: "var(--danger)", color: "#fff", justifyContent: "center" }}>Удалить</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -103,7 +128,6 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
 function ProjectCard({ project, onOpen, onRename, onDelete, onArchive, onUnarchive, onChangeCover, isArchive }) {
   const [hover, setHover] = React.useState(false);
   const [menu, setMenu] = React.useState(false);
-  const [confirm, setConfirm] = React.useState(false);
   const [showColorPicker, setShowColorPicker] = React.useState(false);
   return (
     <div
@@ -163,7 +187,7 @@ function ProjectCard({ project, onOpen, onRename, onDelete, onArchive, onUnarchi
             {!isArchive && (
               <MenuItem icon="image" label="Изменить обложку" onClick={() => { setShowColorPicker(v => !v); }} />
             )}
-            <MenuItem icon="trash" label="Удалить" danger onClick={() => { setMenu(false); setConfirm(true); }} />
+            <MenuItem icon="trash" label="Удалить" danger onClick={() => { setMenu(false); onDelete(); }} />
             {showColorPicker && (
               <div style={{ padding: "8px 6px 4px", borderTop: "1px solid var(--hairline)", marginTop: 4 }}>
                 <div style={{ fontSize: 10, color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6, paddingLeft: 4 }}>Цвет обложки</div>
@@ -190,53 +214,7 @@ function ProjectCard({ project, onOpen, onRename, onDelete, onArchive, onUnarchi
             )}
           </div>
         )}
-        {confirm && (
-          <div
-            onClick={(e) => { e.stopPropagation(); setConfirm(false); }}
-            style={{
-              position: "fixed", inset: 0, zIndex: 200,
-              background: "rgba(20, 16, 10, 0.5)",
-              display: "grid", placeItems: "center",
-              padding: 20,
-              animation: "fadeIn 140ms ease both",
-            }}
-          >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className="fade-in"
-              style={{
-                background: "var(--surface)", borderRadius: "var(--radius-lg)",
-                boxShadow: "0 24px 60px -10px rgba(20,16,10,0.3)",
-                padding: 28, maxWidth: 420, width: "100%",
-                cursor: "default",
-              }}
-            >
-              <div style={{
-                width: 44, height: 44, borderRadius: 10,
-                background: "rgba(220, 70, 60, 0.1)", color: "var(--danger)",
-                display: "grid", placeItems: "center", marginBottom: 16,
-              }}>
-                <Icon name="trash" size={20} />
-              </div>
-              <h3 className="serif" style={{ margin: "0 0 8px", fontSize: 22, letterSpacing: "-0.01em" }}>
-                Удалить проект?
-              </h3>
-              <p style={{ margin: "0 0 24px", color: "var(--ink-2)", fontSize: 14, lineHeight: 1.5 }}>
-                Проект «{project.name}» и все его позиции будут удалены безвозвратно. Это действие нельзя отменить.
-              </p>
-              <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                <button className="btn btn-secondary" onClick={() => setConfirm(false)}>Отмена</button>
-                <button
-                  className="btn"
-                  onClick={() => { setConfirm(false); onDelete(); }}
-                  style={{ background: "var(--danger)", color: "#fff", justifyContent: "center" }}
-                >
-                  Удалить
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+
       </div>
       {/* Body */}
       <div style={{ padding: "16px 18px 18px" }}>
@@ -306,7 +284,7 @@ function EmptyState({ onCreate }) {
           <Icon name="plus" size={14} />
           Новый проект
         </button>
-        <button className="btn btn-secondary">Шаблоны</button>
+
       </div>
     </div>
   );

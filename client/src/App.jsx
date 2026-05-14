@@ -348,6 +348,7 @@ function AppRoutes({ user, setUser, onLogout, banner, setBanner }) {
           onRenameClient={renameClient}
           onSaveNote={saveNote}
           onProjectsReload={loadProjects}
+          user={user}
         />
       } />
       <Route path="/project/:id/client" element={
@@ -371,7 +372,7 @@ function AppRoutes({ user, setUser, onLogout, banner, setBanner }) {
 }
 
 // ─── EditorRoute ──────────────────────────────────────────────────────────────
-function EditorRoute({ projects, onRename, onRenameClient, onSaveNote, onProjectsReload }) {
+function EditorRoute({ projects, onRename, onRenameClient, onSaveNote, onProjectsReload, user }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const project = projects.find(p => p.id === id);
@@ -416,6 +417,7 @@ function EditorRoute({ projects, onRename, onRenameClient, onSaveNote, onProject
       onRenameClient={n => onRenameClient(id, n)}
       note={project.note || ''}
       onNoteChange={n => onSaveNote(id, n)}
+      user={user}
     />
   );
 }

@@ -6,7 +6,7 @@ const PARSER_URL = 'https://web-production-b181.up.railway.app';
 const fmt = n => n.toLocaleString("ru-RU", { style: "currency", currency: "RUB", minimumFractionDigits: 0 });
 
 
-export default function Editor({ project, onBack, onShare, onRename, onRenameClient, categories, setCategories, note, onNoteChange }) {
+export default function Editor({ project, onBack, onShare, onRename, onRenameClient, categories, setCategories, note, onNoteChange, user }) {
   const [copied, setCopied] = useState(false);
   const copyClientLink = () => {
     const url = window.location.origin + '/project/' + project.id + '/client';
@@ -43,7 +43,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
-      <Sidebar active="projects" onNav={onBack} />
+      <Sidebar active="projects" onNav={onBack} isAdmin={user?.isAdmin} />
       <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         {/* Top bar — правка 1: только навигация, без названия и клиента */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 40px", borderBottom: "1px solid var(--hairline)", background: "var(--surface)", position: "sticky", top: 0, zIndex: 10 }}>
@@ -52,11 +52,13 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
               <Icon name="back" size={14} />Проекты
             </button>
           </div>
+          {totalItems > 0 && (
           <div style={{ display: "flex", gap: 8 }}>
             <button className="btn btn-secondary"><Icon name="download" size={14} />Скачать PDF</button>
             <button className="btn btn-secondary" onClick={() => window.open('/project/' + project.id + '/client', '_blank')}><Icon name="eye" size={14} />Предпросмотр</button>
             <button className="btn btn-primary" onClick={copyClientLink}><Icon name={copied ? "check" : "link"} size={14} />{copied ? "Скопировано" : "Ссылка клиенту"}</button>
           </div>
+          )}
         </div>
 
         {/* Content */}
