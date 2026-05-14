@@ -625,12 +625,7 @@ function AuthCard({ mode, setMode, onLogin, onRegister, isInvite }) {
 
   return (
     <div className="auth-card" style={{ width: "100%", maxWidth: 420, background: "var(--surface)", borderRadius: "var(--radius-lg)", boxShadow: "0 1px 2px rgba(20,16,10,0.04), 0 24px 60px -20px rgba(20,16,10,0.18)", padding: 32 }}>
-      {!isInvite && (
-        <div className="tabs" style={{ marginBottom: 28 }}>
-          <button className={`tab ${mode === "login" ? "active" : ""}`} onClick={() => { setMode("login"); setError(""); setEmailErr(""); }}>Вход</button>
-          <button className={`tab ${mode === "register" ? "active" : ""}`} onClick={() => { setMode("register"); setRegEmailErr(""); }}>Регистрация</button>
-        </div>
-      )}
+
       {mode === "login" ? (
         <div className="fade-in">
           <h1 className="serif" style={{ margin: "0 0 6px", fontSize: 30, letterSpacing: "-0.01em" }}>С возвращением</h1>
@@ -651,8 +646,13 @@ function AuthCard({ mode, setMode, onLogin, onRegister, isInvite }) {
             </div>
           )}
           <button className="btn btn-primary" onClick={handleLogin} style={{ width: "100%", height: 48, fontSize: 14, marginTop: 4, justifyContent: "center" }}>Войти</button>
-          <div style={{ textAlign: "center", marginTop: 16 }}>
+          <div style={{ textAlign: "center", marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
             <button onClick={() => setMode("reset")} style={{ color: "var(--ink-3)", fontSize: 12, padding: 4, border: "none", background: "none", cursor: "pointer" }}>Забыли пароль?</button>
+            <a href="/privacy" target="_blank" style={{ color: "var(--ink-3)", fontSize: 11, textDecoration: "none" }}
+              onMouseEnter={e => e.currentTarget.style.color = "var(--ink-2)"}
+              onMouseLeave={e => e.currentTarget.style.color = "var(--ink-3)"}>
+              Политика конфиденциальности
+            </a>
           </div>
         </div>
       ) : (
