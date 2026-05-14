@@ -700,7 +700,8 @@ app.get('/api/magic', async (req, res) => {
     if (new Date(t.expires_at) < new Date()) return res.redirect('/?error=expired');
     await pool.query('UPDATE magic_tokens SET used = TRUE WHERE token = $1', [token]);
     req.session.userId = t.user_id;
-    res.redirect('/');
+    const appUrl = process.env.APP_URL || 'https://useseta.com';
+    res.redirect(appUrl);
   } catch(e) {
     console.error('magic error:', e.message);
     res.redirect('/?error=server');
