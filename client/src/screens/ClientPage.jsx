@@ -187,6 +187,9 @@ function ClientCard({ product, isMobile }) {
           {product.dimensions && (
             <div style={{ fontSize: isMobile ? 10 : 11, color: "var(--ink-3)" }}>{product.dimensions}</div>
           )}
+          {product.comment && (
+            <div style={{ fontSize: isMobile ? 10 : 11, color: "var(--ink-3)", marginTop: 3, fontStyle: "italic", lineHeight: 1.4 }}>{product.comment}</div>
+          )}
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", paddingTop: isMobile ? 7 : 10, marginTop: isMobile ? 7 : 10, borderTop: "1px solid var(--hairline)" }}>
           <div style={{ fontSize: isMobile ? 10 : 11, color: "var(--ink-3)" }}>× {product.qty}</div>
@@ -210,6 +213,9 @@ function ClientListRow({ product, isMobile }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 500, color: "var(--ink)", lineHeight: 1.3, marginBottom: 3 }}>{product.name}</div>
         <div style={{ fontSize: 11, color: "var(--ink-3)" }}>{product.brand}{product.dimensions ? ` · ${product.dimensions}` : ""}</div>
+        {product.comment && (
+          <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 2, fontStyle: "italic" }}>{product.comment}</div>
+        )}
       </div>
       <div style={{ textAlign: "right", flexShrink: 0 }}>
         <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 600, fontVariantNumeric: "tabular-nums", color: "var(--ink)" }}>{fmt(product.price)}</div>
