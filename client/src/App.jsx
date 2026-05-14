@@ -37,6 +37,7 @@ function mapCategories(items) {
       id:         i.id,
       name:       i.name,
       brand:      i.cmt || '',
+      comment:    i.note || '',
       url:        i.url || '',
       photoUrl:   i.img || '',
       dimensions: i.size || '',
@@ -451,6 +452,7 @@ async function syncToDB(projectId, categories) {
       price:      p.price || 0,
       qty:        p.qty || 1,
       cmt:        p.brand || '',
+      note:       p.comment || '',
       sort_order: idx,
     }))
   );
