@@ -60,6 +60,21 @@ function InviteRoute({ setAuthMode, setInviteToken }) {
   return null;
 }
 
+// ─── MagicRoute — вход по magic link ────────────────────────────────────────
+function MagicRoute() {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (!token) { window.location.href = '/'; return; }
+    window.location.href = (import.meta.env.VITE_API_URL || '') + '/api/magic?token=' + token;
+  }, []);
+  return (
+    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--bg)' }}>
+      <div style={{ fontSize: 13, color: 'var(--ink-3)' }}>Выполняем вход…</div>
+    </div>
+  );
+}
+
 // ─── App ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const [user, setUser]         = useState(null);   // null = не проверили, false = не авторизован
@@ -127,6 +142,7 @@ export default function App() {
         <Route path="/invite/:token" element={<InviteRoute setAuthMode={setAuthMode} setInviteToken={setInviteToken} />} />
         <Route path="/project/:id/client" element={<PublicClientRoute />} />
         <Route path="/privacy" element={<Privacy />} />
+        <Route path="/auth/magic" element={<MagicRoute />} />
         <Route path="*" element={null} />
       </Routes>
       {!window.location.pathname.startsWith('/privacy') && <Auth
