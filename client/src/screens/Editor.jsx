@@ -24,7 +24,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
     setCategories(cs => cs.map(c => c.id === cId ? {
       ...c, products: [...c.products, {
         id: newId,
-        name: "Новый товар", brand: "Бренд", url: "", photoUrl: "", dimensions: "", color: "", qty: 1, price: 0, swatch: 30
+        name: "Новый товар", brand: "Бренд", url: "", photoUrl: "", dimensions: "", color: "", comment: "", qty: 1, price: 0, swatch: 30
       }]
     } : c));
     return newId;
@@ -230,6 +230,7 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded }) {
           <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>{product.brand}</div>
           {product.dimensions && <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 1 }}>{product.dimensions}</div>}
           {product.color && <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 1 }}>{product.color}</div>}
+          {product.comment && <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 2, fontStyle: "italic" }}>{product.comment}</div>}
         </div>
         {/* Кол-во — только отображение, редактирование в форме */}
         <div style={{ textAlign: "right", fontSize: 13, color: "var(--ink)", fontVariantNumeric: "tabular-nums" }}>{product.qty}</div>
@@ -306,6 +307,15 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded }) {
           {/* Строка 4: Ссылка на фото */}
           <FieldGroup label="Ссылка на фото" style={{ marginBottom: 16 }}>
             <input value={draft.photoUrl || ""} onChange={e => updateDraft({ photoUrl: e.target.value })} placeholder="https://..." style={inputStyle} />
+          </FieldGroup>
+          {/* Строка 5: Комментарий */}
+          <FieldGroup label="Комментарий" style={{ marginBottom: 16 }}>
+            <textarea
+              value={draft.comment || ""}
+              onChange={e => updateDraft({ comment: e.target.value })}
+              placeholder="Заметки по товару — альтернативы, нюансы, договорённости с клиентом…"
+              style={{ ...inputStyle, minHeight: 72, resize: "vertical", lineHeight: 1.5, paddingTop: 8, paddingBottom: 8 }}
+            />
           </FieldGroup>
           {/* Кнопки: Сохранить / Отмена / Удалить */}
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
