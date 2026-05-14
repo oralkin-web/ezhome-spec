@@ -77,7 +77,7 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
       {/* Body */}
       <main style={{ maxWidth: 1280, margin: "0 auto", padding: isMobile ? "28px 16px 40px" : "56px 64px 40px" }}>
         {/* Переключатель режима просмотра */}
-        <div style={{ display: "flex", gap: 4, marginBottom: isMobile ? 20 : 28, background: "var(--surface)", borderRadius: 8, padding: 3, boxShadow: "var(--shadow-card)", alignSelf: "flex-start", width: "fit-content" }}>
+        <div className="no-print" style={{ display: "flex", gap: 4, marginBottom: isMobile ? 20 : 28, background: "var(--surface)", borderRadius: 8, padding: 3, boxShadow: "var(--shadow-card)", alignSelf: "flex-start", width: "fit-content" }}>
           {[["grid", "image"], ["list", "menu"]].map(([mode, icon]) => (
             <button key={mode} onClick={() => setViewMode(mode)}
               style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, border: "none", background: viewMode === mode ? "var(--ink)" : "transparent", color: viewMode === mode ? "#fff" : "var(--ink-3)", fontSize: 12, fontWeight: 500, cursor: "pointer", transition: "all 120ms ease" }}>

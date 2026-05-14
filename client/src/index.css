@@ -148,3 +148,15 @@ input[type=number].no-arrows {
   color: var(--ink-3);
   pointer-events: none;
 }
+
+@media print {
+  /* Скрыть кнопки и переключатель */
+  .btn, .no-print { display: none !important; }
+  /* Убрать тени и фон */
+  * { box-shadow: none !important; }
+  body { background: #fff !important; }
+  /* Убрать отступы header */
+  header { padding: 20px 32px !important; border-bottom: 1px solid #e0e0e0 !important; }
+  /* Непрерывная прокрутка без разрывов страниц */
+  section { page-break-inside: avoid; }
+}
