@@ -124,6 +124,14 @@ async function initDB() {
   `);
   await pool.query(`INSERT INTO settings (key, value) VALUES ('banner_active', 'false') ON CONFLICT DO NOTHING`);
   await pool.query(`INSERT INTO settings (key, value) VALUES ('banner_text', '') ON CONFLICT DO NOTHING`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS magic_tokens (
+      token TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id),
+      expires_at TIMESTAMP NOT NULL,
+      used BOOLEAN DEFAULT FALSE
+    );
+  `);
   await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS comment TEXT DEFAULT ''`);
   await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS cover_hue INTEGER DEFAULT 28`);
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS logo TEXT DEFAULT ''`);
@@ -646,6 +654,57 @@ if(new URLSearchParams(window.location.search).get('print')==='1'){
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/p/') || req.path.startsWith('/admin') || req.path.startsWith('/invite/')) return next();
   res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+// ── Magic Link ────────────────────────────────────────────────────────────
+app.post('/api/forgot', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.json({ ok: false, error: 'Email обязателен' });
+  try {
+    const { rows } = await pool.query('SELECT id, name FROM users WHERE email = $1', [email.toLowerCase().trim()]);
+    // Всегда отвечаем ok чтобы не раскрывать существование email
+    if (rows.length === 0) return res.json({ ok: true });
+    const user = rows[0];
+    const token = require('crypto').randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 30 * 60 * 1000); // 30 минут
+    await pool.query(
+      'INSERT INTO magic_tokens (token, user_id, expires_at) VALUES ($1, $2, $3)',
+      [token, user.id, expires]
+    );
+    const base = process.env.APP_URL || 'https://useseta.com';
+    const link = `${base}/auth/magic?token=${token}`;
+    await sendEmailTo(email, 'Ссылка для входа — SETA',
+      `<p>Привет, ${user.name}!</p>
+       <p>Нажмите кнопку ниже чтобы войти в SETA. Ссылка действует 30 минут.</p>
+       <p><a href="${link}" style="display:inline-block;padding:12px 24px;background:#1a1a1a;color:#fff;text-decoration:none;border-radius:8px;font-size:15px">Войти в SETA</a></p>
+       <p style="color:#999;font-size:12px">Если вы не запрашивали вход — просто проигнорируйте это письмо.</p>`
+    );
+    res.json({ ok: true });
+  } catch(e) {
+    console.error('forgot error:', e.message);
+    res.json({ ok: false, error: 'Ошибка сервера' });
+  }
+});
+
+app.get('/api/magic', async (req, res) => {
+  const { token } = req.query;
+  if (!token) return res.redirect('/?error=invalid');
+  try {
+    const { rows } = await pool.query(
+      'SELECT t.user_id, t.expires_at, t.used, u.email, u.name, u.id FROM magic_tokens t JOIN users u ON u.id = t.user_id WHERE t.token = $1',
+      [token]
+    );
+    if (!rows.length) return res.redirect('/?error=invalid');
+    const t = rows[0];
+    if (t.used) return res.redirect('/?error=used');
+    if (new Date(t.expires_at) < new Date()) return res.redirect('/?error=expired');
+    await pool.query('UPDATE magic_tokens SET used = TRUE WHERE token = $1', [token]);
+    req.session.userId = t.user_id;
+    res.redirect('/');
+  } catch(e) {
+    console.error('magic error:', e.message);
+    res.redirect('/?error=server');
+  }
 });
 
 initDB().then(() => {

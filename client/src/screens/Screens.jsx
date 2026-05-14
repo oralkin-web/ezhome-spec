@@ -564,9 +564,16 @@ function ResetCard({ back }) {
   const [email, setEmail] = useState("");
   const [emailErr, setEmailErr] = useState("");
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!isValidEmail(email)) { setEmailErr("Email введён некорректно"); return; }
     setEmailErr("");
+    try {
+      await fetch((import.meta.env.VITE_API_URL || '') + '/api/forgot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+    } catch(e) {}
     setSent(true);
   };
 
