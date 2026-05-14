@@ -646,13 +646,8 @@ function AuthCard({ mode, setMode, onLogin, onRegister, isInvite }) {
             </div>
           )}
           <button className="btn btn-primary" onClick={handleLogin} style={{ width: "100%", height: 48, fontSize: 14, marginTop: 4, justifyContent: "center" }}>Войти</button>
-          <div style={{ textAlign: "center", marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ textAlign: "center", marginTop: 16 }}>
             <button onClick={() => setMode("reset")} style={{ color: "var(--ink-3)", fontSize: 12, padding: 4, border: "none", background: "none", cursor: "pointer" }}>Забыли пароль?</button>
-            <a href="/privacy" target="_blank" style={{ color: "var(--ink-3)", fontSize: 11, textDecoration: "none" }}
-              onMouseEnter={e => e.currentTarget.style.color = "var(--ink-2)"}
-              onMouseLeave={e => e.currentTarget.style.color = "var(--ink-3)"}>
-              Политика конфиденциальности
-            </a>
           </div>
         </div>
       ) : (
@@ -694,6 +689,11 @@ export function Auth({ onLogin, onRegister, mode, setMode, isInvite }) {
         <span style={{ fontSize: 9, padding: "2px 5px", borderRadius: 3, background: "var(--hairline-strong)", color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Beta</span>
       </div>
       {mode === "reset" ? <ResetCard back={() => setMode("login")} /> : <AuthCard mode={mode} setMode={setMode} onLogin={onLogin} onRegister={onRegister} isInvite={isInvite} />}
+      <a href="/privacy" target="_blank" style={{ position: "absolute", bottom: 24, color: "var(--ink-3)", fontSize: 11, textDecoration: "none", letterSpacing: "0.02em" }}
+        onMouseEnter={e => e.currentTarget.style.color = "var(--ink-2)"}
+        onMouseLeave={e => e.currentTarget.style.color = "var(--ink-3)"}>
+        Политика конфиденциальности
+      </a>
     </div>
   );
 }
