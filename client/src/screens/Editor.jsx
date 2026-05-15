@@ -1,7 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Icon, Placeholder, Editable, Sidebar } from '../components/shared';
 
 const PARSER_URL = 'https://web-production-b181.up.railway.app';
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return isMobile;
+}
+
 
 const fmt = n => n.toLocaleString("ru-RU", { style: "currency", currency: "RUB", minimumFractionDigits: 0 });
 
@@ -40,6 +51,94 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
     setCategories(cs => [...cs, { id: "c" + Math.random().toString(36).slice(2, 7), name: "Новая комната", products: [] }]);
 
   const totalItems = categories.reduce((s, c) => s + c.products.length, 0);
+
+  const isMobile = useIsMobile();
+  const [mobileEdit, setMobileEdit] = useState(false);
+
+  if (isMobile && mobileEdit) {
+    const [draftName, setDraftName] = useState(project.name);
+    const [draftClient, setDraftClient] = useState(project.client || '');
+    return (
+      <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
+        <div className="mobile-topbar">
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button onClick={() => setMobileEdit(false)} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink)" }}><Icon name="x" size={18} /></button>
+            <span style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)" }}>Редактирование</span>
+          </div>
+        </div>
+        <div className="mobile-edit-form">
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>Название проекта</div>
+            <input className="mobile-input" style={{ border: "1.5px solid var(--ink)", fontWeight: 500 }} value={draftName} onChange={e => setDraftName(e.target.value)} />
+          </div>
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>Имя клиента</div>
+            <input className="mobile-input" value={draftClient} onChange={e => setDraftClient(e.target.value)} />
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="mobile-btn-primary" style={{ flex: 1 }} onClick={() => { onRename(draftName); onRenameClient(draftClient); setMobileEdit(false); }}>Сохранить</button>
+            <button className="mobile-btn-secondary" onClick={() => setMobileEdit(false)}>Отмена</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isMobile) {
+    return (
+      <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
+        <div className="mobile-topbar">
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button onClick={onBack} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink)" }}><Icon name="back" size={18} /></button>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)", lineHeight: 1.2 }}>{project.name}</div>
+              {project.client && <div style={{ fontSize: 11, color: "var(--ink-3)" }}>{project.client}</div>}
+            </div>
+          </div>
+          <button onClick={() => setMobileEdit(true)} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink-3)" }}><Icon name="edit" size={18} /></button>
+        </div>
+        <div style={{ padding: "72px 16px 100px" }}>
+          {categories.map(cat => {
+            if (cat.products.length === 0) return null;
+            return (
+              <div key={cat.id}>
+                <div className="mobile-category-label">{cat.name} · {cat.products.length} {cat.products.length === 1 ? "позиция" : cat.products.length <= 4 ? "позиции" : "позиций"}</div>
+                {cat.products.map(p => (
+                  <div key={p.id} className="mobile-item-row" style={{ marginBottom: 8 }}>
+                    {p.photoUrl ? (
+                      <img src={p.photoUrl} alt={p.name} style={{ width: 44, height: 44, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
+                    ) : (
+                      <div style={{ width: 44, height: 44, borderRadius: 6, background: "#F0EDE8", flexShrink: 0 }} />
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</div>
+                      <div style={{ fontSize: 11, color: "var(--ink-3)" }}>{p.brand}{p.dimensions ? " · " + p.dimensions : ""}</div>
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>{fmt(p.price)}</div>
+                      <div style={{ fontSize: 11, color: "var(--ink-3)" }}>× {p.qty}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+          {totalItems > 0 && (
+            <div style={{ borderTop: "2px solid var(--ink)", marginTop: 16, paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <div style={{ fontSize: 11, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Итого</div>
+              <div className="serif" style={{ fontSize: 28, letterSpacing: "-0.02em" }}>{fmt(grandTotal)}</div>
+            </div>
+          )}
+        </div>
+        {totalItems > 0 && (
+          <div className="mobile-bottombar">
+            <button className="mobile-btn-primary" style={{ flex: 1 }} onClick={copyClientLink}><Icon name={copied ? "check" : "link"} size={16} />{copied ? "Скопировано" : "Ссылка клиенту"}</button>
+            <button className="mobile-btn-secondary" style={{ width: 52 }} onClick={() => window.open('/project/' + project.id + '/client?print=1', '_blank')}><Icon name="download" size={16} /></button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
