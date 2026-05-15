@@ -310,7 +310,9 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded }) {
         style={{ display: "grid", gridTemplateColumns: "96px 1fr 80px 120px 120px", gap: 16, padding: "14px 24px", alignItems: "center", background: expanded ? "#F5F3EF" : hover ? "#FCFBF8" : "transparent", transition: "background 120ms ease", cursor: "pointer" }}
       >
         {/* Фото: бокс 96×96, contain по центру */}
-        <div style={{ width: 80, height: 80, borderRadius: 8, overflow: "hidden", background: "#F0EDE8", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <div
+          onClick={e => { if (product.url) { e.stopPropagation(); window.open(product.url, '_blank'); } }}
+          style={{ width: 80, height: 80, borderRadius: 8, overflow: "hidden", background: "#F0EDE8", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: product.url ? "pointer" : "default" }}>
           {product.photoUrl ? (
             <img src={product.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center" }} onError={e => { e.currentTarget.style.display = "none"; }} />
           ) : (
