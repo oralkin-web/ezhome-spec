@@ -48,18 +48,20 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
       {/* Header */}
       <header style={{ padding: `${vPad} ${hPad} ${isMobile ? "20px" : "28px"}`, background: "var(--surface)", borderBottom: "1px solid var(--hairline)" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto", display: "flex", alignItems: "center", gap: 16 }}>
-          {/* Лого */}
-          <div style={{ width: isMobile ? 36 : 44, height: isMobile ? 36 : 44, borderRadius: 8, background: "var(--ink)", display: "grid", placeItems: "center", color: "#fff", fontWeight: 600, fontSize: isMobile ? 12 : 14, overflow: "hidden", flexShrink: 0 }}>
+          {/* Лого — только на десктопе */}
+          {!isMobile && (
+          <div style={{ width: 44, height: 44, borderRadius: 8, background: "var(--ink)", display: "grid", placeItems: "center", color: "#fff", fontWeight: 600, fontSize: 14, overflow: "hidden", flexShrink: 0 }}>
             {logoUrl ? (
               <img src={logoUrl} alt="Логотип" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             ) : (
               <span>{initials}</span>
             )}
           </div>
+          )}
           {/* Название + клиент */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 className="serif" style={{ margin: "0 0 2px", fontSize: isMobile ? 15 : 26, letterSpacing: "-0.01em", lineHeight: 1.15 }}>{project.name}</h1>
-            <div style={{ color: "var(--ink-2)", fontSize: isMobile ? 11 : 13 }}>{project.client}</div>
+            <h1 className="serif" style={{ margin: "0 0 2px", fontSize: isMobile ? 12 : 26, letterSpacing: "-0.01em", lineHeight: 1.15 }}>{project.name}</h1>
+            <div style={{ color: "var(--ink-2)", fontSize: isMobile ? 22 : 13 }}>{project.client}</div>
             {isMobile && (
               <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                 <button onClick={copyLink} className="btn btn-secondary" style={{ flex: 1, justifyContent: "center" }}>
