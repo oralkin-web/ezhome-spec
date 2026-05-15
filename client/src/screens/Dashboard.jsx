@@ -50,7 +50,7 @@ const COVER_COLORS = [
 ];
 
 // Screen 1: Dashboard / project list.
-function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, onUnarchive, onChangeCover, onNav, isArchive = false, user }) {
+function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, onUnarchive, onChangeCover, onNav, isArchive = false, user, logoUrl }) {
   const list = projects;
   const [deleteTarget, setDeleteTarget] = React.useState(null); // { id, name }
   const isMobile = useIsMobile();
@@ -60,12 +60,17 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
       <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
         <div className="mobile-topbar">
           <svg width="68" height="20" viewBox="0 0 275 81" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: "var(--ink)" }}>{SETA_LOGO_PATHS}</svg>
-          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--ink)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 500 }}>{initials}</div>
+          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--ink)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 500, overflow: "hidden", flexShrink: 0 }}>
+            {logoUrl ? <img src={logoUrl} alt="logo" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials}
+          </div>
         </div>
-        <div style={{ padding: "72px 16px 100px" }}>
+        <div style={{ padding: "72px 16px 24px" }}>
           <div style={{ fontSize: 20, fontWeight: 500, color: "var(--ink)", margin: "16px 0" }}>{isArchive ? "Архив" : "Мои проекты"}</div>
           {list.length === 0 ? (
-            <div style={{ textAlign: "center", paddingTop: 60, color: "var(--ink-3)", fontSize: 14 }}>Проектов пока нет</div>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: 80, textAlign: "center", gap: 12 }}>
+              <div style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)" }}>Над вашими проектами</div>
+              <div style={{ fontSize: 13, color: "var(--ink-3)", lineHeight: 1.5, maxWidth: 260 }}>Откройте SETA на компьютере чтобы начать работу</div>
+            </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {list.map(p => {
@@ -87,9 +92,6 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
               })}
             </div>
           )}
-        </div>
-        <div className="mobile-bottombar">
-          <button className="mobile-btn-primary" style={{ flex: 1 }} onClick={onCreate}><Icon name="plus" size={16} />Новый проект</button>
         </div>
       </div>
     );

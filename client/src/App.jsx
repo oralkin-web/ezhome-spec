@@ -343,6 +343,7 @@ function AppRoutes({ user, setUser, onLogout, banner, setBanner }) {
           onChangeCover={(id, hue) => changeCover(id, hue)}
           onNav={nav}
           user={user}
+          logoUrl={logoUrl}
         />
       } />
       <Route path="/archive" element={
@@ -356,6 +357,7 @@ function AppRoutes({ user, setUser, onLogout, banner, setBanner }) {
           onNav={nav}
           isArchive={true}
           user={user}
+          logoUrl={logoUrl}
         />
       } />
       <Route path="/project/:id" element={
