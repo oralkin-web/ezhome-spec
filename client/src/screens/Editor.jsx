@@ -66,7 +66,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
             <span style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)" }}>Редактирование</span>
           </div>
         </div>
-        <div className="mobile-edit-form">
+        <div style={{ padding: "76px 16px 24px" }}>
           <div style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 11, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>Название проекта</div>
             <input className="mobile-input" style={{ border: "1.5px solid var(--ink)", fontWeight: 500 }} value={draftName} onChange={e => setDraftName(e.target.value)} />
@@ -75,10 +75,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
             <div style={{ fontSize: 11, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>Имя клиента</div>
             <input className="mobile-input" value={draftClient} onChange={e => setDraftClient(e.target.value)} />
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button className="mobile-btn-primary" style={{ flex: 1 }} onClick={() => { onRename(draftName); onRenameClient(draftClient); setMobileEdit(false); }}>Сохранить</button>
-            <button className="mobile-btn-secondary" onClick={() => setMobileEdit(false)}>Отмена</button>
-          </div>
+          <button className="mobile-btn-primary" style={{ width: "100%" }} onClick={() => { onRename(draftName); onRenameClient(draftClient); setMobileEdit(false); }}>Сохранить</button>
         </div>
       </div>
     );
