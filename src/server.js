@@ -147,7 +147,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'seta-secret-2024',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'none' }
+  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true, secure: true, sameSite: 'none' }
 }));
 
 const auth = (req, res, next) => {
