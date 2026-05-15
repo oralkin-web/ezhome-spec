@@ -785,7 +785,7 @@ export function Auth({ onLogin, onRegister, mode, setMode, isInvite }) {
         <h1 className="serif" style={{ margin: '0 0 6px', fontSize: 28, letterSpacing: '-0.01em' }}>{mode === 'login' ? 'С возвращением' : 'Создайте аккаунт'}</h1>
         <p style={{ margin: '0 0 24px', color: 'var(--ink-3)', fontSize: 13, lineHeight: 1.5 }}>{mode === 'login' ? 'Войдите, чтобы продолжить работу.' : 'Заполните данные чтобы начать работу'}</p>
         {mode === 'register' && isInvite ? <MobileRegisterForm onRegister={onRegister} /> : <MobileLoginForm onLogin={onLogin} setMode={setMode} />}
-        <a href="/privacy" style={{ textAlign: 'center', marginTop: 16, color: 'var(--ink-3)', fontSize: 11, textDecoration: 'none' }}>Политика конфиденциальности</a>
+
       </div>
     );
   }
