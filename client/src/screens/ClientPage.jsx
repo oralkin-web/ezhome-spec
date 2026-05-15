@@ -162,6 +162,7 @@ function ClientCard({ product, isMobile }) {
     <div
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      onClick={() => { if (product.url) window.open(product.url, '_blank'); }}
       style={{
         background: "var(--surface)",
         borderRadius: "var(--radius)",
@@ -171,6 +172,7 @@ function ClientCard({ product, isMobile }) {
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
+        cursor: product.url ? "pointer" : "default",
       }}
     >
       <div style={{ width: "100%", aspectRatio: "1 / 1", background: "#F0EDE8", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
@@ -203,7 +205,7 @@ function ClientCard({ product, isMobile }) {
 function ClientListRow({ product, isMobile }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 12 : 20, padding: isMobile ? "12px 0" : "14px 0", borderBottom: "1px solid var(--hairline)" }}>
-      <div style={{ width: isMobile ? 52 : 72, height: isMobile ? 52 : 72, borderRadius: 8, background: "#F0EDE8", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+      <div onClick={() => { if (product.url) window.open(product.url, '_blank'); }} style={{ width: isMobile ? 52 : 72, height: isMobile ? 52 : 72, borderRadius: 8, background: "#F0EDE8", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0, cursor: product.url ? "pointer" : "default" }}>
         {product.photoUrl ? (
           <img src={product.photoUrl} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         ) : (
