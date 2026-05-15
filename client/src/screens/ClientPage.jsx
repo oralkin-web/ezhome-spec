@@ -58,10 +58,21 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
           </div>
           {/* Название + клиент */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 className="serif" style={{ margin: "0 0 2px", fontSize: isMobile ? 18 : 26, letterSpacing: "-0.01em", lineHeight: 1.15 }}>{project.name}</h1>
+            <h1 className="serif" style={{ margin: "0 0 2px", fontSize: isMobile ? 15 : 26, letterSpacing: "-0.01em", lineHeight: 1.15 }}>{project.name}</h1>
             <div style={{ color: "var(--ink-2)", fontSize: isMobile ? 11 : 13 }}>{project.client}</div>
+            {isMobile && (
+              <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                <button onClick={copyLink} className="btn btn-secondary" style={{ flex: 1, justifyContent: "center" }}>
+                  <Icon name={copied ? "check" : "link"} size={14} />
+                  {copied ? "Скопировано" : "Ссылка"}
+                </button>
+                <button className="btn btn-secondary" onClick={handlePDF} style={{ justifyContent: "center" }}>
+                  <Icon name="download" size={14} />PDF
+                </button>
+              </div>
+            )}
           </div>
-          {/* Кнопки */}
+          {!isMobile && (
           <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
             <button onClick={copyLink} className="btn btn-secondary">
               <Icon name={copied ? "check" : "link"} size={14} />
@@ -71,6 +82,7 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
               <Icon name="download" size={14} />PDF
             </button>
           </div>
+          )}
         </div>
       </header>
 
