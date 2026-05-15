@@ -68,8 +68,7 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
           <div style={{ fontSize: 20, fontWeight: 500, color: "var(--ink)", margin: "16px 0" }}>{isArchive ? "Архив" : "Мои проекты"}</div>
           {list.length === 0 ? (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: 80, textAlign: "center", gap: 12 }}>
-              <div style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)" }}>Над вашими проектами</div>
-              <div style={{ fontSize: 13, color: "var(--ink-3)", lineHeight: 1.5, maxWidth: 260 }}>Откройте SETA на компьютере чтобы начать работу</div>
+              <div style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.6, maxWidth: 280 }}>У вас еще нет проектов. Чтобы начать работу откройте SETA на компьютере.</div>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
