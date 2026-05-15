@@ -56,15 +56,14 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
   const [mobileEdit, setMobileEdit] = useState(false);
   const [draftName, setDraftName] = useState(project.name);
   const [draftClient, setDraftClient] = useState(project.client || '');
+  useEffect(() => { setDraftName(project.name); setDraftClient(project.client || ''); }, [project.name, project.client]);
 
   if (isMobile && mobileEdit) {
     return (
       <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
-        <div className="mobile-topbar">
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <button onClick={() => setMobileEdit(false)} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink)" }}><Icon name="x" size={18} /></button>
-            <span style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)" }}>Редактирование</span>
-          </div>
+        <div className="mobile-topbar" style={{ justifyContent: "flex-start", gap: 8 }}>
+          <button onClick={() => setMobileEdit(false)} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink)", flexShrink: 0 }}><Icon name="x" size={20} /></button>
+          <span style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)" }}>Редактирование</span>
         </div>
         <div style={{ padding: "76px 16px 24px" }}>
           <div style={{ marginBottom: 16 }}>
