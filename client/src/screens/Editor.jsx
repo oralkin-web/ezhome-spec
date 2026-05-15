@@ -54,10 +54,10 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
 
   const isMobile = useIsMobile();
   const [mobileEdit, setMobileEdit] = useState(false);
+  const [draftName, setDraftName] = useState(project.name);
+  const [draftClient, setDraftClient] = useState(project.client || '');
 
   if (isMobile && mobileEdit) {
-    const [draftName, setDraftName] = useState(project.name);
-    const [draftClient, setDraftClient] = useState(project.client || '');
     return (
       <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
         <div className="mobile-topbar">
