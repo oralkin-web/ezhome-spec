@@ -345,14 +345,17 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded }) {
               <input value={draft.brand} onChange={e => updateDraft({ brand: e.target.value })} placeholder="Бренд" style={inputStyle} />
             </FieldGroup>
           </div>
-          {/* Строка 2: Размеры + Цена + Кол-во */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
+          {/* Строка 2: Размеры + Цвет */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
             <FieldGroup label="Размеры">
               <input value={draft.dimensions || ""} onChange={e => updateDraft({ dimensions: e.target.value })} placeholder="напр. 240 × 90 × 80 см" style={inputStyle} />
             </FieldGroup>
             <FieldGroup label="Цвет / материал">
               <input value={draft.color || ""} onChange={e => updateDraft({ color: e.target.value })} placeholder="напр. Серый велюр" style={inputStyle} />
             </FieldGroup>
+          </div>
+          {/* Строка 3: Цена + Кол-во */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: 12, marginBottom: 12 }}>
             <FieldGroup label="Цена, ₽">
               <input type="number" value={draft.price || ""} onChange={e => updateDraft({ price: parseFloat(e.target.value) || 0 })} placeholder="0" style={{ ...inputStyle, textAlign: "right", MozAppearance: "textfield" }} className="no-arrows" />
             </FieldGroup>
