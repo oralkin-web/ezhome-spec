@@ -433,13 +433,13 @@ app.get('/api/projects/:id/items', auth, async (req, res) => {
 app.post('/api/projects/:id/items', auth, async (req, res) => {
   const r = await pool.query('SELECT id FROM projects WHERE id=$1 AND user_id=$2', [req.params.id, req.session.userId]);
   if (!r.rows.length) return res.status(404).json({ error: 'Не найдено' });
-  const { room, name, url, img, size, price, qty, cmt, note } = req.body;
+  const { room, name, url, img, size, color, price, qty, cmt, note } = req.body;
   if (!name) return res.status(400).json({ error: 'Название обязательно' });
   const id = uuidv4();
   const maxOrder = await pool.query('SELECT MAX(sort_order) as m FROM items WHERE project_id=$1', [req.params.id]);
   const order = (maxOrder.rows[0].m || 0) + 1;
-  await pool.query('INSERT INTO items (id, project_id, room, name, url, img, size, price, qty, cmt, sort_order, note) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)',
-    [id, req.params.id, room, name, url||'', img||'', size||'', price||0, qty||1, cmt||'', order, note||'']);
+  await pool.query('INSERT INTO items (id, project_id, room, name, url, img, size, color, price, qty, cmt, sort_order, note) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)',
+    [id, req.params.id, room, name, url||'', img||'', size||'', color||'', price||0, qty||1, cmt||'', order, note||'']);
   await pool.query('UPDATE projects SET updated_at=NOW() WHERE id=$1', [req.params.id]);
   res.json({ id });
 });
@@ -447,9 +447,9 @@ app.post('/api/projects/:id/items', auth, async (req, res) => {
 app.put('/api/items/:id', auth, async (req, res) => {
   const r = await pool.query('SELECT i.id, p.user_id FROM items i JOIN projects p ON p.id=i.project_id WHERE i.id=$1', [req.params.id]);
   if (!r.rows.length || r.rows[0].user_id !== req.session.userId) return res.status(404).json({ error: 'Не найдено' });
-  const { room, name, url, img, size, price, qty, cmt, note } = req.body;
-  await pool.query('UPDATE items SET room=$1, name=$2, url=$3, img=$4, size=$5, price=$6, qty=$7, cmt=$8, note=$9 WHERE id=$10',
-    [room, name, url||'', img||'', size||'', price||0, qty||1, cmt||'', note||'', req.params.id]);
+  const { room, name, url, img, size, color, price, qty, cmt, note } = req.body;
+  await pool.query('UPDATE items SET room=$1, name=$2, url=$3, img=$4, size=$5, color=$6, price=$7, qty=$8, cmt=$9, note=$10 WHERE id=$11',
+    [room, name, url||'', img||'', size||'', color||'', price||0, qty||1, cmt||'', note||'', req.params.id]);
   res.json({ ok: true });
 });
 
@@ -466,8 +466,8 @@ app.put('/api/projects/:id/items', auth, async (req, res) => {
     for (const it of items) {
       const id = it.id && it.id.startsWith('i') ? it.id : require('uuid').v4();
       await pool.query(
-        'INSERT INTO items (id, project_id, room, name, url, img, size, price, qty, cmt, sort_order, note) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)',
-        [id, req.params.id, it.room||'', it.name||'', it.url||'', it.img||'', it.size||'', it.price||0, it.qty||1, it.cmt||'', it.sort_order||0, it.note||'']
+        'INSERT INTO items (id, project_id, room, name, url, img, size, color, price, qty, cmt, sort_order, note) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)',
+        [id, req.params.id, it.room||'', it.name||'', it.url||'', it.img||'', it.size||'', it.color||'', it.price||0, it.qty||1, it.cmt||'', it.sort_order||0, it.note||'']
       );
     }
     await pool.query('UPDATE projects SET updated_at=NOW() WHERE id=$1', [req.params.id]);
