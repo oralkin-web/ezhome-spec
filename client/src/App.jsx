@@ -282,7 +282,6 @@ function AppRoutes({ user, setUser, onLogout, banner, setBanner, tourActive, set
   const [logoUrl, setLogoUrl]       = useState(user.logo || null);
 
   // Загружаем проекты при монтировании
-  const navigate = useNavigate();
   useEffect(() => { if (onTourNavReady) onTourNavReady(navigate); }, [navigate]);
 
   const loadProjects = useCallback(async () => {
