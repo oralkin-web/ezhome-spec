@@ -186,3 +186,38 @@ export function Sidebar({ active = "projects", onNav, admin = false, isAdmin = f
     </aside>
   );
 }
+
+export function MobileMenu({ open, onClose, onNav }) {
+  if (!open) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 500 }}>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(20,16,10,0.4)" }} onClick={onClose} />
+      <div style={{
+        position: "absolute", top: 0, right: 0, bottom: 0, width: 260,
+        background: "var(--bg)", padding: "24px 16px",
+        display: "flex", flexDirection: "column", gap: 2,
+      }}>
+        <button onClick={onClose} style={{ alignSelf: "flex-end", width: 32, height: 32, display: "grid", placeItems: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink-3)", marginBottom: 12 }}>×</button>
+        {[
+          { key: "projects", icon: "folder", label: "Проекты" },
+          { key: "archive",  icon: "archive", label: "Архив" },
+          { key: "settings", icon: "settings", label: "Настройки" },
+          { key: "feedback", icon: "message", label: "Обратная связь" },
+          { key: "help",     icon: "help-circle", label: "Помощь" },
+        ].map(({ key, icon, label }) => (
+          <button key={key} onClick={() => { onNav(key); onClose(); }} style={{
+            display: "flex", alignItems: "center", gap: 10,
+            width: "100%", padding: "10px 12px", borderRadius: 8,
+            border: "none", background: "none", cursor: "pointer",
+            fontSize: 14, color: "var(--ink)", textAlign: "left",
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = "var(--hairline)"}
+          onMouseLeave={e => e.currentTarget.style.background = "none"}>
+            <Icon name={icon} size={16} style={{ color: "var(--ink-3)" }} />
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
