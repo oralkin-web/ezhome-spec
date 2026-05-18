@@ -192,6 +192,33 @@ app.post('/api/register', async (req, res) => {
   await pool.query('INSERT INTO users (id, email, password, name) VALUES ($1, $2, $3, $4)', [id, email.toLowerCase(), hash, name]);
   req.session.userId = id;
   req.session.userEmail = email.toLowerCase();
+
+  // Создаём демо-проект для онбординга
+  try {
+    const projectId = uuidv4();
+    const slug = 'demo-' + Math.random().toString(36).slice(2, 9);
+    await pool.query(
+      'INSERT INTO projects (id, user_id, name, client, slug, cover_hue, status) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+      [projectId, id, 'ЖК Тестовое', 'Иванова Мария', slug, 28, 'active']
+    );
+    const items = [
+      { name: 'Диван Lennox 3-местный', brand: 'Creatica', size: '220×95×85 см', color: 'Серый велюр', price: 89900, qty: 1, url: 'https://creatica.shop', img: 'https://creatica.shop/upload/iblock/bbd/dmy6qygnc32uld8ddsqe5w2sr93zth33.jpg', note: 'Уточнить сроки поставки' },
+      { name: 'Кофейный стол Olden', brand: 'ПМЦ', size: '95×95×42 см', color: 'Дуб натуральный', price: 31300, qty: 1, url: '', img: '', note: '' },
+      { name: 'Стулья Turin Soft', brand: 'ПМЦ', size: '58×57×79 см', color: 'Рогожка бежевая', price: 30800, qty: 4, url: '', img: '', note: 'Массив, срок исполнения 70 дней' },
+      { name: 'Ковёр Tkano Over Horizon', brand: 'Tkano', size: '120×180 см', color: 'Марсала', price: 23740, qty: 1, url: '', img: '', note: '' },
+      { name: 'Торшер Arco', brand: 'Flos', size: 'В 210 см', color: 'Белый мрамор', price: 145000, qty: 1, url: '', img: '', note: 'Требует согласования' },
+    ];
+    for (let i = 0; i < items.length; i++) {
+      const p = items[i];
+      await pool.query(
+        'INSERT INTO items (id, project_id, user_id, room, name, cmt, size, color, price, qty, url, img, note, sort_order) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)',
+        [uuidv4(), projectId, id, 'Гостиная', p.name, p.brand, p.size, p.color, p.price, p.qty, p.url, p.img, p.note, i]
+      );
+    }
+  } catch(e) {
+    console.error('Demo project creation failed:', e.message);
+  }
+
   res.json({ ok: true });
 });
 
