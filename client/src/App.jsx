@@ -116,6 +116,8 @@ export default function App() {
     if (r.error) return r.error;
     const me = await api.get('/api/me');
     setUser(me);
+    const seen = localStorage.getItem('seta_tour_done');
+    if (!seen) setTourActive(true);
     return null;
   };
 
