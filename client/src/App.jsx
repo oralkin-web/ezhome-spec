@@ -176,8 +176,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <Banner banner={banner} />
-      <Onboarding active={tourActive} demoProjectId={demoProjectId} onClose={() => { localStorage.setItem('seta_tour_done', '1'); setTourActive(false); }} />
-      <AppRoutes user={user} setUser={setUser} onLogout={handleLogout} banner={banner} setBanner={setBanner} tourActive={tourActive} setTourActive={setTourActive} />
+      <Onboarding active={tourActive} demoProjectId={demoProjectId} onClose={() => { localStorage.setItem('seta_tour_done', '1'); setTourActive(false); }} onNavigate={path => window.__tourNavigate && window.__tourNavigate(path)} />
+      <AppRoutes user={user} setUser={setUser} onLogout={handleLogout} banner={banner} setBanner={setBanner} tourActive={tourActive} setTourActive={setTourActive} onTourNavReady={fn => { window.__tourNavigate = fn; }} />
     </BrowserRouter>
   );
 }
@@ -274,7 +274,7 @@ function PublicClientRoute() {
 }
 
 // ─── AppRoutes ────────────────────────────────────────────────────────────────
-function AppRoutes({ user, setUser, onLogout, banner, setBanner, tourActive, setTourActive }) {
+function AppRoutes({ user, setUser, onLogout, banner, setBanner, tourActive, setTourActive, onTourNavReady }) {
   const navigate = useNavigate();
   const [projects, setProjects]     = useState([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
@@ -282,6 +282,9 @@ function AppRoutes({ user, setUser, onLogout, banner, setBanner, tourActive, set
   const [logoUrl, setLogoUrl]       = useState(user.logo || null);
 
   // Загружаем проекты при монтировании
+  const navigate = useNavigate();
+  useEffect(() => { if (onTourNavReady) onTourNavReady(navigate); }, [navigate]);
+
   const loadProjects = useCallback(async () => {
     const data = await api.get('/api/projects');
     if (Array.isArray(data)) setProjects(data.map(mapProject));

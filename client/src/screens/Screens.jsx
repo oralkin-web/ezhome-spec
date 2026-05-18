@@ -864,8 +864,7 @@ export function Help({ onNav, onStartTour }) {
 // ─── ONBOARDING TOUR ─────────────────────────────────────────────────────────
 const TOUR_STEPS = [
   { title: "Добро пожаловать в SETA", text: "Мы покажем основные функции на примере тестового проекта.", anchor: null, action: null },
-  { title: "Ваши проекты", text: "Каждая карточка — один объект. Нажмите «Далее» чтобы открыть тестовый проект.", anchor: "projects", action: null },
-  { title: "Открываем проект", text: "Нажмите «Далее» — откроем тестовый проект и посмотрим как устроена комплектация.", anchor: "new-project", action: "open-project" },
+  { title: "Ваши проекты", text: "Каждая карточка — один объект. Нажмите «Далее» чтобы открыть тестовый проект.", anchor: "projects", action: "open-project" },
   { title: "Комнаты и товары", text: "Внутри проекта товары разбиты по комнатам. Нажмите на товар чтобы раскрыть форму редактирования.", anchor: null, action: null },
   { title: "Кнопка «Заполнить»", text: "Вставьте ссылку на товар с любого сайта — название, цена и фото заполнятся автоматически. Функция в тестовом режиме, ожидание 30 сек — 1 мин.", anchor: "fill", action: null },
   { title: "Скачать PDF", text: "Нажмите «Скачать PDF» — получите документ с товарами и ценами, готовый к отправке клиенту.", anchor: "pdf", action: null },
@@ -873,7 +872,7 @@ const TOUR_STEPS = [
   { title: "Обратная связь", text: "Если что-то не работает или хочется новую функцию — напишите нам через раздел «Обратная связь».", anchor: "feedback", action: null },
 ];
 
-export function Onboarding({ active, onClose, demoProjectId }) {
+export function Onboarding({ active, onClose, demoProjectId, onNavigate }) {
   const [step, setStep] = useState(0);
   const [pos, setPos] = useState({ top: null, left: null, place: "bottom-center" });
 
@@ -1001,10 +1000,9 @@ export function Onboarding({ active, onClose, demoProjectId }) {
             <button onClick={() => {
               if (isLast) { onClose(); return; }
               const nextStep = step + 1;
-              if (s.action === "open-project" && demoProjectId) {
-                sessionStorage.setItem('seta_tour_step', String(nextStep));
-                sessionStorage.setItem('seta_tour_demo', demoProjectId);
-                window.location.href = '/project/' + demoProjectId;
+              if (s.action === "open-project" && demoProjectId && onNavigate) {
+                setStep(nextStep);
+                onNavigate('/project/' + demoProjectId);
                 return;
               }
               setStep(nextStep);
