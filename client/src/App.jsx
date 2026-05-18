@@ -96,7 +96,12 @@ export default function App() {
       if (me.error) { setUser(false); } else {
         setUser(me);
         const seen = localStorage.getItem('seta_tour_done');
-        if (!seen) setTourActive(true);
+        const savedTourStep = sessionStorage.getItem('seta_tour_step');
+        const savedDemoId = sessionStorage.getItem('seta_tour_demo');
+        if (!seen || savedTourStep) {
+          if (savedDemoId) setDemoProjectId(savedDemoId);
+          setTourActive(true);
+        }
       }
       if (ban.active) setBanner(ban);
     }).catch(() => setUser(false))
