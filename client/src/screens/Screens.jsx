@@ -1,5 +1,7 @@
 import { useState, useEffect} from 'react';
-import Joyride, { STATUS } from 'react-joyride';
+import * as JoyrideModule from 'react-joyride';
+const Joyride = JoyrideModule.default || JoyrideModule;
+const STATUS = JoyrideModule.STATUS;
 import { Icon, Sidebar } from '../components/shared';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
