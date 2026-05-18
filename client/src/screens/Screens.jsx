@@ -864,8 +864,8 @@ export function Help({ onNav, onStartTour }) {
 // ─── ONBOARDING TOUR ─────────────────────────────────────────────────────────
 const TOUR_STEPS = [
   { title: "Добро пожаловать в SETA", text: "За пару минут расскажем об основных функциях на примере тестового проекта.", anchor: null, action: null },
-  { title: "Ваши проекты", text: "Нажмите на три точки чтобы выбрать действие с проектом.", anchor: "projects", action: "open-menu" },
-  { title: "Комнаты и товары", text: "Внутри проекта товары разбиты по комнатам. Нажмите на товар чтобы раскрыть форму редактирования.", anchor: null, action: "open-project" },
+  { title: "Ваши проекты", text: "Нажмите на три точки чтобы выбрать действие с проектом.", anchor: "projects", action: "open-menu-then-project" },
+  { title: "Комнаты и товары", text: "Внутри проекта товары разбиты по комнатам. Нажмите на товар чтобы раскрыть форму редактирования.", anchor: null, action: null },
   { title: "Кнопка «Заполнить»", text: "SETA заполнит поля за вас: просто вставьте ссылку на товар и нажмите «Заполнить». Сейчас функция в тестовом режиме. Ожидание результата 30 сек — 1 мин. Советуем проверять данные.", anchor: "fill", action: null },
   { title: "Скачать PDF", text: "Нажмите «Скачать PDF» и получите стилизованный документ, готовый к отправке или печати.", anchor: "pdf", action: null },
   { title: "Предпросмотр", text: "Посмотрите как видит проект клиент до того как отправите ссылку.", anchor: "preview", action: null },
@@ -1009,15 +1009,13 @@ export function Onboarding({ active, onClose, demoProjectId, onNavigate }) {
             <button onClick={() => {
               if (isLast) { onClose(); return; }
               const nextStep = step + 1;
-              if (s.action === "open-menu") {
+              if (s.action === "open-menu-then-project") {
                 const menuBtn = document.querySelector("[data-tour='project-menu']");
                 if (menuBtn) menuBtn.click();
+                setTimeout(() => {
+                  if (demoProjectId && onNavigate) onNavigate('/project/' + demoProjectId);
+                }, 800);
                 setStep(nextStep);
-                return;
-              }
-              if (s.action === "open-project" && demoProjectId && onNavigate) {
-                setStep(nextStep);
-                onNavigate('/project/' + demoProjectId);
                 return;
               }
               setStep(nextStep);
