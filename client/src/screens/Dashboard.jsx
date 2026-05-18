@@ -129,7 +129,7 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
               />
             </div>
 {list.length > 0 && (
-            <button className="btn btn-primary" onClick={onCreate}>
+            <button data-tour="new-project" className="btn btn-primary" onClick={onCreate}>
               <Icon name="plus" size={14} />
               Новый проект
             </button>
@@ -141,7 +141,7 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
         {list.length === 0 ? (
           isArchive ? <EmptyArchive /> : <EmptyState onCreate={onCreate} />
         ) : (
-          <div style={{
+          <div data-tour="projects" style={{
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
             gap: 24,

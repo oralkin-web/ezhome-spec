@@ -155,9 +155,9 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
           </div>
           {totalItems > 0 && (
           <div style={{ display: "flex", gap: 8 }}>
-            <button className="btn btn-secondary"><Icon name="download" size={14} />Скачать PDF</button>
+            <button data-tour="pdf" className="btn btn-secondary"><Icon name="download" size={14} />Скачать PDF</button>
             <button className="btn btn-secondary" onClick={() => window.open('/project/' + project.id + '/client', '_blank')}><Icon name="eye" size={14} />Предпросмотр</button>
-            <button className="btn btn-primary" onClick={copyClientLink}><Icon name={copied ? "check" : "link"} size={14} />{copied ? "Скопировано" : "Ссылка клиенту"}</button>
+            <button data-tour="share" className="btn btn-primary" onClick={copyClientLink}><Icon name={copied ? "check" : "link"} size={14} />{copied ? "Скопировано" : "Ссылка клиенту"}</button>
           </div>
           )}
         </div>
@@ -235,7 +235,7 @@ function CategorySection({ cat, subtotal, onRename, onRemove, onAddProduct, onUp
   return (
     <div style={{ borderTop: "1px solid var(--hairline)", position: "relative" }}>
       {/* Заголовок комнаты */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px 12px" }}>
+      <div data-tour="rooms" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px 12px" }}>
         {/* П5: редактирование названия нажатием на текст */}
         <Editable as="div" value={cat.name} onChange={onRename} className="serif" style={{ fontSize: 22, lineHeight: 1, letterSpacing: "-0.01em" }} />
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -376,6 +376,7 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded }) {
             <div style={{ display: "flex", gap: 8 }}>
               <input value={draft.url || ""} onChange={e => updateDraft({ url: e.target.value })} placeholder="https://..." style={{ ...inputStyle, flex: 1 }} />
               <button
+                data-tour="fill"
                 onClick={async () => {
                   if (!draft.url) return;
                   setParsing(true);

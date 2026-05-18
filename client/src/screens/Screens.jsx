@@ -875,23 +875,70 @@ const TOUR_STEPS = [
 
 export function Onboarding({ active, onClose }) {
   const [step, setStep] = useState(0);
+  const [pos, setPos] = useState({ top: null, left: null, place: "bottom-center" });
+
+
+  // вычисляем позицию тултипа относительно якоря
+  const calcPos = (anchor) => {
+    if (!anchor) return { top: null, left: null, place: "bottom-center" };
+    const el = document.querySelector("[data-tour=\"" + anchor + "\"]");
+    if (!el) return { top: null, left: null, place: "bottom-center" };
+    const r = el.getBoundingClientRect();
+    const TW = 340; // ширина тултипа
+    const TH = 180; // примерная высота
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const GAP = 14;
+
+    // Пробуем снизу
+    if (r.bottom + TH + GAP < vh) {
+      const left = Math.min(Math.max(r.left + r.width / 2 - TW / 2, 12), vw - TW - 12);
+      return { top: r.bottom + GAP, left, place: "bottom" };
+    }
+    // Пробуем сверху
+    if (r.top - TH - GAP > 0) {
+      const left = Math.min(Math.max(r.left + r.width / 2 - TW / 2, 12), vw - TW - 12);
+      return { top: r.top - TH - GAP, left, place: "top" };
+    }
+    // Пробуем справа
+    if (r.right + TW + GAP < vw) {
+      return { top: Math.max(r.top, 12), left: r.right + GAP, place: "right" };
+    }
+    // Пробуем слева
+    if (r.left - TW - GAP > 0) {
+      return { top: Math.max(r.top, 12), left: r.left - TW - GAP, place: "left" };
+    }
+    // Fallback — центр экрана снизу
+    return { top: null, left: null, place: "bottom-center" };
+  };
+
+  // При смене шага пересчитываем позицию
+  useEffect(() => {
+    if (!active) return;
+    const anchor = TOUR_STEPS[step].anchor;
+    // небольшая задержка чтобы DOM успел отрендериться
+    const t = setTimeout(() => setPos(calcPos(anchor)), 80);
+    return () => clearTimeout(t);
+  }, [step, active]);
 
   if (!active) return null;
 
   const s = TOUR_STEPS[step];
   const isLast = step === TOUR_STEPS.length - 1;
 
+  const tooltipStyle = pos.top !== null
+    ? { position: "fixed", top: pos.top, left: pos.left, width: 340 }
+    : { position: "fixed", bottom: 48, left: "50%", transform: "translateX(-50%)", width: 340 };
+
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "none" }}>
-      {/* Затемнение */}
-      <div style={{ position: "absolute", inset: 0, background: "rgba(20,16,10,0.45)", pointerEvents: "auto" }} onClick={onClose} />
-      {/* Тултип по центру */}
+      <div style={{ position: "absolute", inset: 0, background: "rgba(20,16,10,0.4)", pointerEvents: "auto" }} onClick={onClose} />
       <div style={{
-        position: "absolute", bottom: 48, left: "50%", transform: "translateX(-50%)",
-        width: 360, background: "#141410", color: "#fff", borderRadius: 14,
-        padding: "20px 22px", pointerEvents: "auto", boxShadow: "0 24px 60px rgba(0,0,0,0.4)",
+        ...tooltipStyle,
+        background: "#141410", color: "#fff", borderRadius: 14,
+        padding: "20px 22px", pointerEvents: "auto",
+        boxShadow: "0 24px 60px rgba(0,0,0,0.4)",
       }}>
-        {/* Крестик */}
         <button onClick={onClose} style={{
           position: "absolute", top: 14, right: 14,
           width: 24, height: 24, borderRadius: 6,
@@ -899,17 +946,12 @@ export function Onboarding({ active, onClose }) {
           color: "rgba(255,255,255,0.6)", cursor: "pointer",
           display: "grid", placeItems: "center", fontSize: 16, lineHeight: 1,
         }}>×</button>
-
-        {/* Шаг */}
         <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontFamily: "monospace", marginBottom: 6 }}>
           {step + 1} / {TOUR_STEPS.length}
         </div>
         <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>{s.title}</div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.55, marginBottom: 16 }}>{s.text}</div>
-
-        {/* Футер */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          {/* Точки */}
           <div style={{ display: "flex", gap: 4 }}>
             {TOUR_STEPS.map((_, i) => (
               <div key={i} onClick={() => setStep(i)} style={{
