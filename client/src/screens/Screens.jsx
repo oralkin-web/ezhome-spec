@@ -941,23 +941,32 @@ export function Onboarding({ active, onClose, demoProjectId }) {
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "none" }}>
-      <div style={{ position: "absolute", inset: 0, background: "rgba(20,16,10,0.4)", pointerEvents: "auto" }} onClick={onClose} />
-      {pos.top !== null && pos.anchorCenter && (
-        <svg style={{ position: "fixed", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 1 }} xmlns="http://www.w3.org/2000/svg">
-          <line
-            x1={pos.tooltipCenter.x} y1={pos.tooltipCenter.y}
-            x2={pos.anchorCenter.x}  y2={pos.anchorCenter.y}
-            stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" strokeDasharray="4 4"
-          />
-          <circle cx={pos.anchorCenter.x} cy={pos.anchorCenter.y} r="5" fill="rgba(255,255,255,0.6)" />
-        </svg>
-      )}
       <div style={{
         ...tooltipStyle,
         background: "#141410", color: "#fff", borderRadius: 14,
         padding: "20px 22px", pointerEvents: "auto",
-        boxShadow: "0 24px 60px rgba(0,0,0,0.4)",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
       }}>
+        {pos.top !== null && pos.place === "right" && (
+          <div style={{ position: "absolute", left: -8, top: 20, width: 0, height: 0,
+            borderTop: "8px solid transparent", borderBottom: "8px solid transparent",
+            borderRight: "8px solid #141410" }} />
+        )}
+        {pos.top !== null && pos.place === "left" && (
+          <div style={{ position: "absolute", right: -8, top: 20, width: 0, height: 0,
+            borderTop: "8px solid transparent", borderBottom: "8px solid transparent",
+            borderLeft: "8px solid #141410" }} />
+        )}
+        {pos.top !== null && pos.place === "bottom" && (
+          <div style={{ position: "absolute", top: -8, left: 24, width: 0, height: 0,
+            borderLeft: "8px solid transparent", borderRight: "8px solid transparent",
+            borderBottom: "8px solid #141410" }} />
+        )}
+        {pos.top !== null && pos.place === "top" && (
+          <div style={{ position: "absolute", bottom: -8, left: 24, width: 0, height: 0,
+            borderLeft: "8px solid transparent", borderRight: "8px solid transparent",
+            borderTop: "8px solid #141410" }} />
+        )}
         <button onClick={onClose} style={{
           position: "absolute", top: 14, right: 14,
           width: 24, height: 24, borderRadius: 6,
