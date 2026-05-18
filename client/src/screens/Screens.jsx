@@ -864,7 +864,7 @@ export function Help({ onNav, onStartTour }) {
 // ─── ONBOARDING TOUR ─────────────────────────────────────────────────────────
 const TOUR_STEPS = [
   { title: "Добро пожаловать в SETA", text: "За пару минут расскажем об основных функциях на примере тестового проекта.", anchor: null, action: null },
-  { title: "Ваши проекты", text: "Нажмите на три точки чтобы выбрать действие с проектом.", anchor: "projects", action: "open-menu-then-project" },
+  { title: "Ваши проекты", text: "На каждой карточке есть меню", menuIcon: true, textSuffix: " — через него можно дублировать, архивировать или удалить проект. Нажмите «Далее» чтобы открыть тестовый проект.", anchor: "projects", action: "open-project" },
   { title: "Комнаты и товары", text: "Внутри проекта товары разбиты по комнатам. Нажмите на товар чтобы раскрыть форму редактирования.", anchor: null, action: null },
   { title: "Кнопка «Заполнить»", text: "SETA заполнит поля за вас: просто вставьте ссылку на товар и нажмите «Заполнить». Сейчас функция в тестовом режиме. Ожидание результата 30 сек — 1 мин. Советуем проверять данные.", anchor: "fill", action: null },
   { title: "Скачать PDF", text: "Нажмите «Скачать PDF» и получите стилизованный документ, готовый к отправке или печати.", anchor: "pdf", action: null },
@@ -986,7 +986,17 @@ export function Onboarding({ active, onClose, demoProjectId, onNavigate }) {
           {step + 1} / {TOUR_STEPS.length}
         </div>
         <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>{s.title}</div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.55, marginBottom: 16 }}>{s.text}</div>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.55, marginBottom: 16 }}>
+          {s.text}
+          {s.menuIcon && (
+            <span style={{ display: "inline-flex", alignItems: "center", verticalAlign: "middle", margin: "0 3px", background: "rgba(255,255,255,0.15)", borderRadius: 5, padding: "2px 6px", gap: 2 }}>
+              <span style={{ width: 3, height: 3, borderRadius: "50%", background: "#fff", display: "inline-block" }}/>
+              <span style={{ width: 3, height: 3, borderRadius: "50%", background: "#fff", display: "inline-block" }}/>
+              <span style={{ width: 3, height: 3, borderRadius: "50%", background: "#fff", display: "inline-block" }}/>
+            </span>
+          )}
+          {s.textSuffix}
+        </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", gap: 4 }}>
@@ -1009,13 +1019,9 @@ export function Onboarding({ active, onClose, demoProjectId, onNavigate }) {
             <button onClick={() => {
               if (isLast) { onClose(); return; }
               const nextStep = step + 1;
-              if (s.action === "open-menu-then-project") {
-                const menuBtn = document.querySelector("[data-tour='project-menu']");
-                if (menuBtn) menuBtn.click();
-                setTimeout(() => {
-                  if (demoProjectId && onNavigate) onNavigate('/project/' + demoProjectId);
-                }, 800);
+              if (s.action === "open-project" && demoProjectId && onNavigate) {
                 setStep(nextStep);
+                onNavigate('/project/' + demoProjectId);
                 return;
               }
               setStep(nextStep);
