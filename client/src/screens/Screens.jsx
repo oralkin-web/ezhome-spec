@@ -865,9 +865,11 @@ export function Help({ onNav, onStartTour }) {
 // ─── ONBOARDING TOUR ─────────────────────────────────────────────────────────
 const TOUR_STEPS_CONFIG = (demoProjectId, onNavigate) => [
   {
+    element: "body",
     popover: {
       title: "Добро пожаловать в SETA",
       description: "Мы покажем основные функции на примере тестового проекта.",
+      side: "over", align: "center",
     },
   },
   {
@@ -944,7 +946,7 @@ export function Onboarding({ active, onClose, demoProjectId, onNavigate }) {
     const driverObj = driver({
       animate: true,
       showProgress: true,
-      showButtons: ['close', 'previous', 'next'],
+      showButtons: ['next', 'previous', 'close'],
       nextBtnText: 'Далее →',
       prevBtnText: '← Назад',
       doneBtnText: 'Готово',
