@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, useNavigate, useParams, Navigate } from '
 import Dashboard from './screens/Dashboard';
 import Editor from './screens/Editor';
 import ClientPage from './screens/ClientPage';
-import { Settings, Feedback, Admin, Auth, Help, Onboarding } from './screens/Screens';
+import { Settings, Feedback, Admin, Auth, Onboarding } from './screens/Screens';
 
 // ─── API helpers ────────────────────────────────────────────────────────────
 const API_BASE = import.meta.env.VITE_API_URL || '';
@@ -405,11 +405,7 @@ function AppRoutes({ user, setUser, onLogout, banner, setBanner, tourActive, set
       <Route path="/feedback" element={<Feedback onNav={nav} />} />
       <Route path="/admin" element={<Admin onNav={nav} tab={adminTab} setTab={setAdminTab} banner={banner} setBanner={setBanner} />} />
       <Route path="/privacy" element={<Privacy />} />
-      <Route path="/help" element={<Help onNav={nav} onStartTour={async () => {
-        const projects = await (fetch((import.meta.env.VITE_API_URL || '') + '/api/projects', { credentials: 'include' }).then(r => r.json()));
-        if (Array.isArray(projects) && projects.length > 0) setDemoProjectId(projects[0].id);
-        setTourActive(true); navigate('/');
-      }} />} />
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

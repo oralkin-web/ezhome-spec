@@ -863,12 +863,13 @@ export function Help({ onNav, onStartTour }) {
 
 // ─── ONBOARDING TOUR ─────────────────────────────────────────────────────────
 const TOUR_STEPS = [
-  { title: "Добро пожаловать в SETA", text: "Мы покажем основные функции на примере тестового проекта.", anchor: null, action: null },
-  { title: "Ваши проекты", text: "Каждая карточка — один объект. Нажмите «Далее» чтобы открыть тестовый проект.", anchor: "projects", action: "open-project" },
+  { title: "Добро пожаловать в SETA", text: "За пару минут расскажем об основных функциях на примере тестового проекта.", anchor: null, action: null },
+  { title: "Ваши проекты", text: "Нажмите на три точки чтобы выбрать действие с проектом.", anchor: "project-menu", action: "open-menu" },
   { title: "Комнаты и товары", text: "Внутри проекта товары разбиты по комнатам. Нажмите на товар чтобы раскрыть форму редактирования.", anchor: null, action: null },
-  { title: "Кнопка «Заполнить»", text: "Вставьте ссылку на товар с любого сайта — название, цена и фото заполнятся автоматически. Функция в тестовом режиме, ожидание 30 сек — 1 мин.", anchor: "fill", action: null },
-  { title: "Скачать PDF", text: "Нажмите «Скачать PDF» — получите документ с товарами и ценами, готовый к отправке клиенту.", anchor: "pdf", action: null },
-  { title: "Ссылка клиенту", text: "Кнопка «Ссылка клиенту» копирует живую страницу — клиент видит всю комплектацию без логина.", anchor: "share", action: null },
+  { title: "Кнопка «Заполнить»", text: "SETA заполнит поля за вас: просто вставьте ссылку на товар и нажмите «Заполнить». Сейчас функция в тестовом режиме. Ожидание результата 30 сек — 1 мин. Советуем проверять данные.", anchor: "fill", action: null },
+  { title: "Скачать PDF", text: "Нажмите «Скачать PDF» и получите стилизованный документ, готовый к отправке или печати.", anchor: "pdf", action: null },
+  { title: "Предпросмотр", text: "Посмотрите как видит проект клиент до того как отправите ссылку.", anchor: "preview", action: null },
+  { title: "Ссылка клиенту", text: "Покажите вашему клиенту комплектацию в уникальном дизайне, с кликабельными ссылками на товары и адаптацией под мобильные экраны.", anchor: "share", action: null },
   { title: "Обратная связь", text: "Если что-то не работает или хочется новую функцию — напишите нам через раздел «Обратная связь».", anchor: "feedback", action: null },
 ];
 
@@ -1011,6 +1012,12 @@ export function Onboarding({ active, onClose, demoProjectId, onNavigate }) {
               if (s.action === "open-project" && demoProjectId && onNavigate) {
                 setStep(nextStep);
                 onNavigate('/project/' + demoProjectId);
+                return;
+              }
+              if (s.action === "open-menu") {
+                const menuBtn = document.querySelector("[data-tour='project-menu']");
+                if (menuBtn) menuBtn.click();
+                setStep(nextStep);
                 return;
               }
               setStep(nextStep);

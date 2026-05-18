@@ -157,7 +157,6 @@ export function Sidebar({ active = "projects", onNav, admin = false, isAdmin = f
         {!admin && item("archive", "archive", "Архив")}
         {!admin && item("settings", "settings", "Настройки")}
         {!admin && <div data-tour="feedback">{item("feedback", "message", "Обратная связь")}</div>}
-        {!admin && item("help", "help-circle", "Помощь")}
         {admin && item("admin-users", "users", "Пользователи")}
         {admin && item("admin-feedback", "message", "Обратная связь")}
       </div>
@@ -203,7 +202,6 @@ export function MobileMenu({ open, onClose, onNav }) {
           { key: "archive",  icon: "archive", label: "Архив" },
           { key: "settings", icon: "settings", label: "Настройки" },
           { key: "feedback", icon: "message", label: "Обратная связь" },
-          { key: "help",     icon: "help-circle", label: "Помощь" },
         ].map(({ key, icon, label }) => (
           <button key={key} onClick={() => { onNav(key); onClose(); }} style={{
             display: "flex", alignItems: "center", gap: 10,

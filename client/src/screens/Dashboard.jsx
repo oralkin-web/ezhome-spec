@@ -149,6 +149,7 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
             {list.map((p, idx) => (
               <div key={p.id} data-tour={idx === 0 ? "projects" : undefined}>
               <ProjectCard
+                isFirst={idx === 0}
                 project={p}
                 onOpen={() => onOpen(p.id)}
                 onRename={(name) => onRename(p.id, name)}
@@ -189,7 +190,7 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
   );
 }
 
-function ProjectCard({ project, onOpen, onRename, onDelete, onArchive, onUnarchive, onChangeCover, isArchive }) {
+function ProjectCard({ project, onOpen, onRename, onDelete, onArchive, onUnarchive, onChangeCover, isArchive, isFirst }) {
   const [hover, setHover] = React.useState(false);
   const [menu, setMenu] = React.useState(false);
   const [showColorPicker, setShowColorPicker] = React.useState(false);
@@ -219,6 +220,7 @@ function ProjectCard({ project, onOpen, onRename, onDelete, onArchive, onUnarchi
 
         {/* Hover overlay menu */}
         <button
+          data-tour={isFirst ? "project-menu" : undefined}
           onClick={(e) => { e.stopPropagation(); setMenu((v) => !v); }}
           style={{
             position: "absolute", top: 10, right: 10,
