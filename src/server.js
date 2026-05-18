@@ -1,5 +1,6 @@
 const express = require('express');
 const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const { Pool } = require('pg');
@@ -144,6 +145,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 app.set('trust proxy', 1);
 app.use(session({
+  store: new pgSession({ pool, tableName: 'session' }),
   secret: process.env.SESSION_SECRET || 'seta-secret-2024',
   resave: false,
   saveUninitialized: false,
