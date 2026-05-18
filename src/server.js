@@ -134,6 +134,8 @@ async function initDB() {
     );
   `);
   await pool.query(`ALTER TABLE items ADD COLUMN IF NOT EXISTS note TEXT DEFAULT ''`);
+  await pool.query(`ALTER TABLE items ADD COLUMN IF NOT EXISTS user_id TEXT REFERENCES users(id)`);
+  await pool.query(`ALTER TABLE items ADD COLUMN IF NOT EXISTS color TEXT DEFAULT ''`);
   await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS comment TEXT DEFAULT ''`);
   await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS cover_hue INTEGER DEFAULT 28`);
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS logo TEXT DEFAULT ''`);
