@@ -193,6 +193,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
                   onAddProduct={() => addProduct(cat.id)}
                   onUpdateProduct={(pId, patch) => updateProduct(cat.id, pId, patch)}
                   onRemoveProduct={pId => removeProduct(cat.id, pId)}
+                  firstExpanded={categories.indexOf(cat) === 0}
                 />
               );
             })}
@@ -228,7 +229,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
   );
 }
 
-function CategorySection({ cat, subtotal, onRename, onRemove, onAddProduct, onUpdateProduct, onRemoveProduct }) {
+function CategorySection({ cat, subtotal, onRename, onRemove, onAddProduct, onUpdateProduct, onRemoveProduct, firstExpanded }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [autoExpandId, setAutoExpandId] = useState(null);
 
@@ -252,7 +253,7 @@ function CategorySection({ cat, subtotal, onRename, onRemove, onAddProduct, onUp
 
       {/* Товары */}
       {cat.products.map(p => (
-        <ProductRow key={p.id} product={p} onChange={patch => onUpdateProduct(p.id, patch)} onRemove={() => onRemoveProduct(p.id)} autoExpand={p.id === autoExpandId} onExpanded={() => setAutoExpandId(null)} />
+        <ProductRow key={p.id} product={p} onChange={patch => onUpdateProduct(p.id, patch)} onRemove={() => onRemoveProduct(p.id)} autoExpand={p.id === autoExpandId} onExpanded={() => setAutoExpandId(null)} defaultExpanded={firstExpanded && cat.products.indexOf(p) === 0} />
       ))}
 
       {/* Правка 7: кнопка без названия комнаты */}
@@ -294,9 +295,9 @@ function CategorySection({ cat, subtotal, onRename, onRemove, onAddProduct, onUp
   );
 }
 
-function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded }) {
+function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defaultExpanded }) {
   const [hover, setHover] = useState(false);
-  const [expanded, setExpanded] = useState(!!autoExpand);
+  const [expanded, setExpanded] = useState(!!autoExpand || !!defaultExpanded);
   const [draft, setDraft] = useState({ ...product });
   const total = product.qty * product.price;
 

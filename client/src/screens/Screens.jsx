@@ -873,9 +873,12 @@ const TOUR_STEPS = [
   { title: "Обратная связь", text: "Если что-то не работает или хочется новую функцию — напишите нам через раздел «Обратная связь».", anchor: "feedback" },
 ];
 
-export function Onboarding({ active, onClose }) {
+export function Onboarding({ active, onClose, demoProjectId }) {
   const [step, setStep] = useState(0);
   const [pos, setPos] = useState({ top: null, left: null, place: "bottom-center" });
+
+  // Сбрасываем шаг при каждом открытии тура
+  useEffect(() => { if (active) setStep(0); }, [active]);
 
 
   // вычисляем позицию тултипа относительно якоря
@@ -951,6 +954,17 @@ export function Onboarding({ active, onClose }) {
         </div>
         <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>{s.title}</div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.55, marginBottom: 16 }}>{s.text}</div>
+        {step === 3 && demoProjectId && (
+          <a href={"/project/" + demoProjectId} style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "7px 14px", borderRadius: 8, marginBottom: 14,
+            background: "rgba(255,255,255,0.12)", color: "#fff",
+            fontSize: 12, fontWeight: 500, textDecoration: "none",
+            border: "1px solid rgba(255,255,255,0.2)",
+          }}>
+            Открыть проект →
+          </a>
+        )}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", gap: 4 }}>
             {TOUR_STEPS.map((_, i) => (

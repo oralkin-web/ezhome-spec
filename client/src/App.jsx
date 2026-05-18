@@ -85,6 +85,7 @@ export default function App() {
   const [loading, setLoading]   = useState(true);
   const [banner, setBanner]     = useState({ active: false, text: '' });
   const [tourActive, setTourActive] = useState(false);
+  const [demoProjectId, setDemoProjectId] = useState(null);
 
   // Проверяем сессию при загрузке
   useEffect(() => {
@@ -117,7 +118,12 @@ export default function App() {
     const me = await api.get('/api/me');
     setUser(me);
     const seen = localStorage.getItem('seta_tour_done');
-    if (!seen) setTourActive(true);
+    if (!seen) {
+      // Берём первый проект как демо (только что создан на бэкенде)
+      const projects = await api.get('/api/projects');
+      if (Array.isArray(projects) && projects.length > 0) setDemoProjectId(projects[0].id);
+      setTourActive(true);
+    }
     return null;
   };
 
@@ -167,7 +173,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Banner banner={banner} />
-      <Onboarding active={tourActive} onClose={() => { localStorage.setItem('seta_tour_done', '1'); setTourActive(false); }} />
+      <Onboarding active={tourActive} demoProjectId={demoProjectId} onClose={() => { localStorage.setItem('seta_tour_done', '1'); setTourActive(false); }} />
       <AppRoutes user={user} setUser={setUser} onLogout={handleLogout} banner={banner} setBanner={setBanner} tourActive={tourActive} setTourActive={setTourActive} />
     </BrowserRouter>
   );
@@ -394,7 +400,11 @@ function AppRoutes({ user, setUser, onLogout, banner, setBanner, tourActive, set
       <Route path="/feedback" element={<Feedback onNav={nav} />} />
       <Route path="/admin" element={<Admin onNav={nav} tab={adminTab} setTab={setAdminTab} banner={banner} setBanner={setBanner} />} />
       <Route path="/privacy" element={<Privacy />} />
-      <Route path="/help" element={<Help onNav={nav} onStartTour={() => { setTourActive(true); navigate('/'); }} />} />
+      <Route path="/help" element={<Help onNav={nav} onStartTour={async () => {
+        const projects = await (fetch((import.meta.env.VITE_API_URL || '') + '/api/projects', { credentials: 'include' }).then(r => r.json()));
+        if (Array.isArray(projects) && projects.length > 0) setDemoProjectId(projects[0].id);
+        setTourActive(true); navigate('/');
+      }} />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
