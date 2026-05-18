@@ -812,3 +812,165 @@ export function Auth({ onLogin, onRegister, mode, setMode, isInvite }) {
     </div>
   );
 }
+
+
+// ─── SCREEN: HELP ────────────────────────────────────────────────────────────
+export function Help({ onNav, onStartTour }) {
+  return (
+    <div style={{ display: "flex", minHeight: "100vh" }}>
+      <Sidebar active="help" onNav={onNav} />
+      <main style={{ flex: 1, padding: "60px 24px 80px", display: "grid", placeItems: "start center" }} className="seta-main">
+        <div style={{ width: "100%", maxWidth: 480 }}>
+          <div style={{ fontSize: 12, color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>Помощь</div>
+          <h1 className="serif" style={{ margin: "0 0 12px", fontSize: 44, lineHeight: 1, letterSpacing: "-0.02em" }}>Как пользоваться</h1>
+          <p style={{ margin: "0 0 36px", color: "var(--ink-2)", fontSize: 15, lineHeight: 1.6 }}>
+            Мы покажем основные функции SETA — создание проектов, добавление товаров и отправку ссылки клиенту.
+          </p>
+          <div style={{ background: "var(--surface)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)", padding: 28, marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: "var(--ink)", color: "#fff", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                <Icon name="help-circle" size={20} />
+              </div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)", marginBottom: 2 }}>Интерактивный тур</div>
+                <div style={{ fontSize: 13, color: "var(--ink-3)" }}>7 шагов · около 2 минут</div>
+              </div>
+            </div>
+            <button className="btn btn-primary" onClick={onStartTour} style={{ width: "100%", height: 44, fontSize: 14, justifyContent: "center" }}>
+              <Icon name="help-circle" size={15} />
+              Пройти тур
+            </button>
+          </div>
+          <div style={{ background: "var(--surface)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)", padding: 28 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: "var(--accent-soft)", color: "var(--accent)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                <Icon name="message" size={20} />
+              </div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)", marginBottom: 2 }}>Обратная связь</div>
+                <div style={{ fontSize: 13, color: "var(--ink-3)" }}>Сообщите об ошибке или предложите улучшение</div>
+              </div>
+            </div>
+            <button className="btn btn-secondary" onClick={() => onNav("feedback")} style={{ width: "100%", height: 44, fontSize: 14, justifyContent: "center" }}>
+              Написать нам
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+// ─── ONBOARDING TOUR ─────────────────────────────────────────────────────────
+const TOUR_STEPS = [
+  { title: "Добро пожаловать в SETA", text: "Мы покажем как работает приложение. Это займёт около 2 минут.", anchor: "tour-projects" },
+  { title: "Ваши проекты", text: "Каждый проект — один объект дизайна. Здесь хранятся все комплектации.", anchor: "tour-projects" },
+  { title: "Откройте проект", text: "Нажмите на карточку чтобы открыть проект. Внутри — комнаты и товары.", anchor: "tour-projects" },
+  { title: "Комнаты", text: "Внутри проекта товары разбиты по комнатам. Вы можете добавлять и переименовывать их.", anchor: "tour-rooms" },
+  { title: "Кнопка «Заполнить»", text: "Вставьте ссылку на товар с сайта магазина — название, цена и фото заполнятся автоматически. Функция в тестовом режиме, ожидание 30 сек — 1 мин.", anchor: "tour-fill" },
+  { title: "Скачать PDF", text: "Сформируйте красивый документ со всеми товарами и ценами — готов к отправке клиенту.", anchor: "tour-pdf" },
+  { title: "Ссылка клиенту", text: "Поделитесь живой страницей с клиентом — он увидит всю комплектацию в удобном виде.", anchor: "tour-share" },
+  { title: "Обратная связь", text: "Если что-то не работает или хочется новую функцию — напишите нам. Мы читаем каждое сообщение.", anchor: "tour-feedback" },
+];
+
+export function Onboarding({ active, onClose }) {
+  const [step, setStep] = useState(0);
+
+  if (!active) return null;
+
+  const s = TOUR_STEPS[step];
+  const isLast = step === TOUR_STEPS.length - 1;
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "none" }}>
+      {/* Затемнение */}
+      <div style={{ position: "absolute", inset: 0, background: "rgba(20,16,10,0.45)", pointerEvents: "auto" }} onClick={onClose} />
+      {/* Тултип по центру */}
+      <div style={{
+        position: "absolute", bottom: 48, left: "50%", transform: "translateX(-50%)",
+        width: 360, background: "#141410", color: "#fff", borderRadius: 14,
+        padding: "20px 22px", pointerEvents: "auto", boxShadow: "0 24px 60px rgba(0,0,0,0.4)",
+      }}>
+        {/* Крестик */}
+        <button onClick={onClose} style={{
+          position: "absolute", top: 14, right: 14,
+          width: 24, height: 24, borderRadius: 6,
+          border: "none", background: "rgba(255,255,255,0.1)",
+          color: "rgba(255,255,255,0.6)", cursor: "pointer",
+          display: "grid", placeItems: "center", fontSize: 16, lineHeight: 1,
+        }}>×</button>
+
+        {/* Шаг */}
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontFamily: "monospace", marginBottom: 6 }}>
+          {step + 1} / {TOUR_STEPS.length}
+        </div>
+        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>{s.title}</div>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.55, marginBottom: 16 }}>{s.text}</div>
+
+        {/* Футер */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          {/* Точки */}
+          <div style={{ display: "flex", gap: 4 }}>
+            {TOUR_STEPS.map((_, i) => (
+              <div key={i} onClick={() => setStep(i)} style={{
+                width: 5, height: 5, borderRadius: "50%", cursor: "pointer",
+                background: i === step ? "#fff" : "rgba(255,255,255,0.25)",
+                transition: "background 150ms",
+              }} />
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            {step > 0 && (
+              <button onClick={() => setStep(s => s - 1)} style={{
+                padding: "6px 12px", borderRadius: 7, border: "none",
+                background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)",
+                fontSize: 12, cursor: "pointer",
+              }}>← Назад</button>
+            )}
+            <button onClick={() => { if (isLast) { onClose(); } else setStep(s => s + 1); }} style={{
+              padding: "6px 14px", borderRadius: 7, border: "none",
+              background: "#fff", color: "#141410",
+              fontSize: 12, fontWeight: 600, cursor: "pointer",
+            }}>{isLast ? "Готово" : "Далее →"}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── MOBILE SANDWICH MENU ────────────────────────────────────────────────────
+export function MobileMenu({ open, onClose, onNav }) {
+  if (!open) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 500 }}>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(20,16,10,0.4)" }} onClick={onClose} />
+      <div style={{
+        position: "absolute", top: 0, right: 0, bottom: 0, width: 260,
+        background: "var(--bg)", padding: "24px 16px",
+        display: "flex", flexDirection: "column", gap: 2,
+      }}>
+        <button onClick={onClose} style={{ alignSelf: "flex-end", width: 32, height: 32, display: "grid", placeItems: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink-3)", marginBottom: 12 }}>×</button>
+        {[
+          { key: "projects", icon: "folder", label: "Проекты" },
+          { key: "archive",  icon: "archive", label: "Архив" },
+          { key: "settings", icon: "settings", label: "Настройки" },
+          { key: "feedback", icon: "message", label: "Обратная связь" },
+          { key: "help",     icon: "help-circle", label: "Помощь" },
+        ].map(({ key, icon, label }) => (
+          <button key={key} onClick={() => { onNav(key); onClose(); }} style={{
+            display: "flex", alignItems: "center", gap: 10,
+            width: "100%", padding: "10px 12px", borderRadius: 8,
+            border: "none", background: "none", cursor: "pointer",
+            fontSize: 14, color: "var(--ink)", textAlign: "left",
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = "var(--hairline)"}
+          onMouseLeave={e => e.currentTarget.style.background = "none"}>
+            <Icon name={icon} size={16} style={{ color: "var(--ink-3)" }} />
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}

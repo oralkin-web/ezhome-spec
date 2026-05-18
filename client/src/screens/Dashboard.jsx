@@ -1,5 +1,6 @@
 import React from 'react';
 import { Icon, Placeholder, Editable, Sidebar } from '../components/shared';
+import { MobileMenu } from './Screens';
 
 const SETA_LOGO_PATHS = (<>
   <path d="M176.307 34.9476C176.176 32.2146 175.553 29.9046 174.438 28.0176C173.323 26.0655 171.749 24.5688 169.715 23.5277C167.748 22.4215 165.485 21.8684 162.927 21.8684C159.975 21.8684 157.417 22.5517 155.253 23.9181C153.088 25.2846 151.383 27.2042 150.137 29.6769C148.956 32.1496 148.366 35.0127 148.366 38.2662C148.366 41.8451 149.021 44.9359 150.333 47.5388C151.711 50.1416 153.58 52.1588 155.941 53.5903C158.303 54.9568 161.025 55.6401 164.107 55.6401C169.006 55.6401 173.272 54.1079 176.904 51.0436C177.749 50.3312 179.009 50.317 179.794 51.0951L183.797 55.0671C184.56 55.8233 184.594 57.053 183.813 57.7896C181.47 59.9988 178.738 61.755 175.618 63.0581C171.88 64.6198 167.715 65.4006 163.123 65.4006C157.614 65.4006 152.826 64.2944 148.759 62.082C144.758 59.8046 141.61 56.7137 139.314 52.8095C137.084 48.8402 135.969 44.2202 135.969 38.9494C135.969 33.6787 137.084 29.0587 139.314 25.0894C141.61 21.1201 144.758 18.0292 148.759 15.8168C152.826 13.6044 157.483 12.4657 162.73 12.4006C168.961 12.4006 173.979 13.6695 177.783 16.2073C181.653 18.745 184.408 22.3239 186.047 26.9439C187.687 31.4989 188.277 36.9323 187.818 43.2441H146.496V34.9476H176.307Z" fill="currentColor"/>
@@ -56,13 +57,15 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
   const isMobile = useIsMobile();
   if (isMobile) {
     const initials = (user?.name || 'АП').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const [menuOpen, setMenuOpen] = React.useState(false);
     return (
       <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
         <div className="mobile-topbar">
           <svg width="68" height="20" viewBox="0 0 275 81" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: "var(--ink)" }}>{SETA_LOGO_PATHS}</svg>
-          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--ink)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 500, overflow: "hidden", flexShrink: 0 }}>
-            {logoUrl ? <img src={logoUrl} alt="logo" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials}
-          </div>
+          <button onClick={() => setMenuOpen(true)} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink)" }}>
+            <Icon name="menu" size={20} />
+          </button>
+          <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onNav={onNav} />
         </div>
         <div style={{ padding: "72px 16px 24px" }}>
           <div style={{ fontSize: 20, fontWeight: 500, color: "var(--ink)", margin: "16px 0" }}>{isArchive ? "Архив" : "Мои проекты"}</div>

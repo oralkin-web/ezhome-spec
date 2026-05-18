@@ -91,14 +91,20 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
               {project.client && <div style={{ fontSize: 11, color: "var(--ink-3)" }}>{project.client}</div>}
             </div>
           </div>
-          <button onClick={() => setMobileEdit(true)} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink-3)" }}><Icon name="edit" size={18} /></button>
+          <div style={{ display: "flex", gap: 4 }}>
+            <button onClick={() => window.open('/project/' + project.id + '/client', '_blank')} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink-3)" }}><Icon name="eye" size={18} /></button>
+            <button onClick={() => setMobileEdit(true)} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink-3)" }}><Icon name="edit" size={18} /></button>
+          </div>
         </div>
         <div style={{ padding: "72px 16px 100px" }}>
           {categories.map(cat => {
             if (cat.products.length === 0) return null;
             return (
               <div key={cat.id}>
-                <div className="mobile-category-label">{cat.name} · {cat.products.length} {cat.products.length === 1 ? "позиция" : cat.products.length <= 4 ? "позиции" : "позиций"}</div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }} className="mobile-category-label">
+                  <span>{cat.name} · {cat.products.length} {cat.products.length === 1 ? "позиция" : cat.products.length <= 4 ? "позиции" : "позиций"}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{fmt(cat.products.reduce((s,p) => s + p.qty * p.price, 0))}</span>
+                </div>
                 {cat.products.map(p => (
                   <div key={p.id} className="mobile-item-row" style={{ marginBottom: 8 }}>
                     {p.photoUrl ? (

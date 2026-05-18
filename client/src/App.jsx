@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, useNavigate, useParams, Navigate } from '
 import Dashboard from './screens/Dashboard';
 import Editor from './screens/Editor';
 import ClientPage from './screens/ClientPage';
-import { Settings, Feedback, Admin, Auth } from './screens/Screens';
+import { Settings, Feedback, Admin, Auth, Help, Onboarding } from './screens/Screens';
 
 // ─── API helpers ────────────────────────────────────────────────────────────
 const API_BASE = import.meta.env.VITE_API_URL || '';
@@ -84,6 +84,7 @@ export default function App() {
   const [inviteToken, setInviteToken] = useState('');
   const [loading, setLoading]   = useState(true);
   const [banner, setBanner]     = useState({ active: false, text: '' });
+  const [tourActive, setTourActive] = useState(false);
 
   // Проверяем сессию при загрузке
   useEffect(() => {
@@ -91,7 +92,11 @@ export default function App() {
       api.get('/api/me'),
       fetch(API_BASE + '/api/banner').then(r => r.json()).catch(() => ({ active: false, text: '' })),
     ]).then(([me, ban]) => {
-      if (me.error) { setUser(false); } else { setUser(me); }
+      if (me.error) { setUser(false); } else {
+        setUser(me);
+        const seen = localStorage.getItem('seta_tour_done');
+        if (!seen) setTourActive(true);
+      }
       if (ban.active) setBanner(ban);
     }).catch(() => setUser(false))
       .finally(() => setLoading(false));
@@ -160,7 +165,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <Banner banner={banner} />
-      <AppRoutes user={user} setUser={setUser} onLogout={handleLogout} banner={banner} setBanner={setBanner} />
+      <Onboarding active={tourActive} onClose={() => { localStorage.setItem('seta_tour_done', '1'); setTourActive(false); }} />
+      <AppRoutes user={user} setUser={setUser} onLogout={handleLogout} banner={banner} setBanner={setBanner} tourActive={tourActive} setTourActive={setTourActive} />
     </BrowserRouter>
   );
 }
@@ -257,7 +263,7 @@ function PublicClientRoute() {
 }
 
 // ─── AppRoutes ────────────────────────────────────────────────────────────────
-function AppRoutes({ user, setUser, onLogout, banner, setBanner }) {
+function AppRoutes({ user, setUser, onLogout, banner, setBanner, tourActive, setTourActive }) {
   const navigate = useNavigate();
   const [projects, setProjects]     = useState([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
@@ -386,6 +392,7 @@ function AppRoutes({ user, setUser, onLogout, banner, setBanner }) {
       <Route path="/feedback" element={<Feedback onNav={nav} />} />
       <Route path="/admin" element={<Admin onNav={nav} tab={adminTab} setTab={setAdminTab} banner={banner} setBanner={setBanner} />} />
       <Route path="/privacy" element={<Privacy />} />
+      <Route path="/help" element={<Help onNav={nav} onStartTour={() => { setTourActive(true); navigate('/'); }} />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
