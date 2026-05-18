@@ -104,10 +104,16 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
         {categories.map(cat => (
           <section key={cat.id} style={{ marginBottom: isMobile ? 36 : 56 }}>
             {/* Заголовок комнаты */}
-            <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: isMobile ? 16 : 24, paddingBottom: isMobile ? 10 : 14, borderBottom: "1px solid var(--hairline-strong)" }}>
-              <h2 className="serif" style={{ margin: 0, fontSize: isMobile ? 22 : 30, letterSpacing: "-0.01em" }}>{cat.name}</h2>
-              <span style={{ fontSize: 11, color: "var(--ink-3)", letterSpacing: "0.04em" }}>{cat.products.length} позиций</span>
-            </div>
+            {(() => {
+              const catTotal = cat.products.reduce((s, p) => s + p.qty * p.price, 0);
+              return (
+                <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: isMobile ? 16 : 24, paddingBottom: isMobile ? 10 : 14, borderBottom: "1px solid var(--hairline-strong)" }}>
+                  <h2 className="serif" style={{ margin: 0, fontSize: isMobile ? 22 : 30, letterSpacing: "-0.01em" }}>{cat.name}</h2>
+                  <span style={{ fontSize: 11, color: "var(--ink-3)", letterSpacing: "0.04em" }}>{cat.products.length} позиций</span>
+                  <span style={{ marginLeft: "auto", fontSize: isMobile ? 13 : 15, fontWeight: 600, fontVariantNumeric: "tabular-nums", color: "var(--ink)" }}>{fmt(catTotal)}</span>
+                </div>
+              );
+            })()}
 
             {/* Сетка товаров:
                 мобил  — 2 колонки
@@ -197,11 +203,14 @@ function ClientCard({ product, isMobile }) {
         )}
       </div>
       <div style={{ padding: isMobile ? "10px 10px 12px" : "14px 14px 16px", display: "flex", flexDirection: "column", flex: 1 }}>
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minHeight: isMobile ? 72 : 90 }}>
           <div style={{ fontSize: isMobile ? 12 : 14, fontWeight: 500, color: "var(--ink)", lineHeight: 1.35, marginBottom: 3, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden", wordBreak: "break-word" }}>{product.name}</div>
           <div style={{ fontSize: isMobile ? 10 : 11, color: "var(--ink-3)", marginBottom: product.dimensions ? 3 : 0 }}>{product.brand}</div>
           {product.dimensions && (
             <div style={{ fontSize: isMobile ? 10 : 11, color: "var(--ink-3)" }}>{product.dimensions}</div>
+          )}
+          {product.color && (
+            <div style={{ fontSize: isMobile ? 10 : 11, color: "var(--ink-3)" }}>Цвет: {product.color}</div>
           )}
           {product.comment && (
             <div style={{ fontSize: isMobile ? 10 : 11, color: "var(--ink-3)", marginTop: 3, fontStyle: "italic", lineHeight: 1.4 }}>{product.comment}</div>
@@ -229,6 +238,9 @@ function ClientListRow({ product, isMobile }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 500, color: "var(--ink)", lineHeight: 1.3, marginBottom: 3 }}>{product.name}</div>
         <div style={{ fontSize: 11, color: "var(--ink-3)" }}>{product.brand}{product.dimensions ? ` · ${product.dimensions}` : ""}</div>
+        {product.color && (
+          <div style={{ fontSize: 11, color: "var(--ink-3)" }}>Цвет: {product.color}</div>
+        )}
         {product.comment && (
           <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 2, fontStyle: "italic" }}>{product.comment}</div>
         )}
