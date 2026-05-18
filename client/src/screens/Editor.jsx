@@ -326,7 +326,7 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded }) {
           </div>
           <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>{product.brand}</div>
           {product.dimensions && <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 1 }}>{product.dimensions}</div>}
-          {product.color && <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 1 }}>{product.color}</div>}
+          {product.color && <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 1 }}>Цвет: {product.color}</div>}
           {product.comment && <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 2, fontStyle: "italic" }}>{product.comment}</div>}
         </div>
         {/* Кол-во — только отображение, редактирование в форме */}
