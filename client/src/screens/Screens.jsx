@@ -947,22 +947,30 @@ export function Onboarding({ active, onClose, demoProjectId, onNavigate }) {
         boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
       }}>
         {pos.top !== null && pos.place === "right" && (
-          <div style={{ position: "absolute", left: -8, top: 20, width: 0, height: 0,
+          <div style={{ position: "absolute", left: -8,
+            top: Math.min(Math.max(pos.anchorCenter.y - pos.top - 8, 12), 160),
+            width: 0, height: 0,
             borderTop: "8px solid transparent", borderBottom: "8px solid transparent",
             borderRight: "8px solid #141410" }} />
         )}
         {pos.top !== null && pos.place === "left" && (
-          <div style={{ position: "absolute", right: -8, top: 20, width: 0, height: 0,
+          <div style={{ position: "absolute", right: -8,
+            top: Math.min(Math.max(pos.anchorCenter.y - pos.top - 8, 12), 160),
+            width: 0, height: 0,
             borderTop: "8px solid transparent", borderBottom: "8px solid transparent",
             borderLeft: "8px solid #141410" }} />
         )}
         {pos.top !== null && pos.place === "bottom" && (
-          <div style={{ position: "absolute", top: -8, left: 24, width: 0, height: 0,
+          <div style={{ position: "absolute", top: -8,
+            left: Math.min(Math.max(pos.anchorCenter.x - pos.left - 8, 12), 310),
+            width: 0, height: 0,
             borderLeft: "8px solid transparent", borderRight: "8px solid transparent",
             borderBottom: "8px solid #141410" }} />
         )}
         {pos.top !== null && pos.place === "top" && (
-          <div style={{ position: "absolute", bottom: -8, left: 24, width: 0, height: 0,
+          <div style={{ position: "absolute", bottom: -8,
+            left: Math.min(Math.max(pos.anchorCenter.x - pos.left - 8, 12), 310),
+            width: 0, height: 0,
             borderLeft: "8px solid transparent", borderRight: "8px solid transparent",
             borderTop: "8px solid #141410" }} />
         )}
