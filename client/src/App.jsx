@@ -85,7 +85,7 @@ export default function App() {
   const [loading, setLoading]   = useState(true);
   const [banner, setBanner]     = useState({ active: false, text: '' });
   const [tourActive, setTourActive] = useState(false);
-  const [demoProjectId, setDemoProjectId] = useState(null);
+  const [demoProjectId, setDemoProjectId] = useState(() => sessionStorage.getItem('seta_tour_demo') || null);
 
   // Проверяем сессию при загрузке
   useEffect(() => {
@@ -97,9 +97,7 @@ export default function App() {
         setUser(me);
         const seen = localStorage.getItem('seta_tour_done');
         const savedTourStep = sessionStorage.getItem('seta_tour_step');
-        const savedDemoId = sessionStorage.getItem('seta_tour_demo');
         if (!seen || savedTourStep) {
-          if (savedDemoId) setDemoProjectId(savedDemoId);
           setTourActive(true);
         }
       }
