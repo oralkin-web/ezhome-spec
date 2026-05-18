@@ -863,14 +863,14 @@ export function Help({ onNav, onStartTour }) {
 
 // ─── ONBOARDING TOUR ─────────────────────────────────────────────────────────
 const TOUR_STEPS = [
-  { title: "Добро пожаловать в SETA", text: "Мы покажем основные функции на примере тестового проекта.", anchor: null },
-  { title: "Ваши проекты", text: "Каждая карточка — один объект. Нажмите чтобы открыть проект и управлять комплектацией.", anchor: "projects" },
-  { title: "Создать новый проект", text: "Нажмите «Новый проект» чтобы добавить объект. Укажите адрес и имя клиента.", anchor: "new-project" },
-  { title: "Комнаты и товары", text: "Внутри проекта товары разбиты по комнатам. Открываем тестовый проект — нажмите на карточку.", anchor: "projects" },
-  { title: "Кнопка «Заполнить»", text: "Вставьте ссылку на товар с любого сайта — название, цена и фото заполнятся автоматически. Функция в тестовом режиме, ожидание 30 сек — 1 мин.", anchor: null },
-  { title: "Скачать PDF", text: "В редакторе нажмите «Скачать PDF» — получите документ с товарами и ценами, готовый к отправке.", anchor: null },
-  { title: "Ссылка клиенту", text: "Кнопка «Ссылка клиенту» копирует живую страницу — клиент видит всю комплектацию без логина.", anchor: null },
-  { title: "Обратная связь", text: "Если что-то не работает или хочется новую функцию — напишите нам через раздел «Обратная связь».", anchor: "feedback" },
+  { title: "Добро пожаловать в SETA", text: "Мы покажем основные функции на примере тестового проекта.", anchor: null, action: null },
+  { title: "Ваши проекты", text: "Каждая карточка — один объект. Нажмите «Далее» чтобы открыть тестовый проект.", anchor: "projects", action: null },
+  { title: "Открываем проект", text: "Нажмите «Далее» — откроем тестовый проект и посмотрим как устроена комплектация.", anchor: "new-project", action: "open-project" },
+  { title: "Комнаты и товары", text: "Внутри проекта товары разбиты по комнатам. Нажмите на товар чтобы раскрыть форму редактирования.", anchor: null, action: null },
+  { title: "Кнопка «Заполнить»", text: "Вставьте ссылку на товар с любого сайта — название, цена и фото заполнятся автоматически. Функция в тестовом режиме, ожидание 30 сек — 1 мин.", anchor: "fill", action: null },
+  { title: "Скачать PDF", text: "Нажмите «Скачать PDF» — получите документ с товарами и ценами, готовый к отправке клиенту.", anchor: "pdf", action: null },
+  { title: "Ссылка клиенту", text: "Кнопка «Ссылка клиенту» копирует живую страницу — клиент видит всю комплектацию без логина.", anchor: "share", action: null },
+  { title: "Обратная связь", text: "Если что-то не работает или хочется новую функцию — напишите нам через раздел «Обратная связь».", anchor: "feedback", action: null },
 ];
 
 export function Onboarding({ active, onClose, demoProjectId }) {
@@ -970,21 +970,7 @@ export function Onboarding({ active, onClose, demoProjectId }) {
         </div>
         <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>{s.title}</div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.55, marginBottom: 16 }}>{s.text}</div>
-        {step === 3 && demoProjectId && (
-          <button onClick={() => {
-            sessionStorage.setItem('seta_tour_step', '4');
-            sessionStorage.setItem('seta_tour_demo', demoProjectId);
-            window.location.href = '/project/' + demoProjectId;
-          }} style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            padding: "7px 14px", borderRadius: 8, marginBottom: 14,
-            background: "rgba(255,255,255,0.12)", color: "#fff",
-            fontSize: 12, fontWeight: 500, cursor: "pointer",
-            border: "1px solid rgba(255,255,255,0.2)",
-          }}>
-            Открыть проект
-          </button>
-        )}
+
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", gap: 4 }}>
             {TOUR_STEPS.map((_, i) => (
@@ -1003,7 +989,17 @@ export function Onboarding({ active, onClose, demoProjectId }) {
                 fontSize: 12, cursor: "pointer",
               }}>← Назад</button>
             )}
-            <button onClick={() => { if (isLast) { onClose(); } else setStep(s => s + 1); }} style={{
+            <button onClick={() => {
+              if (isLast) { onClose(); return; }
+              const nextStep = step + 1;
+              if (s.action === "open-project" && demoProjectId) {
+                sessionStorage.setItem('seta_tour_step', String(nextStep));
+                sessionStorage.setItem('seta_tour_demo', demoProjectId);
+                window.location.href = '/project/' + demoProjectId;
+                return;
+              }
+              setStep(nextStep);
+            }} style={{
               padding: "6px 14px", borderRadius: 7, border: "none",
               background: "#fff", color: "#141410",
               fontSize: 12, fontWeight: 600, cursor: "pointer",
