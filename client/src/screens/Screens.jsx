@@ -863,7 +863,7 @@ export function Help({ onNav, onStartTour }) {
 
 // ─── ONBOARDING TOUR ─────────────────────────────────────────────────────────
 const TOUR_STEPS = [
-  { title: "Добро пожаловать в SETA", text: "Мы покажем основные функции за 2 минуты. Перед вами тестовый проект — на нём всё покажем.", anchor: null },
+  { title: "Добро пожаловать в SETA", text: "Мы покажем основные функции на примере тестового проекта.", anchor: null },
   { title: "Ваши проекты", text: "Каждая карточка — один объект. Нажмите чтобы открыть проект и управлять комплектацией.", anchor: "projects" },
   { title: "Создать новый проект", text: "Нажмите «Новый проект» чтобы добавить объект. Укажите адрес и имя клиента.", anchor: "new-project" },
   { title: "Комнаты и товары", text: "Внутри проекта товары разбиты по комнатам. Открываем тестовый проект — нажмите на карточку.", anchor: "projects" },
@@ -877,42 +877,48 @@ export function Onboarding({ active, onClose, demoProjectId }) {
   const [step, setStep] = useState(0);
   const [pos, setPos] = useState({ top: null, left: null, place: "bottom-center" });
 
-  // Сбрасываем шаг при каждом открытии тура
-  useEffect(() => { if (active) setStep(0); }, [active]);
+  // Восстанавливаем шаг после перехода в проект
+  useEffect(() => {
+    const savedStep = sessionStorage.getItem('seta_tour_step');
+    if (savedStep) {
+      setStep(parseInt(savedStep));
+      sessionStorage.removeItem('seta_tour_step');
+    }
+  }, []);
+
+  // Сбрасываем шаг при каждом открытии тура (только если нет сохранённого)
+  useEffect(() => {
+    if (active && !sessionStorage.getItem('seta_tour_step')) setStep(0);
+  }, [active]);
 
 
   // вычисляем позицию тултипа относительно якоря
   const calcPos = (anchor) => {
-    if (!anchor) return { top: null, left: null, place: "bottom-center" };
+    const NONE = { top: null, left: null, place: "bottom-center", anchorCenter: null, tooltipCenter: null };
+    if (!anchor) return NONE;
     const el = document.querySelector("[data-tour=\"" + anchor + "\"]");
-    if (!el) return { top: null, left: null, place: "bottom-center" };
+    if (!el) return NONE;
     const r = el.getBoundingClientRect();
-    const TW = 340; // ширина тултипа
-    const TH = 180; // примерная высота
+    const ac = { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) };
+    const TW = 340;
+    const TH = 200;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const GAP = 14;
+    const GAP = 16;
 
-    // Пробуем снизу
-    if (r.bottom + TH + GAP < vh) {
-      const left = Math.min(Math.max(r.left + r.width / 2 - TW / 2, 12), vw - TW - 12);
-      return { top: r.bottom + GAP, left, place: "bottom" };
-    }
-    // Пробуем сверху
-    if (r.top - TH - GAP > 0) {
-      const left = Math.min(Math.max(r.left + r.width / 2 - TW / 2, 12), vw - TW - 12);
-      return { top: r.top - TH - GAP, left, place: "top" };
-    }
-    // Пробуем справа
-    if (r.right + TW + GAP < vw) {
-      return { top: Math.max(r.top, 12), left: r.right + GAP, place: "right" };
-    }
-    // Пробуем слева
-    if (r.left - TW - GAP > 0) {
-      return { top: Math.max(r.top, 12), left: r.left - TW - GAP, place: "left" };
-    }
-    // Fallback — центр экрана снизу
-    return { top: null, left: null, place: "bottom-center" };
+    const make = (top, left, place) => {
+      const clampedLeft = Math.min(Math.max(left, 12), vw - TW - 12);
+      const clampedTop  = Math.min(Math.max(top,  12), vh - TH - 12);
+      // Центр тултипа — для линии
+      const tc = { x: clampedLeft + TW / 2, y: place === "bottom" ? clampedTop : clampedTop + TH };
+      return { top: clampedTop, left: clampedLeft, place, anchorCenter: ac, tooltipCenter: tc };
+    };
+
+    if (r.bottom + TH + GAP < vh) return make(r.bottom + GAP, r.left + r.width / 2 - TW / 2, "bottom");
+    if (r.top - TH - GAP > 0)    return make(r.top - TH - GAP, r.left + r.width / 2 - TW / 2, "top");
+    if (r.right + TW + GAP < vw) return make(r.top, r.right + GAP, "right");
+    if (r.left - TW - GAP > 0)   return make(r.top, r.left - TW - GAP, "left");
+    return NONE;
   };
 
   // При смене шага пересчитываем позицию
@@ -936,6 +942,16 @@ export function Onboarding({ active, onClose, demoProjectId }) {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "none" }}>
       <div style={{ position: "absolute", inset: 0, background: "rgba(20,16,10,0.4)", pointerEvents: "auto" }} onClick={onClose} />
+      {pos.top !== null && pos.anchorCenter && (
+        <svg style={{ position: "fixed", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 1 }} xmlns="http://www.w3.org/2000/svg">
+          <line
+            x1={pos.tooltipCenter.x} y1={pos.tooltipCenter.y}
+            x2={pos.anchorCenter.x}  y2={pos.anchorCenter.y}
+            stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" strokeDasharray="4 4"
+          />
+          <circle cx={pos.anchorCenter.x} cy={pos.anchorCenter.y} r="5" fill="rgba(255,255,255,0.6)" />
+        </svg>
+      )}
       <div style={{
         ...tooltipStyle,
         background: "#141410", color: "#fff", borderRadius: 14,
@@ -955,15 +971,19 @@ export function Onboarding({ active, onClose, demoProjectId }) {
         <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>{s.title}</div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.55, marginBottom: 16 }}>{s.text}</div>
         {step === 3 && demoProjectId && (
-          <a href={"/project/" + demoProjectId} style={{
+          <button onClick={() => {
+            sessionStorage.setItem('seta_tour_step', '4');
+            sessionStorage.setItem('seta_tour_demo', demoProjectId);
+            window.location.href = '/project/' + demoProjectId;
+          }} style={{
             display: "inline-flex", alignItems: "center", gap: 6,
             padding: "7px 14px", borderRadius: 8, marginBottom: 14,
             background: "rgba(255,255,255,0.12)", color: "#fff",
-            fontSize: 12, fontWeight: 500, textDecoration: "none",
+            fontSize: 12, fontWeight: 500, cursor: "pointer",
             border: "1px solid rgba(255,255,255,0.2)",
           }}>
-            Открыть проект →
-          </a>
+            Открыть проект
+          </button>
         )}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", gap: 4 }}>
