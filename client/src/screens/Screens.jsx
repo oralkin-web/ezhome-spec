@@ -864,13 +864,13 @@ export function Help({ onNav, onStartTour }) {
 // ─── ONBOARDING TOUR ─────────────────────────────────────────────────────────
 const TOUR_STEPS = [
   { title: "Добро пожаловать в SETA", text: "За пару минут расскажем об основных функциях на примере тестового проекта.", anchor: null, action: null },
-  { title: "Ваши проекты", text: "На каждой карточке есть меню", menuIcon: true, textSuffix: " — через него можно дублировать, архивировать или удалить проект. Нажмите «Далее» чтобы открыть тестовый проект.", anchor: "projects", action: "open-project" },
+  { title: "Ваши проекты", text: "В меню", menuIcon: true, textSuffix: " есть возможность дублировать, архивировать, менять обложку или удалить проект.", anchor: "projects", action: "open-project" },
   { title: "Комнаты и товары", text: "Внутри проекта товары разбиты по комнатам. Нажмите на товар чтобы раскрыть форму редактирования.", anchor: null, action: null },
   { title: "Кнопка «Заполнить»", text: "SETA заполнит поля за вас: просто вставьте ссылку на товар и нажмите «Заполнить». Сейчас функция в тестовом режиме. Ожидание результата 30 сек — 1 мин. Советуем проверять данные.", anchor: "fill", action: null },
   { title: "Скачать PDF", text: "Нажмите «Скачать PDF» и получите стилизованный документ, готовый к отправке или печати.", anchor: "pdf", action: null },
   { title: "Предпросмотр", text: "Посмотрите как видит проект клиент до того как отправите ссылку.", anchor: "preview", action: null },
   { title: "Ссылка клиенту", text: "Покажите вашему клиенту комплектацию в уникальном дизайне, с кликабельными ссылками на товары и адаптацией под мобильные экраны.", anchor: "share", action: null },
-  { title: "Обратная связь", text: "Если что-то не работает или хочется новую функцию — напишите нам через раздел «Обратная связь».", anchor: "feedback", action: null },
+  { title: "Обратная связь", text: "Если что-то не работает или есть идея про новую функцию — напишите нам через раздел «Обратная связь», выбрав тему сообщения. Приятной работы в SETA!", anchor: "feedback", action: null },
 ];
 
 export function Onboarding({ active, onClose, demoProjectId, onNavigate }) {
@@ -1029,7 +1029,7 @@ export function Onboarding({ active, onClose, demoProjectId, onNavigate }) {
               padding: "6px 14px", borderRadius: 7, border: "none",
               background: "#fff", color: "#141410",
               fontSize: 12, fontWeight: 600, cursor: "pointer",
-            }}>{isLast ? "Готово" : "Далее →"}</button>
+            }}>{isLast ? "Начать работу" : "Далее →"}</button>
           </div>
         </div>
       </div>
