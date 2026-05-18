@@ -141,14 +141,14 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
         {list.length === 0 ? (
           isArchive ? <EmptyArchive /> : <EmptyState onCreate={onCreate} />
         ) : (
-          <div data-tour="projects" style={{
+          <div style={{
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
             gap: 24,
           }}>
-            {list.map((p) => (
+            {list.map((p, idx) => (
+              <div key={p.id} data-tour={idx === 0 ? "projects" : undefined}>
               <ProjectCard
-                key={p.id}
                 project={p}
                 onOpen={() => onOpen(p.id)}
                 onRename={(name) => onRename(p.id, name)}
@@ -158,6 +158,7 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
                 onChangeCover={onChangeCover ? (hue) => onChangeCover(p.id, hue) : null}
                 isArchive={isArchive}
               />
+              </div>
             ))}
           </div>
         )}
