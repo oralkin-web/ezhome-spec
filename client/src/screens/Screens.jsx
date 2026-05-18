@@ -1,4 +1,5 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect, useRef} from 'react';
+import { driver } from 'driver.js';
 import { Icon, Sidebar } from '../components/shared';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
@@ -862,160 +863,119 @@ export function Help({ onNav, onStartTour }) {
 }
 
 // ─── ONBOARDING TOUR ─────────────────────────────────────────────────────────
-const TOUR_STEPS = [
-  { title: "Добро пожаловать в SETA", text: "Мы покажем основные функции на примере тестового проекта.", anchor: null, action: null },
-  { title: "Ваши проекты", text: "Каждая карточка — один объект. Нажмите «Далее» чтобы открыть тестовый проект.", anchor: "projects", action: "open-project" },
-  { title: "Комнаты и товары", text: "Внутри проекта товары разбиты по комнатам. Нажмите на товар чтобы раскрыть форму редактирования.", anchor: null, action: null },
-  { title: "Кнопка «Заполнить»", text: "Вставьте ссылку на товар с любого сайта — название, цена и фото заполнятся автоматически. Функция в тестовом режиме, ожидание 30 сек — 1 мин.", anchor: "fill", action: null },
-  { title: "Скачать PDF", text: "Нажмите «Скачать PDF» — получите документ с товарами и ценами, готовый к отправке клиенту.", anchor: "pdf", action: null },
-  { title: "Ссылка клиенту", text: "Кнопка «Ссылка клиенту» копирует живую страницу — клиент видит всю комплектацию без логина.", anchor: "share", action: null },
-  { title: "Обратная связь", text: "Если что-то не работает или хочется новую функцию — напишите нам через раздел «Обратная связь».", anchor: "feedback", action: null },
+const TOUR_STEPS_CONFIG = (demoProjectId, onNavigate) => [
+  {
+    element: "body",
+    popover: {
+      title: "Добро пожаловать в SETA",
+      description: "Мы покажем основные функции на примере тестового проекта.",
+      side: "over", align: "center",
+    },
+  },
+  {
+    element: "[data-tour='projects']",
+    popover: {
+      title: "Ваши проекты",
+      description: "Каждая карточка — один объект. Нажмите «Далее» чтобы открыть тестовый проект.",
+      side: "bottom", align: "start",
+      onNextClick: (el, step, opts) => {
+        if (demoProjectId && onNavigate) {
+          sessionStorage.setItem('seta_tour_step', '2');
+          onNavigate('/project/' + demoProjectId);
+        }
+        opts.state.activeIndex++;
+        opts.driver.refresh();
+      },
+    },
+  },
+  {
+    element: "[data-tour='rooms']",
+    popover: {
+      title: "Комнаты и товары",
+      description: "Внутри проекта товары разбиты по комнатам. Нажмите на товар чтобы раскрыть форму.",
+      side: "bottom", align: "start",
+    },
+  },
+  {
+    element: "[data-tour='fill']",
+    popover: {
+      title: "Кнопка «Заполнить»",
+      description: "Вставьте ссылку на товар — название, цена и фото заполнятся автоматически. Функция в тестовом режиме, ожидание 30 сек — 1 мин.",
+      side: "bottom", align: "start",
+    },
+  },
+  {
+    element: "[data-tour='pdf']",
+    popover: {
+      title: "Скачать PDF",
+      description: "Получите документ с товарами и ценами, готовый к отправке клиенту.",
+      side: "bottom", align: "end",
+    },
+  },
+  {
+    element: "[data-tour='share']",
+    popover: {
+      title: "Ссылка клиенту",
+      description: "Копирует живую страницу — клиент видит всю комплектацию без логина.",
+      side: "bottom", align: "end",
+    },
+  },
+  {
+    element: "[data-tour='feedback']",
+    popover: {
+      title: "Обратная связь",
+      description: "Если что-то не работает — напишите нам через раздел «Обратная связь».",
+      side: "right", align: "start",
+    },
+  },
 ];
 
 export function Onboarding({ active, onClose, demoProjectId, onNavigate }) {
-  const [step, setStep] = useState(0);
-  const [pos, setPos] = useState({ top: null, left: null, place: "bottom-center" });
+  const driverRef = useRef(null);
 
-  // Восстанавливаем шаг после перехода в проект
   useEffect(() => {
-    const savedStep = sessionStorage.getItem('seta_tour_step');
-    if (savedStep) {
-      setStep(parseInt(savedStep));
-      sessionStorage.removeItem('seta_tour_step');
+    if (!active) {
+      driverRef.current?.destroy();
+      return;
     }
-  }, []);
 
-  // Сбрасываем шаг при каждом открытии тура (только если нет сохранённого)
-  useEffect(() => {
-    if (active && !sessionStorage.getItem('seta_tour_step')) setStep(0);
+    const savedStep = sessionStorage.getItem('seta_tour_step');
+    const startStep = savedStep ? parseInt(savedStep) : 0;
+    if (savedStep) sessionStorage.removeItem('seta_tour_step');
+
+    const driverObj = driver({
+      animate: true,
+      showProgress: true,
+      showButtons: ['next', 'previous', 'close'],
+      nextBtnText: 'Далее →',
+      prevBtnText: '← Назад',
+      doneBtnText: 'Готово',
+      progressText: '{{current}} / {{total}}',
+      onDestroyed: () => { onClose(); },
+      steps: TOUR_STEPS_CONFIG(demoProjectId, onNavigate),
+    });
+
+    driverRef.current = driverObj;
+    setTimeout(() => { driverObj.drive(startStep); }, 150);
+    return () => { driverObj.destroy(); };
   }, [active]);
 
-
-  // вычисляем позицию тултипа относительно якоря
-  const calcPos = (anchor) => {
-    const NONE = { top: null, left: null, place: "bottom-center", anchorCenter: null, tooltipCenter: null };
-    if (!anchor) return NONE;
-    const el = document.querySelector("[data-tour=\"" + anchor + "\"]");
-    if (!el) return NONE;
-    const r = el.getBoundingClientRect();
-    const ac = { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) };
-    const TW = 340;
-    const TH = 200;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const GAP = 16;
-
-    const make = (top, left, place) => {
-      const clampedLeft = Math.min(Math.max(left, 12), vw - TW - 12);
-      const clampedTop  = Math.min(Math.max(top,  12), vh - TH - 12);
-      // Центр тултипа — для линии
-      const tc = { x: clampedLeft + TW / 2, y: place === "bottom" ? clampedTop : clampedTop + TH };
-      return { top: clampedTop, left: clampedLeft, place, anchorCenter: ac, tooltipCenter: tc };
-    };
-
-    if (r.bottom + TH + GAP < vh) return make(r.bottom + GAP, r.left + r.width / 2 - TW / 2, "bottom");
-    if (r.top - TH - GAP > 0)    return make(r.top - TH - GAP, r.left + r.width / 2 - TW / 2, "top");
-    if (r.right + TW + GAP < vw) return make(r.top, r.right + GAP, "right");
-    if (r.left - TW - GAP > 0)   return make(r.top, r.left - TW - GAP, "left");
-    return NONE;
-  };
-
-  // При смене шага пересчитываем позицию
   useEffect(() => {
-    if (!active) return;
-    const anchor = TOUR_STEPS[step].anchor;
-    // небольшая задержка чтобы DOM успел отрендериться
-    const t = setTimeout(() => setPos(calcPos(anchor)), 80);
-    return () => clearTimeout(t);
-  }, [step, active]);
+    const style = document.getElementById('driver-seta-styles') || document.createElement('style');
+    style.id = 'driver-seta-styles';
+    style.textContent = `
+      .driver-popover { background: #141410 !important; color: #fff !important; border-radius: 14px !important; padding: 20px 22px !important; max-width: 340px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important; border: none !important; }
+      .driver-popover-title { font-size: 14px !important; font-weight: 600 !important; color: #fff !important; margin-bottom: 6px !important; }
+      .driver-popover-description { font-size: 13px !important; color: rgba(255,255,255,0.75) !important; line-height: 1.55 !important; }
+      .driver-popover-footer { margin-top: 16px !important; }
+      .driver-popover-next-btn { background: #fff !important; color: #141410 !important; border-radius: 7px !important; font-size: 12px !important; font-weight: 600 !important; padding: 6px 14px !important; border: none !important; text-shadow: none !important; }
+      .driver-popover-prev-btn { background: rgba(255,255,255,0.1) !important; color: rgba(255,255,255,0.7) !important; border-radius: 7px !important; font-size: 12px !important; padding: 6px 12px !important; border: none !important; text-shadow: none !important; }
+      .driver-popover-close-btn { color: rgba(255,255,255,0.5) !important; font-size: 18px !important; }
+      .driver-popover-progress-text { color: rgba(255,255,255,0.4) !important; font-size: 10px !important; font-family: monospace !important; }
+    `;
+    document.head.appendChild(style);
+  }, []);
 
-  if (!active) return null;
-
-  const s = TOUR_STEPS[step];
-  const isLast = step === TOUR_STEPS.length - 1;
-
-  const tooltipStyle = pos.top !== null
-    ? { position: "fixed", top: pos.top, left: pos.left, width: 340 }
-    : { position: "fixed", bottom: 48, left: "50%", transform: "translateX(-50%)", width: 340 };
-
-  return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "none" }}>
-      <div style={{
-        ...tooltipStyle,
-        background: "#141410", color: "#fff", borderRadius: 14,
-        padding: "20px 22px", pointerEvents: "auto",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
-      }}>
-        {pos.top !== null && pos.place === "right" && (
-          <div style={{ position: "absolute", left: -8, top: 20, width: 0, height: 0,
-            borderTop: "8px solid transparent", borderBottom: "8px solid transparent",
-            borderRight: "8px solid #141410" }} />
-        )}
-        {pos.top !== null && pos.place === "left" && (
-          <div style={{ position: "absolute", right: -8, top: 20, width: 0, height: 0,
-            borderTop: "8px solid transparent", borderBottom: "8px solid transparent",
-            borderLeft: "8px solid #141410" }} />
-        )}
-        {pos.top !== null && pos.place === "bottom" && (
-          <div style={{ position: "absolute", top: -8, left: 24, width: 0, height: 0,
-            borderLeft: "8px solid transparent", borderRight: "8px solid transparent",
-            borderBottom: "8px solid #141410" }} />
-        )}
-        {pos.top !== null && pos.place === "top" && (
-          <div style={{ position: "absolute", bottom: -8, left: 24, width: 0, height: 0,
-            borderLeft: "8px solid transparent", borderRight: "8px solid transparent",
-            borderTop: "8px solid #141410" }} />
-        )}
-        <button onClick={onClose} style={{
-          position: "absolute", top: 14, right: 14,
-          width: 24, height: 24, borderRadius: 6,
-          border: "none", background: "rgba(255,255,255,0.1)",
-          color: "rgba(255,255,255,0.6)", cursor: "pointer",
-          display: "grid", placeItems: "center", fontSize: 16, lineHeight: 1,
-        }}>×</button>
-        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontFamily: "monospace", marginBottom: 6 }}>
-          {step + 1} / {TOUR_STEPS.length}
-        </div>
-        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>{s.title}</div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.55, marginBottom: 16 }}>{s.text}</div>
-
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display: "flex", gap: 4 }}>
-            {TOUR_STEPS.map((_, i) => (
-              <div key={i} onClick={() => setStep(i)} style={{
-                width: 5, height: 5, borderRadius: "50%", cursor: "pointer",
-                background: i === step ? "#fff" : "rgba(255,255,255,0.25)",
-                transition: "background 150ms",
-              }} />
-            ))}
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            {step > 0 && (
-              <button onClick={() => setStep(s => s - 1)} style={{
-                padding: "6px 12px", borderRadius: 7, border: "none",
-                background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)",
-                fontSize: 12, cursor: "pointer",
-              }}>← Назад</button>
-            )}
-            <button onClick={() => {
-              if (isLast) { onClose(); return; }
-              const nextStep = step + 1;
-              if (s.action === "open-project" && demoProjectId && onNavigate) {
-                setStep(nextStep);
-                onNavigate('/project/' + demoProjectId);
-                return;
-              }
-              setStep(nextStep);
-            }} style={{
-              padding: "6px 14px", borderRadius: 7, border: "none",
-              background: "#fff", color: "#141410",
-              fontSize: 12, fontWeight: 600, cursor: "pointer",
-            }}>{isLast ? "Готово" : "Далее →"}</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return null;
 }
-
 
