@@ -54,9 +54,9 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
   const list = projects;
   const [deleteTarget, setDeleteTarget] = React.useState(null); // { id, name }
   const isMobile = useIsMobile();
+  const [menuOpen, setMenuOpen] = React.useState(false);
   if (isMobile) {
     const initials = (user?.name || 'АП').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-    const [menuOpen, setMenuOpen] = React.useState(false);
     return (
       <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
         <div className="mobile-topbar">
