@@ -831,11 +831,6 @@ export function Auth({ onLogin, onRegister, mode, setMode, isInvite }) {
         <span style={{ fontSize: 9, padding: "2px 5px", borderRadius: 3, background: "var(--hairline-strong)", color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Beta</span>
       </div>
       {mode === "reset" ? <ResetCard back={() => setMode("login")} /> : <AuthCard mode={mode} setMode={setMode} onLogin={onLogin} onRegister={onRegister} isInvite={isInvite} />}
-      <a href="/privacy" target="_blank" style={{ position: "absolute", bottom: 24, color: "var(--ink-3)", fontSize: 11, textDecoration: "none", letterSpacing: "0.02em" }}
-        onMouseEnter={e => e.currentTarget.style.color = "var(--ink-2)"}
-        onMouseLeave={e => e.currentTarget.style.color = "var(--ink-3)"}>
-        Политика конфиденциальности
-      </a>
     </div>
   );
 }
