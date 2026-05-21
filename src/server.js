@@ -31,7 +31,7 @@ function clearLoginAttempts(ip) {
   delete loginAttempts[ip];
 }
 
-const ALLOWED_ORIGINS = ['https://useseta.com', 'https://www.useseta.com', 'http://localhost:5173'];
+const ALLOWED_ORIGINS = ['https://useseta.com', 'https://www.useseta.com', 'https://app.useseta.com', 'http://localhost:5173'];
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (ALLOWED_ORIGINS.includes(origin)) {
@@ -48,14 +48,42 @@ const PORT = process.env.PORT || 8080;
 const ADMIN_EMAIL = 'oralkin@gmail.com';
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  console.error('FATAL: SESSION_SECRET is not set in production. Refusing to start.');
+  process.exit(1);
+}
+
+// ── Валидация ─────────────────────────────────────────────────────────────
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+function validateEmail(email) {
+  if (!email || typeof email !== 'string') return 'Email обязателен';
+  if (!EMAIL_RE.test(email.trim())) return 'Некорректный email';
+  if (email.length > 254) return 'Email слишком длинный';
+  return null;
+}
+function validatePassword(password) {
+  if (!password || typeof password !== 'string') return 'Пароль обязателен';
+  if (password.length < 6) return 'Пароль должен быть не короче 6 символов';
+  if (password.length > 128) return 'Пароль слишком длинный';
+  return null;
+}
+function validateLength(value, field, min, max) {
+  if (!value || typeof value !== 'string' || !value.trim()) return `${field} обязательно`;
+  if (value.trim().length < min) return `${field} должно быть не короче ${min} символов`;
+  if (value.trim().length > max) return `${field} не должно превышать ${max} символов`;
+  return null;
+}
+function validateOptionalLength(value, field, max) {
+  if (!value) return null;
+  if (typeof value !== 'string') return `${field}: неверный тип`;
+  if (value.length > max) return `${field} не должно превышать ${max} символов`;
+  return null;
+}
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
-
-async function sendEmail(subject, html) {
-  await sendEmailTo(ADMIN_EMAIL, subject, html);
-}
 
 async function sendEmailTo(to, subject, html, attachments = []) {
   if (!RESEND_API_KEY) return;
@@ -172,7 +200,7 @@ const adminAuth = async (req, res, next) => {
 };
 
 // AUTH
-const INVITE_TOKEN = process.env.INVITE_TOKEN || 'seta-beta-2024';
+const INVITE_TOKEN = process.env.INVITE_TOKEN || 'seta-beta-2026';
 const MAX_USERS = 15;
 
 // Проверка инвайт-токена
@@ -184,7 +212,12 @@ app.get('/invite/:token', (req, res) => {
 app.post('/api/register', async (req, res) => {
   const { email, password, name, invite } = req.body;
   if (invite !== INVITE_TOKEN) return res.status(403).json({ error: 'Неверная ссылка для регистрации' });
-  if (!email || !password || !name) return res.status(400).json({ error: 'Все поля обязательны' });
+  const emailErr = validateEmail(email);
+  if (emailErr) return res.status(400).json({ error: emailErr });
+  const passErr = validatePassword(password);
+  if (passErr) return res.status(400).json({ error: passErr });
+  const nameErr = validateLength(name, 'Имя', 2, 100);
+  if (nameErr) return res.status(400).json({ error: nameErr });
   const count = await pool.query('SELECT COUNT(*) FROM users');
   if (parseInt(count.rows[0].count) >= MAX_USERS) return res.status(403).json({ error: 'Достигнут лимит участников' });
   const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
@@ -252,7 +285,15 @@ app.get('/api/me', auth, async (req, res) => {
 
 app.put('/api/me', auth, async (req, res) => {
   const { name, phone, site, logo } = req.body;
-  await pool.query('UPDATE users SET name=$1, phone=$2, site=$3, logo=$4 WHERE id=$5', [name, phone, site, logo||'', req.session.userId]);
+  const nameErr = validateLength(name, 'Имя', 2, 100);
+  if (nameErr) return res.status(400).json({ error: nameErr });
+  const phoneErr = validateOptionalLength(phone, 'Телефон', 30);
+  if (phoneErr) return res.status(400).json({ error: phoneErr });
+  const siteErr = validateOptionalLength(site, 'Сайт', 100);
+  if (siteErr) return res.status(400).json({ error: siteErr });
+  const logoErr = validateOptionalLength(logo, 'Логотип', 500000); // base64 ~375KB файл
+  if (logoErr) return res.status(400).json({ error: logoErr });
+  await pool.query('UPDATE users SET name=$1, phone=$2, site=$3, logo=$4 WHERE id=$5', [name.trim(), (phone||'').trim(), (site||'').trim(), logo||'', req.session.userId]);
   res.json({ ok: true });
 });
 
@@ -260,7 +301,10 @@ app.put('/api/me', auth, async (req, res) => {
 app.post('/api/feedback', auth, async (req, res) => {
   const { text, image, topic } = req.body;
   console.log('feedback image:', image ? image.slice(0, 50) : 'none', 'topic:', topic);
-  if (!text || !text.trim()) return res.status(400).json({ error: 'Текст обязателен' });
+  const textErr = validateLength(text, 'Текст', 1, 5000);
+  if (textErr) return res.status(400).json({ error: textErr });
+  const topicErr = validateOptionalLength(topic, 'Тема', 200);
+  if (topicErr) return res.status(400).json({ error: topicErr });
   const id = uuidv4();
   await pool.query('INSERT INTO feedback (id, user_id, text) VALUES ($1, $2, $3)', [id, req.session.userId, text.trim()]);
   const userR = await pool.query('SELECT name, email FROM users WHERE id=$1', [req.session.userId]);
@@ -397,7 +441,10 @@ app.get('/api/projects', auth, async (req, res) => {
 
 app.post('/api/projects', auth, async (req, res) => {
   const { name, client } = req.body;
-  if (!name) return res.status(400).json({ error: 'Название обязательно' });
+  const nameErr = validateLength(name, 'Название', 1, 200);
+  if (nameErr) return res.status(400).json({ error: nameErr });
+  const clientErr = validateOptionalLength(client, 'Клиент', 200);
+  if (clientErr) return res.status(400).json({ error: clientErr });
   const id = uuidv4(), slug = uuidv4().slice(0, 8);
   await pool.query('INSERT INTO projects (id, user_id, name, client, slug) VALUES ($1, $2, $3, $4, $5)', [id, req.session.userId, name, client || '', slug]);
   res.json({ id, slug });
@@ -465,7 +512,20 @@ app.post('/api/projects/:id/items', auth, async (req, res) => {
   const r = await pool.query('SELECT id FROM projects WHERE id=$1 AND user_id=$2', [req.params.id, req.session.userId]);
   if (!r.rows.length) return res.status(404).json({ error: 'Не найдено' });
   const { room, name, url, img, size, color, price, qty, cmt, note } = req.body;
-  if (!name) return res.status(400).json({ error: 'Название обязательно' });
+  const nameErr = validateLength(name, 'Название', 1, 200);
+  if (nameErr) return res.status(400).json({ error: nameErr });
+  const roomErr = validateOptionalLength(room, 'Комната', 100);
+  if (roomErr) return res.status(400).json({ error: roomErr });
+  const sizeErr = validateOptionalLength(size, 'Размер', 200);
+  if (sizeErr) return res.status(400).json({ error: sizeErr });
+  const colorErr = validateOptionalLength(color, 'Цвет', 200);
+  if (colorErr) return res.status(400).json({ error: colorErr });
+  const cmtErr = validateOptionalLength(cmt, 'Бренд/комментарий', 500);
+  if (cmtErr) return res.status(400).json({ error: cmtErr });
+  const noteErr = validateOptionalLength(note, 'Заметка', 500);
+  if (noteErr) return res.status(400).json({ error: noteErr });
+  if (price !== undefined && (isNaN(Number(price)) || Number(price) < 0)) return res.status(400).json({ error: 'Некорректная цена' });
+  if (qty !== undefined && (!Number.isInteger(Number(qty)) || Number(qty) < 1)) return res.status(400).json({ error: 'Количество должно быть целым числом ≥ 1' });
   const id = uuidv4();
   const maxOrder = await pool.query('SELECT MAX(sort_order) as m FROM items WHERE project_id=$1', [req.params.id]);
   const order = (maxOrder.rows[0].m || 0) + 1;
@@ -479,6 +539,20 @@ app.put('/api/items/:id', auth, async (req, res) => {
   const r = await pool.query('SELECT i.id, p.user_id FROM items i JOIN projects p ON p.id=i.project_id WHERE i.id=$1', [req.params.id]);
   if (!r.rows.length || r.rows[0].user_id !== req.session.userId) return res.status(404).json({ error: 'Не найдено' });
   const { room, name, url, img, size, color, price, qty, cmt, note } = req.body;
+  const nameErr2 = validateLength(name, 'Название', 1, 200);
+  if (nameErr2) return res.status(400).json({ error: nameErr2 });
+  const roomErr2 = validateOptionalLength(room, 'Комната', 100);
+  if (roomErr2) return res.status(400).json({ error: roomErr2 });
+  const sizeErr2 = validateOptionalLength(size, 'Размер', 200);
+  if (sizeErr2) return res.status(400).json({ error: sizeErr2 });
+  const colorErr2 = validateOptionalLength(color, 'Цвет', 200);
+  if (colorErr2) return res.status(400).json({ error: colorErr2 });
+  const cmtErr2 = validateOptionalLength(cmt, 'Бренд/комментарий', 500);
+  if (cmtErr2) return res.status(400).json({ error: cmtErr2 });
+  const noteErr2 = validateOptionalLength(note, 'Заметка', 500);
+  if (noteErr2) return res.status(400).json({ error: noteErr2 });
+  if (price !== undefined && (isNaN(Number(price)) || Number(price) < 0)) return res.status(400).json({ error: 'Некорректная цена' });
+  if (qty !== undefined && (!Number.isInteger(Number(qty)) || Number(qty) < 1)) return res.status(400).json({ error: 'Количество должно быть целым числом ≥ 1' });
   await pool.query('UPDATE items SET room=$1, name=$2, url=$3, img=$4, size=$5, color=$6, price=$7, qty=$8, cmt=$9, note=$10 WHERE id=$11',
     [room, name, url||'', img||'', size||'', color||'', price||0, qty||1, cmt||'', note||'', req.params.id]);
   res.json({ ok: true });
