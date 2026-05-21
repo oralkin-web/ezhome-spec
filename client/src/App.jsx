@@ -211,13 +211,19 @@ function Privacy() {
 
 // ─── Banner ──────────────────────────────────────────────────────────────────
 function Banner({ banner }) {
-  const [closed, setClosed] = useState(false);
+  const [closed, setClosed] = useState(
+    () => localStorage.getItem('seta_banner_closed') === banner.text
+  );
+  const handleClose = () => {
+    localStorage.setItem('seta_banner_closed', banner.text);
+    setClosed(true);
+  };
   if (!banner.active || closed || !banner.text) return null;
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, background: 'var(--ink)', color: '#fff', fontSize: 13, padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
       <span style={{ textAlign: 'center', lineHeight: 1.4, color: 'rgba(255,255,255,0.9)' }}>{banner.text}</span>
-      <button onClick={() => setClosed(true)} style={{ marginLeft: 8, background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: '2px 6px', borderRadius: 4, fontSize: 16, lineHeight: 1, flexShrink: 0 }}>×</button>
+      <button onClick={handleClose} style={{ marginLeft: 8, background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: '2px 6px', borderRadius: 4, fontSize: 16, lineHeight: 1, flexShrink: 0 }}>×</button>
     </div>
   );
 }
