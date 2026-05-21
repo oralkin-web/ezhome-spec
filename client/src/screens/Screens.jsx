@@ -81,10 +81,7 @@ function MobileRegisterForm({ onRegister }) {
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 12, color: 'var(--ink-2)', fontWeight: 500, marginBottom: 5 }}>Пароль</div>
         <input className="mobile-input" type="password" placeholder="••••••••" value={password} onChange={e => { setPassword(e.target.value); setPassErr(''); }} style={{ borderColor: passErr ? 'var(--danger)' : undefined }} />
-        {passErr
-          ? <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 4 }}>{passErr}</div>
-          : <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 4 }}>Минимум 8 символов</div>
-        }
+        {passErr && <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 4 }}>{passErr}</div>}
       </div>
       <button className="mobile-btn-primary" style={{ width: '100%' }} onClick={handleRegister}>Создать аккаунт</button>
       <p style={{ margin: '14px 0 0', fontSize: 11, color: 'var(--ink-3)', textAlign: 'center', lineHeight: 1.5 }}>
@@ -231,14 +228,13 @@ export function Settings({ onNav, logoUrl, onChangeLogo }) {
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar active="settings" onNav={onNav} />
       <div className="mobile-topbar">
-        <svg width="68" height="20" viewBox="0 0 275 81" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: "var(--ink)" }}>{SETA_SVG_PATHS}</svg>
+        <svg width="68" height="20" viewBox="0 0 275 81" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: "var(--ink)", cursor: "pointer" }} onClick={() => onNav("projects")}>{SETA_SVG_PATHS}</svg>
         <button onClick={() => setMenuOpen(true)} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink)" }}><Icon name="menu" size={20} /></button>
       </div>
       <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onNav={onNav} />
       <main style={{ flex: 1, padding: "44px 56px 80px", maxWidth: 1100, width: "100%" }} className="seta-main">
         <div className="mobile-only" style={{ height: 32 }} />
         <div style={{ marginBottom: 8 }}>
-          <div style={{ fontSize: 12, color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Аккаунт</div>
           <h1 className="serif" style={{ margin: 0, fontSize: 48, lineHeight: 1, letterSpacing: "-0.02em" }}>Настройки</h1>
         </div>
 
@@ -311,7 +307,7 @@ export function Feedback({ onNav }) {
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar active="feedback" onNav={onNav} />
       <div className="mobile-topbar">
-        <svg width="68" height="20" viewBox="0 0 275 81" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: "var(--ink)" }}>{SETA_SVG_PATHS}</svg>
+        <svg width="68" height="20" viewBox="0 0 275 81" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: "var(--ink)", cursor: "pointer" }} onClick={() => onNav("projects")}>{SETA_SVG_PATHS}</svg>
         <button onClick={() => setMenuOpen(true)} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink)" }}><Icon name="menu" size={20} /></button>
       </div>
       <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onNav={onNav} />
@@ -320,7 +316,6 @@ export function Feedback({ onNav }) {
         <div style={{ width: "100%", maxWidth: 560 }}>
           {!sent ? (
             <div className="fade-in">
-              <div style={{ fontSize: 12, color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>Поддержка</div>
               <h1 className="serif" style={{ margin: 0, fontSize: 44, lineHeight: 1, letterSpacing: "-0.02em" }}>Написать нам</h1>
               <p style={{ margin: "12px 0 32px", color: "var(--ink-2)", fontSize: 15, lineHeight: 1.5 }}>Расскажите что работает хорошо, а что можно улучшить.</p>
               <div style={{ background: "var(--surface)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)", padding: 28 }}>
@@ -779,10 +774,7 @@ function AuthCard({ mode, setMode, onLogin, onRegister, isInvite }) {
           <div className="field">
             <label className="label">Пароль</label>
             <PasswordFieldLg value={regPasswordVal} onChange={v => { setRegPasswordVal(v); setRegPassErr(""); }} />
-            {regPassErr
-              ? <div style={{ fontSize: 12, color: "var(--danger)", marginTop: 4 }}>{regPassErr}</div>
-              : <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>Минимум 8 символов</div>
-            }
+            {regPassErr && <div style={{ fontSize: 12, color: "var(--danger)", marginTop: 4 }}>{regPassErr}</div>}
           </div>
           <button className="btn btn-primary" onClick={handleRegister} style={{ width: "100%", height: 48, fontSize: 14, marginTop: 4, justifyContent: "center" }}>Создать аккаунт</button>
           <p style={{ margin: "16px 0 0", fontSize: 11, color: "var(--ink-3)", textAlign: "center", lineHeight: 1.5 }}>

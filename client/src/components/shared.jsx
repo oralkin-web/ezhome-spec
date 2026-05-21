@@ -192,12 +192,12 @@ export function MobileMenu({ open, onClose, onNav }) {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 500 }}>
       <div style={{ position: "absolute", inset: 0, background: "rgba(20,16,10,0.4)" }} onClick={onClose} />
+      <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, width: 32, height: 32, display: "grid", placeItems: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink)", zIndex: 501 }}><Icon name="x" size={20} /></button>
       <div style={{
         position: "absolute", top: 0, right: 0, bottom: 0, width: 260,
         background: "var(--bg)", padding: "24px 16px",
         display: "flex", flexDirection: "column", gap: 2,
       }}>
-        <button onClick={onClose} style={{ alignSelf: "flex-end", width: 32, height: 32, display: "grid", placeItems: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink-3)", marginBottom: 12 }}><Icon name="x" size={20} /></button>
         {[
           { key: "projects", icon: "folder", label: "Проекты" },
           { key: "archive",  icon: "archive", label: "Архив" },

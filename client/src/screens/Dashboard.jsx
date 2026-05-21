@@ -60,14 +60,14 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
     return (
       <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
         <div className="mobile-topbar">
-          <svg width="68" height="20" viewBox="0 0 275 81" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: "var(--ink)" }}>{SETA_LOGO_PATHS}</svg>
+          <svg width="68" height="20" viewBox="0 0 275 81" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: "var(--ink)", cursor: "pointer" }} onClick={() => onNav("projects")}>{SETA_LOGO_PATHS}</svg>
           <button onClick={() => setMenuOpen(true)} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink)" }}>
             <Icon name="menu" size={20} />
           </button>
           <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onNav={onNav} />
         </div>
         <div style={{ padding: "72px 16px 24px" }}>
-          <div style={{ fontSize: 20, fontWeight: 500, color: "var(--ink)", margin: "16px 0" }}>{isArchive ? "Архив" : "Мои проекты"}</div>
+          {!isArchive && <div style={{ fontSize: 20, fontWeight: 500, color: "var(--ink)", margin: "16px 0" }}>Мои проекты</div>}
           {list.length === 0 ? (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: 80, textAlign: "center", gap: 12 }}>
               <div style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.6, maxWidth: 280 }}>У вас еще нет проектов. Чтобы начать работу откройте SETA на компьютере.</div>
@@ -100,9 +100,6 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
         {/* Header */}
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 36, gap: 24 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 12, color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>
-              Рабочее пространство
-            </div>
             <h1 className="serif" style={{ margin: 0, fontSize: 56, lineHeight: 1, letterSpacing: "-0.02em" }}>
               {isArchive ? "Архив" : "Мои проекты"}
             </h1>
