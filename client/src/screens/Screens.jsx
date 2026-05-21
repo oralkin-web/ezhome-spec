@@ -529,7 +529,16 @@ function AdminUsers() {
               <button className="btn btn-secondary" onClick={() => setConfirmDelete(null)}>Отмена</button>
               <button className="btn" onClick={() => {
                 fetch(API_BASE + '/api/admin/users/' + confirmDelete.id, { method: 'DELETE', credentials: 'include' })
-                  .then(() => { setUsers(us => us.filter(u => u.id !== confirmDelete.id)); setConfirmDelete(null); });
+                  .then(r => r.json())
+                  .then(data => {
+                    if (data.ok) {
+                      setUsers(us => us.filter(u => u.id !== confirmDelete.id));
+                      setConfirmDelete(null);
+                    } else {
+                      alert(data.error || 'Ошибка удаления');
+                    }
+                  })
+                  .catch(() => alert('Ошибка сети'));
               }} style={{ background: "var(--danger)", color: "#fff", justifyContent: "center" }}>Удалить</button>
             </div>
           </div>

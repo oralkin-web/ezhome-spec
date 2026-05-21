@@ -427,15 +427,20 @@ app.post('/api/admin/reset-password', adminAuth, async (req, res) => {
 
 app.delete('/api/admin/users/:id', adminAuth, async (req, res) => {
   const { id } = req.params;
-  // Не даём удалить самого себя
-  const r = await pool.query('SELECT email FROM users WHERE id=$1', [id]);
-  if (!r.rows.length) return res.status(404).json({ error: 'Не найдено' });
-  if (r.rows[0].email === ADMIN_EMAIL) return res.status(403).json({ error: 'Нельзя удалить администратора' });
-  await pool.query('DELETE FROM feedback WHERE user_id=$1', [id]);
-  await pool.query('DELETE FROM items WHERE project_id IN (SELECT id FROM projects WHERE user_id=$1)', [id]);
-  await pool.query('DELETE FROM projects WHERE user_id=$1', [id]);
-  await pool.query('DELETE FROM users WHERE id=$1', [id]);
-  res.json({ ok: true });
+  try {
+    const r = await pool.query('SELECT email FROM users WHERE id=$1', [id]);
+    if (!r.rows.length) return res.status(404).json({ error: 'Не найдено' });
+    if (r.rows[0].email === ADMIN_EMAIL) return res.status(403).json({ error: 'Нельзя удалить администратора' });
+    await pool.query('DELETE FROM feedback WHERE user_id=$1', [id]);
+    await pool.query('DELETE FROM magic_tokens WHERE user_id=$1', [id]);
+    await pool.query('DELETE FROM items WHERE project_id IN (SELECT id FROM projects WHERE user_id=$1)', [id]);
+    await pool.query('DELETE FROM projects WHERE user_id=$1', [id]);
+    await pool.query('DELETE FROM users WHERE id=$1', [id]);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('delete user error:', e.message);
+    res.status(500).json({ error: 'Ошибка удаления пользователя' });
+  }
 });
 
 // PROJECTS
