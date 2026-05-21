@@ -391,8 +391,10 @@ app.get('/api/admin/invite-url', adminAuth, (req, res) => {
 app.get('/api/admin/users', adminAuth, async (req, res) => {
   const r = await pool.query(`
     SELECT u.id, u.email, u.name, u.created_at,
-           COUNT(f.id)::int as feedback_count
+           COUNT(DISTINCT p.id)::int AS project_count,
+           COUNT(DISTINCT f.id)::int AS feedback_count
     FROM users u
+    LEFT JOIN projects p ON p.user_id = u.id AND p.status != 'archived'
     LEFT JOIN feedback f ON f.user_id = u.id
     WHERE u.email != $1
     GROUP BY u.id
