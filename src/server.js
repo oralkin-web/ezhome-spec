@@ -91,7 +91,7 @@ async function sendEmailTo(to, subject, html, attachments = []) {
     return;
   }
   try {
-    const body = { from: 'SETA <onboarding@resend.dev>', to, subject, html };
+    const body = { from: 'SETA <noreply@useseta.com>', to, subject, html };
     if (attachments.length) body.attachments = attachments;
     const resp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
