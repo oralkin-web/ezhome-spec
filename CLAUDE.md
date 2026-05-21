@@ -167,3 +167,21 @@ session     — (управляется connect-pg-simple)
    - "Поддержка" — в Feedback (`Screens.jsx`)
    - "Рабочее пространство" — в Dashboard (`Dashboard.jsx`)
 6. Убрана абсолютно-позиционированная ссылка "Политика конфиденциальности" в нижней части десктопной страницы Auth (дублировалась; ссылка внутри формы оставлена).
+
+### Сессия 2026-05-21 — бэкенд-фиксы после релиза
+
+**Исправлено:**
+1. **Логирование ошибок email** (`sendEmailTo`):
+   - При отсутствии `RESEND_API_KEY` — явный `console.error` (раньше тихий `return`)
+   - При HTTP-ошибке Resend (4xx/5xx) — `console.error` со статусом и телом + `throw` (раньше молча игнорировалось)
+   - Исключения теперь пробрасываются наружу; все три вызова обёрнуты в `try/catch`
+2. **`from` адрес** в письмах изменён с `onboarding@resend.dev` → `noreply@useseta.com`
+3. **Уведомление о регистрации**: после создания аккаунта отправляется письмо на `oralkin@gmail.com` с именем, email и датой пользователя
+4. **Удаление пользователя в админке** (`DELETE /api/admin/users/:id`):
+   - Добавлен `DELETE FROM magic_tokens WHERE user_id=$1` перед удалением из `users` — без него запрос падал из-за FK-constraint (`magic_tokens.user_id REFERENCES users(id)`)
+   - Весь роут обёрнут в `try/catch`, возвращает `500 JSON` при ошибке
+   - Фронт теперь парсит ответ и показывает `alert` при ошибке
+5. **Количество проектов в админке** (`GET /api/admin/users`):
+   - Запрос не джойнил таблицу `projects` и возвращал `feedback_count` вместо `project_count`
+   - Добавлен `LEFT JOIN projects p ON p.user_id = u.id AND p.status != 'archived'` с `COUNT(DISTINCT p.id) AS project_count`
+6. **Баннер**: факт закрытия сохраняется в `localStorage` (`seta_banner_closed` = текст баннера). При перезагрузке страницы закрытый баннер не показывается снова. Новый баннер с другим текстом появится у всех.
