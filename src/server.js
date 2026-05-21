@@ -86,7 +86,10 @@ const pool = new Pool({
 });
 
 async function sendEmailTo(to, subject, html, attachments = []) {
-  if (!RESEND_API_KEY) return;
+  if (!RESEND_API_KEY) {
+    console.error('sendEmailTo: RESEND_API_KEY не задан, письмо не отправлено (to=%s subject=%s)', to, subject);
+    return;
+  }
   try {
     const body = { from: 'SETA <onboarding@resend.dev>', to, subject, html };
     if (attachments.length) body.attachments = attachments;
@@ -96,9 +99,14 @@ async function sendEmailTo(to, subject, html, attachments = []) {
       body: JSON.stringify(body)
     });
     const data = await resp.json();
-    console.log('Resend response:', resp.status, JSON.stringify(data));
+    if (!resp.ok) {
+      console.error('Resend error: status=%d body=%s (to=%s subject=%s)', resp.status, JSON.stringify(data), to, subject);
+      throw new Error(`Resend HTTP ${resp.status}: ${data?.message || JSON.stringify(data)}`);
+    }
+    console.log('Resend OK: status=%d id=%s (to=%s)', resp.status, data?.id, to);
   } catch (e) {
-    console.error('Email error:', e.message);
+    console.error('sendEmailTo exception:', e.message);
+    throw e; // пробрасываем, чтобы вызывающий роут поймал ошибку
   }
 }
 
@@ -317,12 +325,16 @@ app.post('/api/feedback', auth, async (req, res) => {
       attachments.push({ filename: 'screenshot.png', content: matches[2] });
     }
   }
-  await sendEmailTo(
-    ADMIN_EMAIL,
-    `Новый отзыв от ${user.name}${topic ? ' — ' + topic : ''}`,
-    `<p><b>${user.name}</b> (${user.email})</p><p><b>Тема:</b> ${topic || '—'}</p><p>${date}</p><hr><p style="font-size:16px">${text.trim().replace(/\n/g, '<br>')}</p>${attachments.length ? '<p><i>Скриншот прикреплён во вложении</i></p>' : ''}`,
-    attachments
-  );
+  try {
+    await sendEmailTo(
+      ADMIN_EMAIL,
+      `Новый отзыв от ${user.name}${topic ? ' — ' + topic : ''}`,
+      `<p><b>${user.name}</b> (${user.email})</p><p><b>Тема:</b> ${topic || '—'}</p><p>${date}</p><hr><p style="font-size:16px">${text.trim().replace(/\n/g, '<br>')}</p>${attachments.length ? '<p><i>Скриншот прикреплён во вложении</i></p>' : ''}`,
+      attachments
+    );
+  } catch (e) {
+    console.error('feedback: не удалось отправить письмо администратору:', e.message);
+  }
   res.json({ ok: true });
 });
 
@@ -388,9 +400,13 @@ app.post('/api/admin/reset-password', adminAuth, async (req, res) => {
   const hash = bcrypt.hashSync(tmpPass, 10);
   await pool.query('UPDATE users SET password=$1 WHERE id=$2', [hash, userId]);
   // Отправляем пользователю
-  await sendEmailTo(user.email, 'Новый пароль — useseta.com',
-    `<p>Привет, ${user.name}!</p><p>Твой временный пароль: <b style="font-size:18px">${tmpPass}</b></p><p>Войди на <a href="https://useseta.com">useseta.com</a> и смени пароль в настройках.</p>`
-  );
+  try {
+    await sendEmailTo(user.email, 'Новый пароль — useseta.com',
+      `<p>Привет, ${user.name}!</p><p>Твой временный пароль: <b style="font-size:18px">${tmpPass}</b></p><p>Войди на <a href="https://useseta.com">useseta.com</a> и смени пароль в настройках.</p>`
+    );
+  } catch (e) {
+    console.error('reset-password: не удалось отправить письмо пользователю:', e.message);
+  }
   res.json({ ok: true, tmpPass });
 });
 
