@@ -262,6 +262,18 @@ app.post('/api/register', async (req, res) => {
     console.error('Demo project creation failed:', e.message);
   }
 
+  // Уведомление администратору о новом пользователе
+  try {
+    const date = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+    await sendEmailTo(
+      ADMIN_EMAIL,
+      'Новый пользователь — SETA',
+      `<p><b>Имя:</b> ${name}</p><p><b>Email:</b> ${email.toLowerCase()}</p><p><b>Дата регистрации:</b> ${date}</p>`
+    );
+  } catch(e) {
+    console.error('register: не удалось отправить уведомление администратору:', e.message);
+  }
+
   res.json({ ok: true });
 });
 
