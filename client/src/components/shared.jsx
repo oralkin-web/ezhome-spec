@@ -38,6 +38,7 @@ export function Icon({ name, size = 16, stroke = 1.6, style }) {
     case "shield":     return <svg {...props}><path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/></svg>;
     case "help-circle": return <svg {...props}><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>;
     case "edit":       return <svg {...props}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
+    case "x":          return <svg {...props}><path d="M18 6L6 18M6 6l12 12"/></svg>;
     default: return null;
   }
 }
@@ -196,7 +197,7 @@ export function MobileMenu({ open, onClose, onNav }) {
         background: "var(--bg)", padding: "24px 16px",
         display: "flex", flexDirection: "column", gap: 2,
       }}>
-        <button onClick={onClose} style={{ alignSelf: "flex-end", width: 32, height: 32, display: "grid", placeItems: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink-3)", marginBottom: 12 }}>×</button>
+        <button onClick={onClose} style={{ alignSelf: "flex-end", width: 32, height: 32, display: "grid", placeItems: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink-3)", marginBottom: 12 }}><Icon name="x" size={20} /></button>
         {[
           { key: "projects", icon: "folder", label: "Проекты" },
           { key: "archive",  icon: "archive", label: "Архив" },

@@ -84,10 +84,6 @@ function Dashboard({ projects, onOpen, onRename, onCreate, onDelete, onArchive, 
                       <div style={{ fontSize: 14, fontWeight: 500, color: "var(--ink)", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</div>
                       <div style={{ fontSize: 11, color: "var(--ink-3)" }}>{p.client ? p.client + " · " : ""}{formatDate(p.updatedAt)}</div>
                     </div>
-                    <button onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(window.location.origin + "/project/" + p.id + "/client"); }}
-                      style={{ width: 32, height: 32, borderRadius: 8, border: "1px solid var(--hairline-strong)", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}>
-                      <Icon name="link" size={14} />
-                    </button>
                   </div>
                 );
               })}
@@ -372,11 +368,8 @@ function EmptyArchive() {
       }}>
         <Icon name="archive" size={36} stroke={1.4} />
       </div>
-      <h2 className="serif" style={{ fontSize: 36, margin: "0 0 10px", letterSpacing: "-0.01em" }}>
-        Архив пуст
-      </h2>
       <p style={{ color: "var(--ink-2)", maxWidth: 360, margin: 0, fontSize: 14, lineHeight: 1.5 }}>
-        Проекты, которые вы отправите в архив, появятся здесь.
+        У вас еще нет проектов в архиве.
       </p>
     </div>
   );

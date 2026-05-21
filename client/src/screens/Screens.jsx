@@ -1,5 +1,5 @@
 import { useState, useEffect} from 'react';
-import { Icon, Sidebar } from '../components/shared';
+import { Icon, Sidebar, MobileMenu } from '../components/shared';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -59,12 +59,13 @@ function MobileRegisterForm({ onRegister }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailErr, setEmailErr] = useState('');
+  const [passErr, setPassErr] = useState('');
   const handleRegister = async () => {
     const ok = email.trim().includes('@') && email.trim().includes('.') && email.trim().length > 5;
     if (!ok) { setEmailErr('Email введён некорректно'); return; }
-    setEmailErr('');
+    setEmailErr(''); setPassErr('');
     const err = await onRegister({ email, password, name });
-    if (err) setEmailErr(err);
+    if (err) setPassErr(err);
   };
   return (
     <div>
@@ -79,7 +80,11 @@ function MobileRegisterForm({ onRegister }) {
       </div>
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 12, color: 'var(--ink-2)', fontWeight: 500, marginBottom: 5 }}>Пароль</div>
-        <input className="mobile-input" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
+        <input className="mobile-input" type="password" placeholder="••••••••" value={password} onChange={e => { setPassword(e.target.value); setPassErr(''); }} style={{ borderColor: passErr ? 'var(--danger)' : undefined }} />
+        {passErr
+          ? <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 4 }}>{passErr}</div>
+          : <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 4 }}>Минимум 8 символов</div>
+        }
       </div>
       <button className="mobile-btn-primary" style={{ width: '100%' }} onClick={handleRegister}>Создать аккаунт</button>
       <p style={{ margin: '14px 0 0', fontSize: 11, color: 'var(--ink-3)', textAlign: 'center', lineHeight: 1.5 }}>
@@ -201,6 +206,7 @@ export function Settings({ onNav, logoUrl, onChangeLogo }) {
   const [profile, setProfile] = useState({ name: '', email: '', phone: '', site: '' });
   const [contacts, setContacts] = useState({ phone: '', email: '', site: '' });
   const [saved, setSaved] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     fetch(API + '/api/me', { credentials: 'include' })
@@ -224,7 +230,13 @@ export function Settings({ onNav, logoUrl, onChangeLogo }) {
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar active="settings" onNav={onNav} />
+      <div className="mobile-topbar">
+        <svg width="68" height="20" viewBox="0 0 275 81" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: "var(--ink)" }}>{SETA_SVG_PATHS}</svg>
+        <button onClick={() => setMenuOpen(true)} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink)" }}><Icon name="menu" size={20} /></button>
+      </div>
+      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onNav={onNav} />
       <main style={{ flex: 1, padding: "44px 56px 80px", maxWidth: 1100, width: "100%" }} className="seta-main">
+        <div className="mobile-only" style={{ height: 32 }} />
         <div style={{ marginBottom: 8 }}>
           <div style={{ fontSize: 12, color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Аккаунт</div>
           <h1 className="serif" style={{ margin: 0, fontSize: 48, lineHeight: 1, letterSpacing: "-0.02em" }}>Настройки</h1>
@@ -281,6 +293,7 @@ export function Feedback({ onNav }) {
   const [sent, setSent] = useState(false);
   const [image, setImage] = useState(null);
   const [imageError, setImageError] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const showImage = topic === "Сообщить об ошибке" || topic === "Предложить функцию";
 
@@ -297,7 +310,13 @@ export function Feedback({ onNav }) {
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar active="feedback" onNav={onNav} />
+      <div className="mobile-topbar">
+        <svg width="68" height="20" viewBox="0 0 275 81" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: "var(--ink)" }}>{SETA_SVG_PATHS}</svg>
+        <button onClick={() => setMenuOpen(true)} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "none", cursor: "pointer", color: "var(--ink)" }}><Icon name="menu" size={20} /></button>
+      </div>
+      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} onNav={onNav} />
       <main style={{ flex: 1, padding: "60px 24px 80px", display: "grid", placeItems: "start center" }} className="seta-main">
+        <div className="mobile-only" style={{ height: 32 }} />
         <div style={{ width: "100%", maxWidth: 560 }}>
           {!sent ? (
             <div className="fade-in">
@@ -700,6 +719,7 @@ function AuthCard({ mode, setMode, onLogin, onRegister, isInvite }) {
   const [regEmail, setRegEmail] = useState("");
   const [regEmailErr, setRegEmailErr] = useState("");
   const [regPasswordVal, setRegPasswordVal] = useState("");
+  const [regPassErr, setRegPassErr] = useState("");
   const [regName, setRegName] = useState("");
 
   const handleLogin = async () => {
@@ -712,9 +732,9 @@ function AuthCard({ mode, setMode, onLogin, onRegister, isInvite }) {
 
   const handleRegister = async () => {
     if (!isValidEmail(regEmail)) { setRegEmailErr("Email введён некорректно"); return; }
-    setRegEmailErr("");
+    setRegEmailErr(""); setRegPassErr("");
     const err = await onRegister({ email: regEmail, password: regPasswordVal, name: regName });
-    if (err) setRegEmailErr(err);
+    if (err) setRegPassErr(err);
   };
 
   return (
@@ -756,7 +776,14 @@ function AuthCard({ mode, setMode, onLogin, onRegister, isInvite }) {
               style={{ borderColor: regEmailErr ? "var(--danger)" : undefined }} />
             {regEmailErr && <div style={{ fontSize: 12, color: "var(--danger)", marginTop: 4 }}>{regEmailErr}</div>}
           </div>
-          <div className="field"><label className="label">Пароль</label><PasswordFieldLg value={regPasswordVal} onChange={setRegPasswordVal} /></div>
+          <div className="field">
+            <label className="label">Пароль</label>
+            <PasswordFieldLg value={regPasswordVal} onChange={v => { setRegPasswordVal(v); setRegPassErr(""); }} />
+            {regPassErr
+              ? <div style={{ fontSize: 12, color: "var(--danger)", marginTop: 4 }}>{regPassErr}</div>
+              : <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>Минимум 8 символов</div>
+            }
+          </div>
           <button className="btn btn-primary" onClick={handleRegister} style={{ width: "100%", height: 48, fontSize: 14, marginTop: 4, justifyContent: "center" }}>Создать аккаунт</button>
           <p style={{ margin: "16px 0 0", fontSize: 11, color: "var(--ink-3)", textAlign: "center", lineHeight: 1.5 }}>
             Регистрируясь, вы соглашаетесь с <a href="/privacy" target="_blank" style={{ color: "var(--ink-2)" }}>Политикой конфиденциальности</a>.
@@ -874,6 +901,7 @@ const TOUR_STEPS = [
 ];
 
 export function Onboarding({ active, onClose, demoProjectId, onNavigate }) {
+  const isMobile = useIsMobile();
   const [step, setStep] = useState(0);
   const [pos, setPos] = useState({ top: null, left: null, place: "bottom-center" });
 
@@ -931,6 +959,28 @@ export function Onboarding({ active, onClose, demoProjectId, onNavigate }) {
   }, [step, active]);
 
   if (!active) return null;
+
+  if (isMobile) {
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "none" }}>
+        <div style={{
+          position: "fixed", bottom: 90, left: 16, right: 16,
+          background: "#141410", color: "#fff", borderRadius: 14,
+          padding: "20px 22px", pointerEvents: "auto",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
+        }}>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: 1.6, marginBottom: 16 }}>
+            Для полного доступа к редактору и всем функциям откройте SETA на компьютере. Приятной работы!
+          </div>
+          <button onClick={onClose} style={{
+            padding: "6px 14px", borderRadius: 7, border: "none",
+            background: "#fff", color: "#141410",
+            fontSize: 12, fontWeight: 600, cursor: "pointer",
+          }}>Понятно</button>
+        </div>
+      </div>
+    );
+  }
 
   const s = TOUR_STEPS[step];
   const isLast = step === TOUR_STEPS.length - 1;
