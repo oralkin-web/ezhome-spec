@@ -86,6 +86,7 @@ export default function App() {
   const [banner, setBanner]     = useState({ active: false, text: '' });
   const [tourActive, setTourActive] = useState(false);
   const [demoProjectId, setDemoProjectId] = useState(() => sessionStorage.getItem('seta_tour_demo') || null);
+  const tourDoneKey = () => window.innerWidth <= 768 ? 'seta_tour_done_mobile' : 'seta_tour_done_desktop';
 
   // Проверяем сессию при загрузке
   useEffect(() => {
@@ -95,7 +96,7 @@ export default function App() {
     ]).then(([me, ban]) => {
       if (me.error) { setUser(false); } else {
         setUser(me);
-        const seen = localStorage.getItem('seta_tour_done');
+        const seen = localStorage.getItem(tourDoneKey());
         const savedTourStep = sessionStorage.getItem('seta_tour_step');
         if (!seen || savedTourStep) {
           setTourActive(true);
@@ -120,7 +121,7 @@ export default function App() {
     if (r.error) return r.error;
     const me = await api.get('/api/me');
     setUser(me);
-    const seen = localStorage.getItem('seta_tour_done');
+    const seen = localStorage.getItem(tourDoneKey());
     if (!seen) {
       // Берём первый проект как демо (только что создан на бэкенде)
       const projects = await api.get('/api/projects');
@@ -176,7 +177,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Banner banner={banner} />
-      <Onboarding active={tourActive} demoProjectId={demoProjectId} onClose={() => { localStorage.setItem('seta_tour_done', '1'); setTourActive(false); }} onNavigate={path => window.__tourNavigate && window.__tourNavigate(path)} />
+      <Onboarding active={tourActive} demoProjectId={demoProjectId} onClose={() => { localStorage.setItem(tourDoneKey(), '1'); setTourActive(false); }} onNavigate={path => window.__tourNavigate && window.__tourNavigate(path)} />
       <AppRoutes user={user} setUser={setUser} onLogout={handleLogout} banner={banner} setBanner={setBanner} tourActive={tourActive} setTourActive={setTourActive} onTourNavReady={fn => { window.__tourNavigate = fn; }} />
     </BrowserRouter>
   );
