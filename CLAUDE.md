@@ -126,7 +126,7 @@ product: { id, name, brand, comment, url, photoUrl, dimensions, color, qty, pric
 ## Схема БД
 
 ```sql
-users       — id, email, password (bcrypt), name, phone, site, logo (base64), created_at
+users       — id, email, password (bcrypt), name, phone, site, logo (base64), created_at, last_active
 projects    — id, user_id, name, client, slug (unique), status, comment, cover_hue, created_at, updated_at
 items       — id, project_id, user_id, room, name, url, img, size, color, price, qty, cmt, note, sort_order
 feedback    — id, user_id, text, created_at
@@ -167,6 +167,16 @@ session     — (управляется connect-pg-simple)
    - "Поддержка" — в Feedback (`Screens.jsx`)
    - "Рабочее пространство" — в Dashboard (`Dashboard.jsx`)
 6. Убрана абсолютно-позиционированная ссылка "Политика конфиденциальности" в нижней части десктопной страницы Auth (дублировалась; ссылка внутри формы оставлена).
+
+### Сессия 2026-05-25 — трекинг активности пользователей
+
+**Сделано:**
+1. **`last_active` колонка** — миграция `ALTER TABLE users ADD COLUMN IF NOT EXISTS last_active TIMESTAMP` в `initDB()`
+2. **Middleware `auth`** (`server.js:193`) — fire-and-forget `UPDATE users SET last_active = NOW() WHERE id = $1` при каждом аутентифицированном запросе; не блокирует ответ
+3. **`GET /api/admin/users`** — добавлен `u.last_active` в SELECT
+4. **`Screens.jsx:502`** — колонка «Последняя активность» в таблице пользователей показывает реальную дату (`toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })`); `null` → `—`
+
+---
 
 ### Сессия 2026-05-21 — бэкенд-фиксы после релиза
 
