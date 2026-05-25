@@ -175,6 +175,7 @@ async function initDB() {
   await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS comment TEXT DEFAULT ''`);
   await pool.query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS cover_hue INTEGER DEFAULT 28`);
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS logo TEXT DEFAULT ''`);
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_active TIMESTAMP`);
   console.log('DB initialized');
 }
 
@@ -192,6 +193,7 @@ app.use(session({
 
 const auth = (req, res, next) => {
   if (!req.session.userId) return res.status(401).json({ error: 'Unauthorized' });
+  pool.query('UPDATE users SET last_active = NOW() WHERE id = $1', [req.session.userId]).catch(() => {});
   next();
 };
 
@@ -390,7 +392,7 @@ app.get('/api/admin/invite-url', adminAuth, (req, res) => {
 // ADMIN — список пользователей и сброс пароля
 app.get('/api/admin/users', adminAuth, async (req, res) => {
   const r = await pool.query(`
-    SELECT u.id, u.email, u.name, u.created_at,
+    SELECT u.id, u.email, u.name, u.created_at, u.last_active,
            COUNT(DISTINCT p.id)::int AS project_count,
            COUNT(DISTINCT f.id)::int AS feedback_count
     FROM users u
