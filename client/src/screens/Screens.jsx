@@ -966,7 +966,7 @@ export function Onboarding({ active, onClose, demoProjectId, onNavigate }) {
           boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
         }}>
           <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: 1.6, marginBottom: 16 }}>
-            Для полного доступа к редактору и всем функциям откройте SETA на компьютере. Приятной работы!
+            Вы в мобильной версии SETA. Для первого знакомства мы создали тестовый проект с товарами. Все функции приложения доступны на компьютере — зайдите в аккаунт с ПК. Приятной работы.
           </div>
           <button onClick={onClose} style={{
             padding: "6px 14px", borderRadius: 7, border: "none",
