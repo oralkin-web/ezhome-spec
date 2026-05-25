@@ -499,7 +499,7 @@ function AdminUsers() {
                 <td style={{ padding: "14px 16px", borderTop: "1px solid var(--hairline)", color: "var(--ink-2)" }}>{u.email}</td>
                 <td style={{ padding: "14px 16px", borderTop: "1px solid var(--hairline)" }}>{u.project_count ?? 0}</td>
                 <td style={{ padding: "14px 16px", borderTop: "1px solid var(--hairline)", color: "var(--ink-2)" }}>{u.created_at ? new Date(u.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</td>
-                <td style={{ padding: "14px 16px", borderTop: "1px solid var(--hairline)", color: "var(--ink-2)" }}>—</td>
+                <td style={{ padding: "14px 16px", borderTop: "1px solid var(--hairline)", color: "var(--ink-2)" }}>{u.last_active ? new Date(u.last_active).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</td>
                 <td style={{ padding: "14px 16px", borderTop: "1px solid var(--hairline)", textAlign: "right" }}>
                   <button onClick={() => setConfirmDelete(u)}
                     style={{ display: "grid", placeItems: "center", width: 28, height: 28, borderRadius: 6, border: "none", background: "transparent", color: "var(--ink-3)", cursor: "pointer" }}
