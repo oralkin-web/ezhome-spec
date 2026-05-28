@@ -234,7 +234,12 @@ app.post('/api/register', async (req, res) => {
   if (existing.rows.length) return res.status(400).json({ error: 'Email уже зарегистрирован' });
   const hash = bcrypt.hashSync(password, 10);
   const id = uuidv4();
-  await pool.query('INSERT INTO users (id, email, password, name) VALUES ($1, $2, $3, $4)', [id, email.toLowerCase(), hash, name]);
+  try {
+    await pool.query('INSERT INTO users (id, email, password, name) VALUES ($1, $2, $3, $4)', [id, email.toLowerCase(), hash, name]);
+  } catch(e) {
+    if (e.code === '23505') return res.status(400).json({ error: 'Email уже зарегистрирован' });
+    throw e;
+  }
   req.session.userId = id;
   req.session.userEmail = email.toLowerCase();
 

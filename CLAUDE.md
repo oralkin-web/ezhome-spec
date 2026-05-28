@@ -207,3 +207,14 @@ session     — (управляется connect-pg-simple)
    - Запрос не джойнил таблицу `projects` и возвращал `feedback_count` вместо `project_count`
    - Добавлен `LEFT JOIN projects p ON p.user_id = u.id AND p.status != 'archived'` с `COUNT(DISTINCT p.id) AS project_count`
 6. **Баннер**: факт закрытия сохраняется в `localStorage` (`seta_banner_closed` = текст баннера). При перезагрузке страницы закрытый баннер не показывается снова. Новый баннер с другим текстом появится у всех.
+
+---
+
+### Сессия 2026-05-26 — иконки соцсетей в футере лендинга
+
+**Сделано:**
+1. **`landing page/index.html`** — в футер добавлен блок `.footer-social` между логотипом и копирайтом
+2. Иконки SVG (Instagram, LinkedIn), контурные, `currentColor` — наследуют цвет `var(--black)` из `.footer-copy`
+3. Ссылки: Instagram → `https://www.instagram.com/setaapps`, LinkedIn → `https://www.linkedin.com/company/useseta`; `target="_blank" rel="noopener"`
+4. Добавлены стили `.footer-social` и `.footer-social a` с `opacity: 0.8` → `1` при наведении
+5. Деплой — вручную через Cloudflare Pages Dashboard (wrangler требует Node ≥20, в системе v18)
