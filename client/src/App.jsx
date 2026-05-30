@@ -90,9 +90,15 @@ export default function App() {
 
   // Проверяем сессию при загрузке
   useEffect(() => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    const fetchWithSignal = (url) =>
+      fetch(API_BASE + url, { credentials: 'include', signal: controller.signal }).then(r => r.json());
+
     Promise.all([
-      api.get('/api/me'),
-      fetch(API_BASE + '/api/banner').then(r => r.json()).catch(() => ({ active: false, text: '' })),
+      fetchWithSignal('/api/me'),
+      fetch(API_BASE + '/api/banner', { signal: controller.signal }).then(r => r.json()).catch(() => ({ active: false, text: '' })),
     ]).then(([me, ban]) => {
       if (me.error) { setUser(false); } else {
         setUser(me);
@@ -104,7 +110,7 @@ export default function App() {
       }
       if (ban.active) setBanner(ban);
     }).catch(() => setUser(false))
-      .finally(() => setLoading(false));
+      .finally(() => { clearTimeout(timeout); setLoading(false); });
   }, []);
 
   const handleLogin = async ({ email, password }) => {
