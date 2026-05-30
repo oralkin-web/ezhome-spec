@@ -68,7 +68,11 @@ function serveStatic(req, res) {
       res.end('Not found');
       return;
     }
-    res.writeHead(200, { 'Content-Type': contentType });
+    // index.html не кэшируем — браузер всегда берёт свежую версию
+    const cacheHeader = ext === '.html'
+      ? { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+      : { 'Cache-Control': 'public, max-age=31536000, immutable' };
+    res.writeHead(200, { 'Content-Type': contentType, ...cacheHeader });
     res.end(data);
   });
 }
