@@ -1,10 +1,4 @@
 meta:
-  environment: node
-  toolchain:
-    name: browser
-    version: 20
-build:
-  additionalCommands: cd client && npm ci && npm run build
-  artifacts:
-    "client/dist/*": /
-run: {}
+  environment: dockerfile
+run:
+  containerPort: 80
