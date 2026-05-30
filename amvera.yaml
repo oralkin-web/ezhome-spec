@@ -4,6 +4,6 @@ meta:
     name: docker
     version: latest
 build:
-  dockerfile: Dockerfile
+  dockerfile: Dockerfile.amvera
 run:
   containerPort: 3000
