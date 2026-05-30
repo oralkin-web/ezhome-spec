@@ -4,8 +4,7 @@ meta:
     name: npm
     version: 20
 build:
-  buildCommands:
-    - cd client && npm ci && npm run build
+  buildCommand: cd client && npm ci && npm run build
 run:
   containerPort: 3000
   command: npx serve -s client/dist -l 3000
