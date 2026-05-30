@@ -21,6 +21,25 @@
   <body>
     <noscript><div><img src="https://mc.yandex.ru/watch/109366780" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
     <div id="root"></div>
+    <!-- Fallback loader: visible until React mounts; shows error after 12s if JS fails -->
+    <div id="html-loader" style="position:fixed;inset:0;background:#FAF8F5;display:grid;place-items:center;z-index:9999;font-family:system-ui,sans-serif;font-size:13px;color:#8A857E;">
+      Загрузка…
+    </div>
+    <script>
+      // Set up BEFORE module scripts execute so React can call it on mount
+      ;(function() {
+        var el = document.getElementById('html-loader');
+        var timeout = setTimeout(function() {
+          if (el && el.parentNode) {
+            el.innerHTML = '<div style="text-align:center"><div style="margin-bottom:12px">Не удалось загрузить приложение.</div><div style="margin-bottom:8px;font-size:12px;color:#aaa">Попробуйте обновить страницу (Ctrl+Shift+R)</div><button onclick="location.reload()" style="font-size:13px;cursor:pointer;background:none;border:1px solid #ddd;border-radius:6px;padding:6px 16px;color:#555;font-family:system-ui">Обновить</button></div>';
+          }
+        }, 12000);
+        window.__reactMounted = function() {
+          clearTimeout(timeout);
+          if (el && el.parentNode) el.parentNode.removeChild(el);
+        };
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

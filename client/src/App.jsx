@@ -88,6 +88,11 @@ export default function App() {
   const [demoProjectId, setDemoProjectId] = useState(() => sessionStorage.getItem('seta_tour_demo') || null);
   const tourDoneKey = () => window.innerWidth <= 768 ? 'seta_tour_done_mobile' : 'seta_tour_done_desktop';
 
+  // Remove HTML fallback loader once React has mounted
+  useEffect(() => {
+    if (typeof window.__reactMounted === 'function') window.__reactMounted();
+  }, []);
+
   // Проверяем сессию при загрузке
   useEffect(() => {
     const controller = new AbortController();
