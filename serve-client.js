@@ -80,6 +80,12 @@ function serveStatic(req, res) {
 http.createServer((req, res) => {
   const urlPath = req.url.split('?')[0];
 
+  if (urlPath === '/health') {
+    res.writeHead(200);
+    res.end('ok');
+    return;
+  }
+
   // Проксируем API и публичные страницы клиентов на бэкенд
   if (urlPath.startsWith('/api/') || urlPath.startsWith('/p/')) {
     proxyRequest(req, res);

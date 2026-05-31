@@ -798,6 +798,8 @@ if(new URLSearchParams(window.location.search).get('print')==='1'){
 </body></html>`;
 }
 
+app.get('/health', (req, res) => res.sendStatus(200));
+
 // SPA fallback — всё кроме /api, /p/:slug, /admin, /invite/:token отдаём index.html
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/p/') || req.path.startsWith('/admin') || req.path.startsWith('/invite/')) return next();
