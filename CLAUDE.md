@@ -210,6 +210,93 @@ session     — (управляется connect-pg-simple)
 
 ---
 
+### Сессия 2026-05-30 — деплой фронтенда на Amvera + доступность для РФ без VPN
+
+**Контекст:** Перенос фронтенда с Railway на отдельный проект `seta-client` на Amvera. Бэкенд (Railway + БД) не трогали.
+
+**Инфраструктура:**
+- `app.useseta.com` → Amvera `seta-client` (Node.js, порт 3000) — фронтенд
+- `api.useseta.com` → Amvera `seta-backend` (Express, порт 8080) — бэкенд
+- Оба сервиса на IP `158.160.116.199` (Yandex Cloud), Amvera управляет роутингом по hostname
+- **Cloudflare убран из цепочки для `app.useseta.com`** — переключён в "DNS only" в Cloudflare. Причина: Cloudflare блокировал загрузку JS-бандла для российских пользователей
+
+**Файлы деплоя (`app/`):**
+
+`Dockerfile.amvera` — multi-stage: build (node:20-alpine + npm ci + vite build) → serve (node:20-alpine + serve-client.js):
+```dockerfile
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY client/package*.json ./
+RUN npm ci
+COPY client/ .
+RUN npm run build
+
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=build /app/dist ./dist
+COPY serve-client.js .
+EXPOSE 3000
+CMD ["node", "serve-client.js"]
+```
+
+`amvera.yaml`:
+```yaml
+meta:
+  environment: docker
+  toolchain:
+    name: docker
+    version: latest
+build:
+  dockerfile: Dockerfile.amvera
+run:
+  containerPort: 3000
+```
+
+`serve-client.js` — zero-dependency Node.js HTTP сервер:
+- Статика из `dist/` с SPA-fallback на `index.html`
+- Прозрачный прокси `/api/*` и `/p/*` → `api.useseta.com:443` (HTTPS)
+- `Cache-Control: no-cache` для HTML, `immutable` для хешированных ассетов
+- Причина прокси: устранить cross-origin зависимость (браузер всегда делает запросы на тот же домен)
+
+**Изменения клиентского кода:**
+
+1. **`client/src/main.jsx`** — убран Google Fonts `@import`, добавлены локальные шрифты через `@fontsource` (Inter, PT Serif, JetBrains Mono). Причина: Google Fonts заблокирован у части РФ-провайдеров.
+
+2. **`client/src/index.css`** — удалён `@import url('https://fonts.googleapis.com/...')` из первой строки.
+
+3. **`client/package.json`** — добавлены зависимости: `@fontsource/inter`, `@fontsource/pt-serif`, `@fontsource/jetbrains-mono`.
+
+4. **`client/src/App.jsx`** — `useEffect` для проверки сессии использует `AbortController` с таймаутом 5 секунд + `API_BASE = import.meta.env.VITE_API_URL || ''` (пустая строка = относительные URL через прокси).
+
+5. **`client/index.html`** — добавлен HTML fallback-лоадер:
+   - `<div id="html-loader">` с фирменным фоном `#FAF8F5` виден до монтирования React
+   - Если React не смонтировался за 12 секунд → показывает кнопку «Обновить»
+   - `window.__reactMounted()` — вызывается из `App.jsx` в `useEffect([], [])`, убирает оверлей
+
+**Диагностика белого экрана (хронология):**
+- Контейнер не стартовал → заменили `serve` на `serve-client.js`
+- Cross-origin API → добавили прокси в serve-client.js, убрали VITE_API_URL
+- Google Fonts CDN → заменили на @fontsource
+- Старый кэш браузера → Cache-Control: no-cache для index.html
+- JS не загружался за 12с → **Cloudflare блокировал/не доставлял JS-бандл российским пользователям** → убрали Cloudflare proxy для `app.useseta.com`
+
+**Важно для следующих сессий:**
+- Railway **не трогать** — там только PostgreSQL (через DATABASE_URL в бэкенде на Amvera)
+- `app.useseta.com` в Cloudflare = DNS only (серое облако). Если кто-то включит Proxy — РФ-пользователи снова сломаются
+- `api.useseta.com` тоже DNS only — так было изначально и работало
+
+---
+
+### Сессия 2026-05-31 — фикс VITE_API_URL, health check, баг "Забыли пароль?" на мобильном
+
+**Сделано:**
+1. **`Dockerfile.amvera`** — добавлена строка `ARG VITE_API_URL=https://api.useseta.com` перед `RUN npm run build`. Причина: Amvera не передаёт build-time переменные автоматически, без этого `VITE_API_URL` был пустым и API-запросы уходили на `app.useseta.com/api/...` вместо `api.useseta.com/api/...`
+2. **`src/server.js`** — добавлен эндпоинт `GET /health` → 200 для Amvera health check
+3. **`serve-client.js`** — добавлен обработчик `GET /health` → 200 для Amvera health check
+4. **`client/src/screens/Screens.jsx`** — баг: на мобильном клик "Забыли пароль?" показывал "Создайте аккаунт" вместо формы восстановления. Причина: десктоп проверял `mode === 'reset'` до рендера, мобильная ветка — нет. Исправлено добавлением `mode === 'reset' ? <ResetCard> : <>...</>` в мобильной ветке `Auth`
+
+---
+
 ### Сессия 2026-05-26 — иконки соцсетей в футере лендинга
 
 **Сделано:**
