@@ -804,15 +804,21 @@ export function Auth({ onLogin, onRegister, mode, setMode, isInvite }) {
           <svg width="80" height="24" viewBox="0 0 275 81" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: 'var(--ink)' }}>{SETA_SVG_PATHS}</svg>
           <span style={{ fontSize: 9, padding: '2px 5px', borderRadius: 3, background: 'var(--hairline-strong)', color: 'var(--ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600 }}>Beta</span>
         </div>
-        {isInvite && mode === 'register' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F0EDE8', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: 'var(--ink-3)', marginBottom: 20 }}>
-            <Icon name="envelope" size={16} />
-            Вы приглашены в закрытую бету
-          </div>
+        {mode === 'reset' ? (
+          <ResetCard back={() => setMode('login')} />
+        ) : (
+          <>
+            {isInvite && mode === 'register' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F0EDE8', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: 'var(--ink-3)', marginBottom: 20 }}>
+                <Icon name="envelope" size={16} />
+                Вы приглашены в закрытую бету
+              </div>
+            )}
+            <h1 className="serif" style={{ margin: '0 0 6px', fontSize: 28, letterSpacing: '-0.01em' }}>{mode === 'login' ? 'С возвращением' : 'Создайте аккаунт'}</h1>
+            <p style={{ margin: '0 0 24px', color: 'var(--ink-3)', fontSize: 13, lineHeight: 1.5 }}>{mode === 'login' ? 'Войдите, чтобы продолжить работу.' : 'Заполните данные чтобы начать работу'}</p>
+            {mode === 'register' && isInvite ? <MobileRegisterForm onRegister={onRegister} /> : <MobileLoginForm onLogin={onLogin} setMode={setMode} />}
+          </>
         )}
-        <h1 className="serif" style={{ margin: '0 0 6px', fontSize: 28, letterSpacing: '-0.01em' }}>{mode === 'login' ? 'С возвращением' : 'Создайте аккаунт'}</h1>
-        <p style={{ margin: '0 0 24px', color: 'var(--ink-3)', fontSize: 13, lineHeight: 1.5 }}>{mode === 'login' ? 'Войдите, чтобы продолжить работу.' : 'Заполните данные чтобы начать работу'}</p>
-        {mode === 'register' && isInvite ? <MobileRegisterForm onRegister={onRegister} /> : <MobileLoginForm onLogin={onLogin} setMode={setMode} />}
 
       </div>
     );
