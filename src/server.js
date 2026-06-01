@@ -1136,6 +1136,16 @@ app.get('/api/parse-test', async (req, res) => {
     // Все window.__ переменные — ищем что прячет сайт в глобальных JS-объектах
     const windowVars = [...html.matchAll(/window\.([\w$]+)\s*=/g)].map(m => m[1]).filter((v, i, a) => a.indexOf(v) === i).slice(0, 20);
 
+    // Первые 5 img-тегов с реальными src (jpg/png/webp/avif) — ищем фото товара
+    const imgTags = [];
+    const imgRe = /<img[^>]+src=["']([^"']+\.(?:jpe?g|png|webp|avif)[^"']*)["'][^>]*>/gi;
+    let imgM;
+    while ((imgM = imgRe.exec(html)) !== null && imgTags.length < 5) {
+      // Пропускаем пиксели-трекеры и иконки (обычно содержат /pixel/, /track/, 1x1, icon, logo, sprite)
+      if (/pixel|track|1x1|icon|logo|sprite|banner|flag/i.test(imgM[1])) continue;
+      imgTags.push(imgM[0].replace(/\s+/g, ' ').substring(0, 300));
+    }
+
     res.json({
       status: response.status,
       bodySize: Buffer.byteLength(html, 'utf8'),
@@ -1151,6 +1161,7 @@ app.get('/api/parse-test', async (req, res) => {
       microdata,
       priceContext,
       windowVars,
+      imgTags,
     });
   } catch (e) {
     res.json({ error: e.message });
