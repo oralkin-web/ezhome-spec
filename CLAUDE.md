@@ -297,6 +297,66 @@ run:
 
 ---
 
+### Сессия 2026-06-01 — парсер товаров Layer 1 (HTTP fetch)
+
+**Контекст:** Замена платного Browserbase ($20/мес) на бесплатный двухслойный парсер. Сессия — реализация и отладка Слоя 1 (HTTP fetch без браузера).
+
+**Добавлено в `src/server.js`:**
+
+#### Роут `GET /api/parse?url=` (требует авторизации)
+Основной продакшн-роут. Возвращает:
+```json
+{ "ok": true, "name": "...", "price": 12345, "imageUrl": "...", "currency": "RUB", "source": "json-ld", "needsBrowser": false }
+```
+`needsBrowser: true` — если имя или цена не найдены → сигнал для будущего Слоя 2 (Playwright).
+
+#### Пайплайн — 6 методов, результаты мержатся (не "первый выигрывает"):
+1. **`extractFromJsonLd`** — `<script type="application/ld+json">` с `@type: Product`
+2. **`extractFromOg`** — `og:title`, `og:image`, `og:price:amount` / `product:price:amount`
+3. **`extractFromMicrodata`** — `itemprop` только внутри `itemtype="...schema.org/Product"` (исправлен баг: раньше хватал название магазина)
+4. **`extractFromNuxt`** — цены из `window.__NUXT__` (Nuxt.js devalue формат: `"81300.00"` в аргументах IIFE)
+5. **`extractFromDataLayer`** — GTM Enhanced Ecommerce: `"event":"productDetail"` и `"event":"view_item"`
+6. **`extractFromHtml`** — h1 + Bitrix-классы (`detail-price__item current`, `price_value`, `data-price`) + `itemprop="image"` на `<img src>`
+
+#### Вспомогательные улучшения:
+- **`fetchHtml`** — определение кодировки из `Content-Type` заголовка и `<meta charset>`, декодирование через `TextDecoder` (исправлены кракозябры на windows-1251 сайтах)
+- **`cleanName`** — чистит маркетинговые префиксы/суффиксы: "Купить", "Заказать", "в Москве", "с доставкой" и т.д.
+
+#### Диагностический роут `GET /api/parse-test` (без авторизации, TEMP):
+Расширен дополнительными полями для отладки: `priceContext`, `windowVars`, `imgTags`, `microdata`, `metaTags`, `initialStatePreview`, `scriptDataPreview`.
+
+**Результаты тестирования (11 сайтов):**
+
+| Сайт | Имя | Цена | Фото | Метод | needsBrowser |
+|---|---|---|---|---|---|
+| askona.ru | ✅ | ✅ | ✅ | json-ld | false |
+| zvet.ru | ✅ | ✅ | ✅ | microdata+html | false |
+| dantonehome.ru | ✅ | ✅ | ✅ | og+nuxt | false |
+| inmyroom.ru | ✅ | ✅ | ✅ | json-ld | false |
+| roomsee.ru | ✅ | ✅ | ✅ | og | false |
+| thefields.ru | ✅ | ✅ | ✅ | og | false |
+| dg-home.ru | ✅ | ✅ | ✅ | og | false |
+| cosmorelax.ru | ✅ | ✅ | ✅ | json-ld | false |
+| imodern.ru | ✅ | ✅ | ✅ | og | false |
+| maytoni.ru | ✅ | ✅ | ✅ | json-ld | false |
+| divan.ru | ❌ | ❌ | ❌ | — | true (IP-блок) |
+| hoff.ru | ❌ | ❌ | ❌ | — | true (IP-блок) |
+| laredoute.ru | ❌ | ❌ | ❌ | — | true (403) |
+
+**Важные баги исправлены в процессе:**
+- Microdata хватала название магазина вместо товара → ограничена scope `itemtype=Product`
+- Пайплайн останавливался на первом результате с именем, даже если цена null → заменён на мерж лучшего из всех методов
+- Последний резервный паттерн `первое ₽ на странице` давал ложные срабатывания (баннер "Новинки кухонь от 889 000 ₽") → удалён
+- Цена dantonehome.ru (Nuxt.js) не находилась — данные вшиты в `window.__NUXT__` как `"81300.00"` → добавлен `extractFromNuxt`
+
+**Что не решено (нужен Слой 2 или прокси):**
+- divan.ru — возвращает 404 с IP Amvera (IP-блокировка)
+- hoff.ru — возвращает 401 (Cloudflare Bot Management)
+- laredoute.ru — возвращает 403
+- dantonehome.ru — цена найдена через Nuxt, но в общем случае Nuxt-цены могут быть ненадёжны
+
+---
+
 ### Сессия 2026-05-26 — иконки соцсетей в футере лендинга
 
 **Сделано:**
