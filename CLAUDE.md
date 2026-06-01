@@ -287,6 +287,62 @@ run:
 
 ---
 
+### Сессия 2026-06-01 (продолжение) — подключение парсера к UI, подсветка незаполненных полей
+
+**Контекст:** Продолжение сессии по парсеру. Layer 1 завершён, подключён к фронтенду, Browserbase отключён.
+
+**Изменения в `src/server.js`:**
+
+1. **`extractFromJsonLd`** — добавлено извлечение `color` (`item.color`) и `dimensions` (из `item.size` или `item.width/height/depth`)
+2. **`extractFromMicrodata`** — добавлено извлечение `color` (`md.color || md.colour`) и `dimensions` (`md.size || md.width`)
+3. **Мерж** — добавлены поля `color` и `dimensions` в объект merged
+4. **`extractColorDimensions(html)`** — новая функция, извлекает цвет и размеры из HTML-характеристик четырьмя паттернами:
+   - Смежные теги с одинаковым классом (Bitrix/zvet.ru: `detail-tabs-content__abs`)
+   - `<tr><td>ключ</td><td>значение</td></tr>`
+   - `<dt>ключ</dt><dd>значение</dd>`
+   - Regex для размеров вида "228 × 103 × 94 см"
+   - Фильтр: размеры без цифр отбрасываются (напр. "Маленькие")
+5. **`fetchHtml`** — детекция кодировки из `Content-Type` и `<meta charset>`, декодирование через `TextDecoder` (исправлены кракозябры на windows-1251 сайтах — cosmorelax.ru)
+6. **`cleanName`** — новая функция, чистит маркетинговые префиксы/суффиксы: "Купить", "Заказать", "в Москве", "с доставкой" и т.д.
+7. **`extractFromNuxt`** — новый метод: цены из `window.__NUXT__` (Nuxt.js devalue: `"81300.00"` в аргументах IIFE). Закрыл dantonehome.ru
+8. **`extractFromDataLayer`** — новый метод: GTM Enhanced Ecommerce (`"event":"productDetail"` и `"event":"view_item"`)
+9. **Диагностический `parse-test`** — добавлены поля `priceContext`, `windowVars`, `imgTags`
+
+**Изменения в `client/src/screens/Editor.jsx`:**
+
+1. Удалён `PARSER_URL = 'https://web-production-b181.up.railway.app'` (Browserbase/Railway)
+2. Кнопка «Заполнить» теперь вызывает `GET /api/parse?url=` (наш бэкенд)
+3. Маппинг полей из нового API: `name`, `price`, `imageUrl→photoUrl`, `dimensions`, `color`
+4. **Бренд** — автоматически заполняется из hostname URL (`www.askona.ru` → `Askona`), только если поле пустое или содержит дефолтное "Бренд"
+5. **`parseHints` state** — после парсинга подсвечивает янтарной рамкой (`#E8A838`) и текстом "Не найдено — заполните вручную" поля которые не заполнились: `name`, `price`, `photoUrl`, `dimensions`, `color`
+6. Подсветка снимается при ручном вводе в поле
+7. Подсветка `dimensions` срабатывает также если значение не содержит цифр
+
+**Итоговое покрытие парсера (11 сайтов из 14 работают без браузера):**
+
+| Сайт | name | price | img | color | dimensions |
+|---|---|---|---|---|---|
+| askona.ru | ✅ | ✅ | ✅ | ❌ JS | ❌ JS |
+| zvet.ru | ✅ | ✅ | ✅ | ✅ | ✅ |
+| dantonehome.ru | ✅ | ✅ | ✅ | ❌ | ✅ |
+| inmyroom.ru | ✅ | ✅ | ✅ | — | — |
+| roomsee.ru | ✅ | ✅ | ✅ | — | — |
+| thefields.ru | ✅ | ✅ | ✅ | — | — |
+| dg-home.ru | ✅ | ✅ | ✅ | — | — |
+| cosmorelax.ru | ✅ | ✅ | ✅ | — | — |
+| imodern.ru | ✅ | ✅ | ✅ | — | — |
+| maytoni.ru | ✅ | ✅ | ✅ | — | — |
+| divan.ru | ❌ IP-блок | ❌ | ❌ | ❌ | ❌ |
+| hoff.ru | ❌ IP-блок | ❌ | ❌ | ❌ | ❌ |
+| laredoute.ru | ❌ 403 | ❌ | ❌ | ❌ | ❌ |
+
+**Что отключено:**
+- Railway-сервис с Browserbase-парсером — удалён
+- Платный тариф Browserbase — отменён
+- Экономия: $20/мес
+
+---
+
 ### Сессия 2026-05-31 — фикс VITE_API_URL, health check, баг "Забыли пароль?" на мобильном
 
 **Сделано:**
