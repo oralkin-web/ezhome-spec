@@ -918,6 +918,15 @@ app.get('/api/parse-test', async (req, res) => {
       currency:    metas['og:price:currency']  || metas['product:price:currency'],
     };
 
+    const microdata = {};
+    const itempropRegex = /itemprop=["'](\w+)["'][^>]*(?:content=["']([^"']+)["']|>([^<]{1,200}))/gi;
+    let im;
+    while ((im = itempropRegex.exec(html)) !== null) {
+      const key = im[1];
+      const val = (im[2] || im[3] || '').trim();
+      if (val && !microdata[key]) microdata[key] = val;
+    }
+
     res.json({
       status: response.status,
       bodySize: Buffer.byteLength(html, 'utf8'),
@@ -930,6 +939,7 @@ app.get('/api/parse-test', async (req, res) => {
       finalUrl: response.url,
       scriptDataPreview,
       metaTags,
+      microdata,
     });
   } catch (e) {
     res.json({ error: e.message });
