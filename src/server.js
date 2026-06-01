@@ -876,7 +876,33 @@ async function fetchHtml(url) {
       redirect: 'follow',
       headers: FETCH_HEADERS,
     });
-    const html = await response.text();
+
+    // Определяем кодировку из Content-Type заголовка
+    const contentType = response.headers.get('content-type') || '';
+    const ctMatch = contentType.match(/charset=([\w-]+)/i);
+    let charset = ctMatch ? ctMatch[1].toLowerCase() : 'utf-8';
+
+    // Читаем байты — нужны для корректного декодирования windows-1251 и других
+    const buffer = await response.arrayBuffer();
+
+    // Если кодировка не определена в заголовке — ищем <meta charset> в первых 2KB
+    if (!ctMatch) {
+      const preview = new TextDecoder('ascii', { fatal: false }).decode(new Uint8Array(buffer, 0, 2000));
+      const metaMatch = preview.match(/charset=["']?([\w-]+)/i);
+      if (metaMatch) charset = metaMatch[1].toLowerCase();
+    }
+
+    // Нормализуем алиасы
+    if (charset === 'utf8') charset = 'utf-8';
+    if (charset === 'windows-1251' || charset === 'cp1251' || charset === 'win1251') charset = 'windows-1251';
+
+    let html;
+    try {
+      html = new TextDecoder(charset, { fatal: true }).decode(buffer);
+    } catch {
+      html = new TextDecoder('utf-8', { fatal: false }).decode(buffer);
+    }
+
     return { html, status: response.status, finalUrl: response.url, redirected: response.redirected };
   } finally {
     clearTimeout(timeout);
