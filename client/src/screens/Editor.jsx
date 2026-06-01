@@ -391,10 +391,19 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
                     });
                     const d = await r.json();
                     if (d.ok) {
+                      // Бренд из hostname: www.askona.ru → Askona
+                      let brandFromUrl = '';
+                      try {
+                        const host = new URL(draft.url).hostname.replace(/^www\./, '');
+                        const name = host.split('.')[0];
+                        brandFromUrl = name.charAt(0).toUpperCase() + name.slice(1);
+                      } catch {}
+
                       updateDraft({
                         name:     d.name     || draft.name,
                         price:    d.price    ?? draft.price,
                         photoUrl: d.imageUrl || draft.photoUrl,
+                        brand:    (!draft.brand || draft.brand === 'Бренд') ? brandFromUrl : draft.brand,
                       });
                       // Подсвечиваем поля которые парсер не нашёл
                       setParseHints({
