@@ -985,11 +985,16 @@ function extractFromHtml(html) {
     }
   }
 
-  // Изображение — Bitrix detail_picture → og:image
+  // Изображение — itemprop="image" на img-теге → Bitrix detail_picture → og:image
   let imageUrl = null;
   const imgPatterns = [
+    // itemprop="image" на img — атрибуты в любом порядке
+    /<img[^>]+itemprop=["']image["'][^>]+src=["']([^"']+)["']/i,
+    /<img[^>]+src=["']([^"']+)["'][^>]+itemprop=["']image["']/i,
+    // Bitrix: id="bx_item_detail_picture" или class="detail_picture"
     /id=["']bx_item_detail_picture["'][^>]+src=["']([^"']+)["']/i,
     /<img[^>]+class="[^"]*(?:detail_picture|product-image|product__image)[^"]*"[^>]+src=["']([^"']+)["']/i,
+    // OG fallback
     /property=["']og:image["'][^>]+content=["']([^"']+)["']/i,
     /content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
   ];
