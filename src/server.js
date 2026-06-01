@@ -972,10 +972,8 @@ function extractFromHtml(html) {
     // Bitrix-классы в тексте тега (с вложенным тегом)
     /<[^>]+class="[^"]*(?:catalog-element-offer-price|price_value|price-value|current-price|js-price|product-price|detail-price)[^"]*"[^>]*>\s*<[^>]*>\s*([\d][\d\s]{1,9}[\d])/i,
     /<[^>]+class="[^"]*(?:catalog-element-offer-price|price_value|price-value|current-price|js-price|product-price|detail-price)[^"]*"[^>]*>\s*([\d][\d\s]{1,9}[\d])/i,
-    // "price":12345 или "PRICE":12345 в JS-объектах
-    /"(?:price|PRICE|Price)"\s*:\s*"?([\d]+(?:[.,]\d{1,2})?)"?/i,
-    // Число перед ₽ (минимум 3 цифры)
-    /([\d][\d\s]{2,9}[\d])\s*₽/,
+    // "price":12345 или "PRICE":12345 в JS-объектах (только если значение > 100 и < 100млн)
+    /"(?:price|PRICE|Price)"\s*:\s*"?([\d]{3,8}(?:[.,]\d{1,2})?)"?/i,
   ];
   for (const pat of pricePatterns) {
     const m = html.match(pat);
