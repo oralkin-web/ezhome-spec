@@ -887,15 +887,34 @@ app.get('/api/parse-test', async (req, res) => {
       if (jsonLdObjects.length >= 3) break;
     }
 
+    let initialStatePreview = null;
+    const isMatch = html.match(/window\.__INITIAL_STATE__\s*=\s*({[\s\S]+?});\s*<\/script>/);
+    if (isMatch) {
+      try { initialStatePreview = JSON.stringify(JSON.parse(isMatch[1]), null, 2).substring(0, 3000); }
+      catch (e) { initialStatePreview = isMatch[1].substring(0, 500); }
+    }
+
+    let scriptDataPreview = null;
+    const scriptTags = [...html.matchAll(/<script(?:[^>]*)>([\s\S]*?)<\/script>/gi)];
+    for (const m of scriptTags) {
+      const content = m[1];
+      if (content.length > 500 && /price|название|name/i.test(content)) {
+        scriptDataPreview = content.substring(0, 1000);
+        break;
+      }
+    }
+
     res.json({
       status: response.status,
       bodySize: Buffer.byteLength(html, 'utf8'),
       hasJsonLd: jsonLdMatches.length > 0,
       jsonLdObjects,
       hasInitialState: /window\.__INITIAL_STATE__|window\.__/.test(html),
+      initialStatePreview,
       hasOgPrice: /og:price|product:price/i.test(html),
       redirected: response.redirected,
       finalUrl: response.url,
+      scriptDataPreview,
     });
   } catch (e) {
     res.json({ error: e.message });
