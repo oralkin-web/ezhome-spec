@@ -904,6 +904,20 @@ app.get('/api/parse-test', async (req, res) => {
       }
     }
 
+    const metas = {};
+    const metaRegex = /<meta[^>]+(property|name)=["']([^"']+)["'][^>]+content=["']([^"']+)["'][^>]*>/gi;
+    let mm;
+    while ((mm = metaRegex.exec(html)) !== null) {
+      metas[mm[2]] = mm[3];
+    }
+    const metaTags = {
+      title:       metas['og:title'],
+      image:       metas['og:image'],
+      description: metas['og:description'],
+      price:       metas['og:price:amount']    || metas['product:price:amount'],
+      currency:    metas['og:price:currency']  || metas['product:price:currency'],
+    };
+
     res.json({
       status: response.status,
       bodySize: Buffer.byteLength(html, 'utf8'),
@@ -915,6 +929,7 @@ app.get('/api/parse-test', async (req, res) => {
       redirected: response.redirected,
       finalUrl: response.url,
       scriptDataPreview,
+      metaTags,
     });
   } catch (e) {
     res.json({ error: e.message });
