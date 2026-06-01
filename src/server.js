@@ -990,6 +990,56 @@ function extractFromMicrodata(html) {
   return { name, price, imageUrl, currency, color, dimensions, source: 'microdata' };
 }
 
+// Вспомогательная функция: извлекаем color и dimensions из HTML-характеристик
+function extractColorDimensions(html) {
+  let color = null, dimensions = null;
+
+  // Паттерн 1: смежные теги с одинаковым классом — label/value (Bitrix, zvet.ru и др.)
+  // <span class="X">Цвет</span><span class="X">Бежевый</span>
+  const adjacentRe = /<(\w+)[^>]+class="([^"]+)"[^>]*>\s*([\s\S]{1,80}?)\s*<\/\1>\s*<\1[^>]+class="\2"[^>]*>\s*([\s\S]{1,200}?)\s*<\/\1>/gi;
+  let m;
+  while ((m = adjacentRe.exec(html)) !== null) {
+    const label = m[3].replace(/<[^>]+>/g, '').trim().toLowerCase();
+    const value = m[4].replace(/<[^>]+>/g, '').trim();
+    if (!value) continue;
+    if (!color && /^цвет/.test(label)) color = value;
+    if (!dimensions && /размер|габарит/.test(label)) dimensions = value;
+    if (color && dimensions) break;
+  }
+
+  // Паттерн 2: <tr><td>ключ</td><td>значение</td></tr>
+  if (!color || !dimensions) {
+    const trRe = /<tr[^>]*>[\s\S]{0,200}?<t[dh][^>]*>([\s\S]{1,80}?)<\/t[dh]>[\s\S]{0,200}?<td[^>]*>([\s\S]{1,150}?)<\/td>/gi;
+    while ((m = trRe.exec(html)) !== null) {
+      const key = m[1].replace(/<[^>]+>/g, '').trim().toLowerCase();
+      const val = m[2].replace(/<[^>]+>/g, '').trim();
+      if (!val) continue;
+      if (!color && /^цвет/.test(key)) color = val;
+      if (!dimensions && /размер|габарит/.test(key)) dimensions = val;
+    }
+  }
+
+  // Паттерн 3: <dt>ключ</dt><dd>значение</dd>
+  if (!color || !dimensions) {
+    const dtRe = /<dt[^>]*>([\s\S]{1,80}?)<\/dt>\s*<dd[^>]*>([\s\S]{1,150}?)<\/dd>/gi;
+    while ((m = dtRe.exec(html)) !== null) {
+      const key = m[1].replace(/<[^>]+>/g, '').trim().toLowerCase();
+      const val = m[2].replace(/<[^>]+>/g, '').trim();
+      if (!val) continue;
+      if (!color && /^цвет/.test(key)) color = val;
+      if (!dimensions && /размер|габарит/.test(key)) dimensions = val;
+    }
+  }
+
+  // Паттерн 4: размеры как "228 × 103 × 94 см" где угодно в тексте страницы
+  if (!dimensions) {
+    const dimM = html.match(/\b(\d{2,3})\s*[×xхx]\s*(\d{2,3})(?:\s*[×xхx]\s*(\d{2,3}))?\s*(?:см|мм)\b/i);
+    if (dimM) dimensions = dimM[0].trim();
+  }
+
+  return { color, dimensions };
+}
+
 // Метод 4: Nuxt.js devalue — цена вшита как "81300.00" в аргументах window.__NUXT__
 function extractFromNuxt(html) {
   if (!html.includes('window.__NUXT__')) return null;
@@ -1132,6 +1182,13 @@ async function parseProductLayer1(url) {
   }
 
   merged.name = cleanName(merged.name);
+
+  // Если color или dimensions не нашли через структурированные данные — ищем в HTML
+  if (!merged.color || !merged.dimensions) {
+    const { color, dimensions } = extractColorDimensions(html);
+    if (!merged.color) merged.color = color;
+    if (!merged.dimensions) merged.dimensions = dimensions;
+  }
 
   const needsBrowser = !merged.name || !merged.price;
   return { ok: true, ...merged, needsBrowser, status, finalUrl, redirected };
