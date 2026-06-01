@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Icon, Placeholder, Editable, Sidebar } from '../components/shared';
 
-const PARSER_URL = 'https://web-production-b181.up.railway.app';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -304,10 +304,11 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
   // Сброс autoExpandId после раскрытия
   if (autoExpand && !expanded) { setExpanded(true); onExpanded?.(); }
 
-  const handleSave = () => { onChange(draft); setExpanded(false); };
-  const handleDiscard = () => { setDraft({ ...product }); setExpanded(false); };
+  const handleSave = () => { onChange(draft); setExpanded(false); setParseHints({}); };
+  const handleDiscard = () => { setDraft({ ...product }); setExpanded(false); setParseHints({}); };
   const updateDraft = (patch) => setDraft(d => ({ ...d, ...patch }));
   const [parsing, setParsing] = useState(false);
+  const [parseHints, setParseHints] = useState({});
 
   return (
     <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{ borderTop: "1px solid var(--hairline)" }}>
@@ -348,7 +349,8 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
           {/* Строка 1: Название + Бренд */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
             <FieldGroup label="Название товара">
-              <input value={draft.name} onChange={e => updateDraft({ name: e.target.value })} placeholder="Название" style={inputStyle} />
+              <input value={draft.name} onChange={e => { updateDraft({ name: e.target.value }); setParseHints(h => ({ ...h, name: false })); }} placeholder="Название" style={parseHints.name ? { ...inputStyle, borderColor: '#E8A838', borderWidth: 2 } : inputStyle} />
+              {parseHints.name && <div style={{ fontSize: 11, color: '#B87820', marginTop: 4 }}>Не найдено — заполните вручную</div>}
             </FieldGroup>
             <FieldGroup label="Бренд / производитель">
               <input value={draft.brand} onChange={e => updateDraft({ brand: e.target.value })} placeholder="Бренд" style={inputStyle} />
@@ -366,7 +368,8 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
           {/* Строка 3: Цена + Кол-во */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: 12, marginBottom: 12 }}>
             <FieldGroup label="Цена, ₽">
-              <input type="number" value={draft.price || ""} onChange={e => updateDraft({ price: parseFloat(e.target.value) || 0 })} placeholder="0" style={{ ...inputStyle, textAlign: "right", MozAppearance: "textfield" }} className="no-arrows" />
+              <input type="number" value={draft.price || ""} onChange={e => { updateDraft({ price: parseFloat(e.target.value) || 0 }); setParseHints(h => ({ ...h, price: false })); }} placeholder="0" style={{ ...inputStyle, textAlign: "right", MozAppearance: "textfield", ...(parseHints.price ? { borderColor: '#E8A838', borderWidth: 2 } : {}) }} className="no-arrows" />
+              {parseHints.price && <div style={{ fontSize: 11, color: '#B87820', marginTop: 4 }}>Не найдено — заполните вручную</div>}
             </FieldGroup>
             <FieldGroup label="Кол-во">
               <input type="number" value={draft.qty} min={1} onChange={e => updateDraft({ qty: parseInt(e.target.value) || 1 })} placeholder="1" style={{ ...inputStyle, textAlign: "left", paddingLeft: 12, MozAppearance: "textfield" }} className="no-arrows" />
@@ -381,23 +384,26 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
                 onClick={async () => {
                   if (!draft.url) return;
                   setParsing(true);
+                  setParseHints({});
                   try {
-                    const r = await fetch(PARSER_URL + '/parse', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ url: draft.url })
+                    const r = await fetch(API_BASE + '/api/parse?url=' + encodeURIComponent(draft.url), {
+                      credentials: 'include',
                     });
                     const d = await r.json();
                     if (d.ok) {
                       updateDraft({
-                        name: d.name || draft.name,
-                        price: d.price || draft.price,
-                        dimensions: d.size || draft.dimensions,
-                        color: d.color || draft.color,
-                        photoUrl: d.image_url || draft.photoUrl,
+                        name:     d.name     || draft.name,
+                        price:    d.price    ?? draft.price,
+                        photoUrl: d.imageUrl || draft.photoUrl,
+                      });
+                      // Подсвечиваем поля которые парсер не нашёл
+                      setParseHints({
+                        name:     !d.name,
+                        price:    !d.price,
+                        photoUrl: !d.imageUrl,
                       });
                     } else {
-                      alert('Не удалось загрузить данные');
+                      alert(d.error || 'Не удалось загрузить данные');
                     }
                   } catch(e) {
                     alert('Ошибка: ' + e.message);
@@ -414,7 +420,8 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
           </FieldGroup>
           {/* Строка 4: Ссылка на фото */}
           <FieldGroup label="Ссылка на фото" style={{ marginBottom: 16 }}>
-            <input value={draft.photoUrl || ""} onChange={e => updateDraft({ photoUrl: e.target.value })} placeholder="https://..." style={inputStyle} />
+            <input value={draft.photoUrl || ""} onChange={e => { updateDraft({ photoUrl: e.target.value }); setParseHints(h => ({ ...h, photoUrl: false })); }} placeholder="https://..." style={parseHints.photoUrl ? { ...inputStyle, borderColor: '#E8A838', borderWidth: 2 } : inputStyle} />
+            {parseHints.photoUrl && <div style={{ fontSize: 11, color: '#B87820', marginTop: 4 }}>Не найдено — заполните вручную</div>}
           </FieldGroup>
           {/* Строка 5: Комментарий */}
           <FieldGroup label="Комментарий" style={{ marginBottom: 16 }}>
