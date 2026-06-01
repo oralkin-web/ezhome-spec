@@ -945,7 +945,21 @@ function extractFromMicrodata(html) {
   return { name, price, imageUrl, currency, source: 'microdata' };
 }
 
-// Метод 4: GTM dataLayer ecommerce — стандарт для сотен российских магазинов
+// Метод 4: Nuxt.js devalue — цена вшита как "81300.00" в аргументах window.__NUXT__
+function extractFromNuxt(html) {
+  if (!html.includes('window.__NUXT__')) return null;
+  // Nuxt devalue сериализует все уникальные значения как аргументы IIFE.
+  // Цены форматируются как "NNNNN.00" — ищем строки с .2 знаками в диапазоне мебельных цен
+  const decimalStrings = [...html.matchAll(/"(\d{4,7}\.\d{2})"/g)];
+  const prices = decimalStrings
+    .map(m => parseFloat(m[1]))
+    .filter(p => p >= 1000 && p <= 9999999);
+  if (!prices.length) return null;
+  // Возвращаем только цену — имя и фото придут из других методов через мерж
+  return { name: null, price: prices[0], imageUrl: null, currency: 'RUB', source: 'nuxt' };
+}
+
+// Метод 5: GTM dataLayer ecommerce — стандарт для сотен российских магазинов
 // Форматы: UA Enhanced Ecommerce (productDetail) и GA4 (view_item)
 function extractFromDataLayer(html) {
   const patterns = [
@@ -1048,6 +1062,7 @@ async function parseProductLayer1(url) {
     extractFromJsonLd(html),
     extractFromOg(html),
     extractFromMicrodata(html),
+    extractFromNuxt(html),
     extractFromDataLayer(html),
     extractFromHtml(html),
   ].filter(Boolean);
