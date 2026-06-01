@@ -967,7 +967,9 @@ function extractFromHtml(html) {
   const pricePatterns = [
     // Bitrix: data-price="12345" или data-item-price="12345"
     /data-(?:item-)?price=["']([\d]+(?:[.,]\d{1,2})?)["']/i,
-    // Bitrix-классы в тексте тега
+    // zvet.ru и аналоги: <span class="detail-price__item current">59 299 ₽</span>
+    /<[^>]+class="[^"]*detail-price__item\s+current[^"]*"[^>]*>\s*([\d][\d\s]{1,9}[\d])\s*₽/i,
+    // Bitrix-классы в тексте тега (с вложенным тегом)
     /<[^>]+class="[^"]*(?:catalog-element-offer-price|price_value|price-value|current-price|js-price|product-price|detail-price)[^"]*"[^>]*>\s*<[^>]*>\s*([\d][\d\s]{1,9}[\d])/i,
     /<[^>]+class="[^"]*(?:catalog-element-offer-price|price_value|price-value|current-price|js-price|product-price|detail-price)[^"]*"[^>]*>\s*([\d][\d\s]{1,9}[\d])/i,
     // "price":12345 или "PRICE":12345 в JS-объектах
@@ -999,7 +1001,7 @@ function extractFromHtml(html) {
   return { name, price, imageUrl, currency: price ? 'RUB' : null, source: 'html' };
 }
 
-// Главная функция слоя 1 — перебирает методы по приоритету
+// Главная функция слоя 1 — запускает все методы и мержит лучшее
 async function parseProductLayer1(url) {
   let fetchResult;
   try {
@@ -1014,19 +1016,33 @@ async function parseProductLayer1(url) {
     return { ok: false, error: `HTTP ${status}`, needsBrowser: true, status, finalUrl };
   }
 
-  const result =
-    extractFromJsonLd(html) ||
-    extractFromOg(html)     ||
-    extractFromMicrodata(html) ||
-    extractFromHtml(html)   ||
-    null;
+  // Запускаем все методы
+  const candidates = [
+    extractFromJsonLd(html),
+    extractFromOg(html),
+    extractFromMicrodata(html),
+    extractFromHtml(html),
+  ].filter(Boolean);
 
-  if (!result) {
+  if (candidates.length === 0) {
     return { ok: false, error: 'Данные не найдены', needsBrowser: true, status, finalUrl };
   }
 
-  const needsBrowser = !result.name || !result.price;
-  return { ok: true, ...result, needsBrowser, status, finalUrl, redirected };
+  // Мержим: берём первое непустое значение каждого поля по приоритету
+  const merged = { name: null, price: null, imageUrl: null, currency: null, source: null };
+  for (const c of candidates) {
+    if (!merged.name     && c.name)     { merged.name = c.name;         merged.source = c.source; }
+    if (!merged.price    && c.price)      merged.price = c.price;
+    if (!merged.imageUrl && c.imageUrl)   merged.imageUrl = c.imageUrl;
+    if (!merged.currency && c.currency)   merged.currency = c.currency;
+  }
+
+  if (!merged.name) {
+    return { ok: false, error: 'Данные не найдены', needsBrowser: true, status, finalUrl };
+  }
+
+  const needsBrowser = !merged.name || !merged.price;
+  return { ok: true, ...merged, needsBrowser, status, finalUrl, redirected };
 }
 
 // Роут: GET /api/parse?url=...  (требует авторизации)
