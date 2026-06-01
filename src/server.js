@@ -922,11 +922,17 @@ function extractFromOg(html) {
 }
 
 // Метод 3: Microdata (itemprop="name/price/image")
+// Ищем только внутри itemtype="...Product" — иначе подхватываем данные магазина/сайта
 function extractFromMicrodata(html) {
+  // Вырезаем только блок с itemtype Product
+  const productBlockMatch = html.match(/<[^>]+itemtype=["'][^"']*schema\.org\/Product["'][^>]*>([\s\S]*?)(?=<[^>]+itemtype=|$)/i);
+  const scope = productBlockMatch ? productBlockMatch[1] : null;
+  if (!scope) return null;
+
   const md = {};
   const re = /itemprop=["'](\w+)["'][^>]*(?:content=["']([^"']+)["']|>([^<]{1,200}))/gi;
   let m;
-  while ((m = re.exec(html)) !== null) {
+  while ((m = re.exec(scope)) !== null) {
     const key = m[1], val = (m[2] || m[3] || '').trim();
     if (val && !md[key]) md[key] = val;
   }
@@ -941,33 +947,54 @@ function extractFromMicrodata(html) {
 
 // Метод 4: Фолбэк — HTML-паттерны (h1 + price-классы, Bitrix и generic)
 function extractFromHtml(html) {
-  // Название — первый <h1>
-  const h1 = html.match(/<h1[^>]*>[\s\S]*?<\/h1>/i);
-  const nameRaw = h1 ? h1[0].replace(/<[^>]+>/g, '').trim() : null;
-  const name = nameRaw && nameRaw.length >= 3 ? nameRaw : null;
+  // Название — Bitrix-специфичные классы, затем первый <h1>
+  let name = null;
+  const namePatterns = [
+    /<[^>]+class="[^"]*(?:catalog-element-name|product-detail-title|product__title|item-title)[^"]*"[^>]*>([\s\S]*?)<\//i,
+    /<h1[^>]*>([\s\S]*?)<\/h1>/i,
+  ];
+  for (const pat of namePatterns) {
+    const m = html.match(pat);
+    if (m) {
+      const raw = m[1].replace(/<[^>]+>/g, '').trim();
+      if (raw.length >= 3) { name = raw; break; }
+    }
+  }
   if (!name) return null;
 
-  // Цена — приоритет: Bitrix-классы → data-price → price в JSON-подобных фрагментах
+  // Цена — Bitrix-классы → data-атрибуты → JSON-фрагменты → ₽ вблизи price-слов
   let price = null;
   const pricePatterns = [
-    // Bitrix: <span class="catalog-element-offer-price">12 345</span>
-    /class="[^"]*(?:catalog-element-offer-price|price-value|product-price|current-price|js-price)[^"]*"[^>]*>\s*[\D]*([\d\s]{3,10})/i,
-    // data-price="12345"
-    /data-price=["']([\d.]+)["']/i,
-    // "price":12345 или "price":"12345"
-    /"price"\s*:\s*"?([\d]+(?:[.,]\d{1,2})?)"?/i,
-    // Число перед ₽ в тексте вблизи слова price
-    /price[^<]{0,60}?([\d][\d\s]{2,8}[\d])\s*[₽р]/i,
+    // Bitrix: data-price="12345" или data-item-price="12345"
+    /data-(?:item-)?price=["']([\d]+(?:[.,]\d{1,2})?)["']/i,
+    // Bitrix-классы в тексте тега
+    /<[^>]+class="[^"]*(?:catalog-element-offer-price|price_value|price-value|current-price|js-price|product-price|detail-price)[^"]*"[^>]*>\s*<[^>]*>\s*([\d][\d\s]{1,9}[\d])/i,
+    /<[^>]+class="[^"]*(?:catalog-element-offer-price|price_value|price-value|current-price|js-price|product-price|detail-price)[^"]*"[^>]*>\s*([\d][\d\s]{1,9}[\d])/i,
+    // "price":12345 или "PRICE":12345 в JS-объектах
+    /"(?:price|PRICE|Price)"\s*:\s*"?([\d]+(?:[.,]\d{1,2})?)"?/i,
+    // Число перед ₽ (минимум 3 цифры)
+    /([\d][\d\s]{2,9}[\d])\s*₽/,
   ];
   for (const pat of pricePatterns) {
     const m = html.match(pat);
-    if (m) { price = parseFloat(m[1].replace(/\s/g, '').replace(',', '.')); break; }
+    if (m) {
+      const parsed = parseFloat(m[1].replace(/\s/g, '').replace(',', '.'));
+      if (!isNaN(parsed) && parsed > 0) { price = parsed; break; }
+    }
   }
 
-  // Изображение — og:image как фолбэк
-  const imgM = html.match(/(?:property=["']og:image["'][^>]+content|content=["'][^"']+["'][^>]+property=["']og:image)=["']([^"']+)["']/i)
-            || html.match(/<meta[^>]+og:image[^>]+content=["']([^"']+)["']/i);
-  const imageUrl = imgM ? imgM[1] : null;
+  // Изображение — Bitrix detail_picture → og:image
+  let imageUrl = null;
+  const imgPatterns = [
+    /id=["']bx_item_detail_picture["'][^>]+src=["']([^"']+)["']/i,
+    /<img[^>]+class="[^"]*(?:detail_picture|product-image|product__image)[^"]*"[^>]+src=["']([^"']+)["']/i,
+    /property=["']og:image["'][^>]+content=["']([^"']+)["']/i,
+    /content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
+  ];
+  for (const pat of imgPatterns) {
+    const m = html.match(pat);
+    if (m) { imageUrl = m[1]; break; }
+  }
 
   return { name, price, imageUrl, currency: price ? 'RUB' : null, source: 'html' };
 }
