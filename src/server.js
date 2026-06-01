@@ -858,6 +858,52 @@ app.get('/api/magic', async (req, res) => {
   }
 });
 
+// TEMP: диагностический роут — парсинг страницы по URL
+app.get('/api/parse-test', async (req, res) => {
+  const { url } = req.query;
+  if (!url) return res.status(400).json({ error: 'url обязателен' });
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      redirect: 'follow',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br',
+      },
+    });
+
+    const html = await response.text();
+
+    const jsonLdMatches = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+    const jsonLdObjects = [];
+    for (const m of jsonLdMatches) {
+      try { jsonLdObjects.push(JSON.parse(m[1].trim())); } catch {}
+      if (jsonLdObjects.length >= 3) break;
+    }
+
+    res.json({
+      status: response.status,
+      bodySize: Buffer.byteLength(html, 'utf8'),
+      hasJsonLd: jsonLdMatches.length > 0,
+      jsonLdObjects,
+      hasInitialState: /window\.__INITIAL_STATE__|window\.__/.test(html),
+      hasOgPrice: /og:price|product:price/i.test(html),
+      redirected: response.redirected,
+      finalUrl: response.url,
+    });
+  } catch (e) {
+    res.json({ error: e.message });
+  } finally {
+    clearTimeout(timeout);
+  }
+});
+
 initDB().then(() => {
   app.listen(PORT, () => console.log(`seta running on port ${PORT}`));
 }).catch(err => {
