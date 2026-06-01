@@ -858,6 +858,162 @@ app.get('/api/magic', async (req, res) => {
   }
 });
 
+// ── Парсер товаров — Слой 1 (HTTP fetch) ─────────────────────────────────
+
+const FETCH_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+  'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8',
+  'Accept-Encoding': 'gzip, deflate, br',
+};
+
+async function fetchHtml(url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      redirect: 'follow',
+      headers: FETCH_HEADERS,
+    });
+    const html = await response.text();
+    return { html, status: response.status, finalUrl: response.url, redirected: response.redirected };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+// Метод 1: JSON-LD (<script type="application/ld+json"> с @type Product)
+function extractFromJsonLd(html) {
+  const matches = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  for (const m of matches) {
+    let data;
+    try { data = JSON.parse(m[1].trim()); } catch { continue; }
+    const candidates = Array.isArray(data) ? data : [data];
+    for (const item of candidates) {
+      if (item['@type'] !== 'Product') continue;
+      const name = item.name || null;
+      const imageUrl = Array.isArray(item.image) ? item.image[0] : (item.image || null);
+      let price = null, currency = null;
+      if (item.offers) {
+        const offer = Array.isArray(item.offers) ? item.offers[0] : item.offers;
+        price = offer.price != null ? parseFloat(String(offer.price).replace(/\s/g, '')) : null;
+        currency = offer.priceCurrency || null;
+      }
+      if (name) return { name, price, imageUrl, currency, source: 'json-ld' };
+    }
+  }
+  return null;
+}
+
+// Метод 2: OG-теги (og:title, og:image, og:price:amount / product:price:amount)
+function extractFromOg(html) {
+  const metas = {};
+  const re = /<meta[^>]+(property|name)=["']([^"']+)["'][^>]+content=["']([^"']+)["'][^>]*>/gi;
+  let m;
+  while ((m = re.exec(html)) !== null) metas[m[2]] = m[3];
+  const name = metas['og:title'] || null;
+  if (!name) return null;
+  const imageUrl = metas['og:image'] || null;
+  const priceStr = metas['og:price:amount'] || metas['product:price:amount'] || null;
+  const price = priceStr ? parseFloat(priceStr.replace(/\s/g, '')) : null;
+  const currency = metas['og:price:currency'] || metas['product:price:currency'] || null;
+  return { name, price, imageUrl, currency, source: 'og' };
+}
+
+// Метод 3: Microdata (itemprop="name/price/image")
+function extractFromMicrodata(html) {
+  const md = {};
+  const re = /itemprop=["'](\w+)["'][^>]*(?:content=["']([^"']+)["']|>([^<]{1,200}))/gi;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    const key = m[1], val = (m[2] || m[3] || '').trim();
+    if (val && !md[key]) md[key] = val;
+  }
+  const name = md.name || null;
+  if (!name) return null;
+  const imageUrl = md.image || null;
+  const priceStr = md.price || null;
+  const price = priceStr ? parseFloat(priceStr.replace(/[^\d.]/g, '')) : null;
+  const currency = md.priceCurrency || null;
+  return { name, price, imageUrl, currency, source: 'microdata' };
+}
+
+// Метод 4: Фолбэк — HTML-паттерны (h1 + price-классы, Bitrix и generic)
+function extractFromHtml(html) {
+  // Название — первый <h1>
+  const h1 = html.match(/<h1[^>]*>[\s\S]*?<\/h1>/i);
+  const nameRaw = h1 ? h1[0].replace(/<[^>]+>/g, '').trim() : null;
+  const name = nameRaw && nameRaw.length >= 3 ? nameRaw : null;
+  if (!name) return null;
+
+  // Цена — приоритет: Bitrix-классы → data-price → price в JSON-подобных фрагментах
+  let price = null;
+  const pricePatterns = [
+    // Bitrix: <span class="catalog-element-offer-price">12 345</span>
+    /class="[^"]*(?:catalog-element-offer-price|price-value|product-price|current-price|js-price)[^"]*"[^>]*>\s*[\D]*([\d\s]{3,10})/i,
+    // data-price="12345"
+    /data-price=["']([\d.]+)["']/i,
+    // "price":12345 или "price":"12345"
+    /"price"\s*:\s*"?([\d]+(?:[.,]\d{1,2})?)"?/i,
+    // Число перед ₽ в тексте вблизи слова price
+    /price[^<]{0,60}?([\d][\d\s]{2,8}[\d])\s*[₽р]/i,
+  ];
+  for (const pat of pricePatterns) {
+    const m = html.match(pat);
+    if (m) { price = parseFloat(m[1].replace(/\s/g, '').replace(',', '.')); break; }
+  }
+
+  // Изображение — og:image как фолбэк
+  const imgM = html.match(/(?:property=["']og:image["'][^>]+content|content=["'][^"']+["'][^>]+property=["']og:image)=["']([^"']+)["']/i)
+            || html.match(/<meta[^>]+og:image[^>]+content=["']([^"']+)["']/i);
+  const imageUrl = imgM ? imgM[1] : null;
+
+  return { name, price, imageUrl, currency: price ? 'RUB' : null, source: 'html' };
+}
+
+// Главная функция слоя 1 — перебирает методы по приоритету
+async function parseProductLayer1(url) {
+  let fetchResult;
+  try {
+    fetchResult = await fetchHtml(url);
+  } catch (e) {
+    return { ok: false, error: e.message, needsBrowser: true };
+  }
+
+  const { html, status, finalUrl, redirected } = fetchResult;
+
+  if (status >= 400) {
+    return { ok: false, error: `HTTP ${status}`, needsBrowser: true, status, finalUrl };
+  }
+
+  const result =
+    extractFromJsonLd(html) ||
+    extractFromOg(html)     ||
+    extractFromMicrodata(html) ||
+    extractFromHtml(html)   ||
+    null;
+
+  if (!result) {
+    return { ok: false, error: 'Данные не найдены', needsBrowser: true, status, finalUrl };
+  }
+
+  const needsBrowser = !result.name || !result.price;
+  return { ok: true, ...result, needsBrowser, status, finalUrl, redirected };
+}
+
+// Роут: GET /api/parse?url=...  (требует авторизации)
+app.get('/api/parse', auth, async (req, res) => {
+  const { url } = req.query;
+  if (!url) return res.status(400).json({ error: 'url обязателен' });
+  try {
+    const result = await parseProductLayer1(url);
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // TEMP: диагностический роут — парсинг страницы по URL
 app.get('/api/parse-test', async (req, res) => {
   const { url } = req.query;
