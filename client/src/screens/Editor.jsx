@@ -359,10 +359,12 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
           {/* Строка 2: Размеры + Цвет */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
             <FieldGroup label="Размеры">
-              <input value={draft.dimensions || ""} onChange={e => updateDraft({ dimensions: e.target.value })} placeholder="напр. 240 × 90 × 80 см" style={inputStyle} />
+              <input value={draft.dimensions || ""} onChange={e => { updateDraft({ dimensions: e.target.value }); setParseHints(h => ({ ...h, dimensions: false })); }} placeholder="напр. 240 × 90 × 80 см" style={parseHints.dimensions ? { ...inputStyle, borderColor: '#E8A838', borderWidth: 2 } : inputStyle} />
+              {parseHints.dimensions && <div style={{ fontSize: 11, color: '#B87820', marginTop: 4 }}>Не найдено — заполните вручную</div>}
             </FieldGroup>
             <FieldGroup label="Цвет / материал">
-              <input value={draft.color || ""} onChange={e => updateDraft({ color: e.target.value })} placeholder="напр. Серый велюр" style={inputStyle} />
+              <input value={draft.color || ""} onChange={e => { updateDraft({ color: e.target.value }); setParseHints(h => ({ ...h, color: false })); }} placeholder="напр. Серый велюр" style={parseHints.color ? { ...inputStyle, borderColor: '#E8A838', borderWidth: 2 } : inputStyle} />
+              {parseHints.color && <div style={{ fontSize: 11, color: '#B87820', marginTop: 4 }}>Не найдено — заполните вручную</div>}
             </FieldGroup>
           </div>
           {/* Строка 3: Цена + Кол-во */}
@@ -409,9 +411,11 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
                       });
                       // Подсвечиваем поля которые парсер не нашёл
                       setParseHints({
-                        name:     !d.name,
-                        price:    !d.price,
-                        photoUrl: !d.imageUrl,
+                        name:       !d.name,
+                        price:      !d.price,
+                        photoUrl:   !d.imageUrl,
+                        dimensions: !d.dimensions,
+                        color:      !d.color,
                       });
                     } else {
                       alert(d.error || 'Не удалось загрузить данные');
