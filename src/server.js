@@ -1037,6 +1037,8 @@ function extractColorDimensions(html) {
     if (dimM) dimensions = dimM[0].trim();
   }
 
+  // Размеры без цифр — не размеры (напр. "Маленькие", "Стандартный")
+  if (dimensions && !/\d/.test(dimensions)) dimensions = null;
   return { color, dimensions };
 }
 

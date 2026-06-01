@@ -414,7 +414,7 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
                         name:       !d.name,
                         price:      !d.price,
                         photoUrl:   !d.imageUrl,
-                        dimensions: !d.dimensions,
+                        dimensions: !d.dimensions || !/\d/.test(d.dimensions),
                         color:      !d.color,
                       });
                     } else {
