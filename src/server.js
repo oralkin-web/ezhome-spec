@@ -945,7 +945,31 @@ function extractFromMicrodata(html) {
   return { name, price, imageUrl, currency, source: 'microdata' };
 }
 
-// Метод 4: Фолбэк — HTML-паттерны (h1 + price-классы, Bitrix и generic)
+// Метод 4: GTM dataLayer ecommerce — стандарт для сотен российских магазинов
+// Форматы: UA Enhanced Ecommerce (productDetail) и GA4 (view_item)
+function extractFromDataLayer(html) {
+  const patterns = [
+    // UA Enhanced Ecommerce: {"event":"productDetail","ecommerce":{"detail":{"products":[{...}]}}}
+    /"event"\s*:\s*"productDetail"[\s\S]{0,3000}?"products"\s*:\s*\[\s*\{([\s\S]{0,600}?)\}/i,
+    // GA4: {"event":"view_item","ecommerce":{"items":[{...}]}}
+    /"event"\s*:\s*"view_item"[\s\S]{0,3000}?"items"\s*:\s*\[\s*\{([\s\S]{0,600}?)\}/i,
+    // Общий ecommerce с products/items без конкретного event
+    /"ecommerce"\s*:\s*\{[\s\S]{0,500}?"products"\s*:\s*\[\s*\{([\s\S]{0,600}?)\}/i,
+  ];
+  for (const pat of patterns) {
+    const m = html.match(pat);
+    if (!m) continue;
+    const chunk = m[1];
+    const nameM = chunk.match(/"name"\s*:\s*"([^"]{3,200})"/);
+    const priceM = chunk.match(/"price"\s*:\s*"?([\d]+(?:[.,]\d{1,2})?)"?/);
+    const name = nameM ? nameM[1].trim() : null;
+    const price = priceM ? parseFloat(priceM[1].replace(',', '.')) : null;
+    if (name) return { name, price, imageUrl: null, currency: price ? 'RUB' : null, source: 'datalayer' };
+  }
+  return null;
+}
+
+// Метод 5: Фолбэк — HTML-паттерны (h1 + price-классы, Bitrix и generic)
 function extractFromHtml(html) {
   // Название — Bitrix-специфичные классы, затем первый <h1>
   let name = null;
@@ -1024,6 +1048,7 @@ async function parseProductLayer1(url) {
     extractFromJsonLd(html),
     extractFromOg(html),
     extractFromMicrodata(html),
+    extractFromDataLayer(html),
     extractFromHtml(html),
   ].filter(Boolean);
 
