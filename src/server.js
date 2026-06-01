@@ -1110,6 +1110,16 @@ app.get('/api/parse-test', async (req, res) => {
       if (val && !microdata[key]) microdata[key] = val;
     }
 
+    // Контекст вокруг символа ₽ — чтобы понять как сайт хранит цену
+    let priceContext = null;
+    const rubleIdx = html.indexOf('₽');
+    if (rubleIdx !== -1) {
+      priceContext = html.substring(Math.max(0, rubleIdx - 200), rubleIdx + 50).replace(/\s+/g, ' ');
+    }
+
+    // Все window.__ переменные — ищем что прячет сайт в глобальных JS-объектах
+    const windowVars = [...html.matchAll(/window\.([\w$]+)\s*=/g)].map(m => m[1]).filter((v, i, a) => a.indexOf(v) === i).slice(0, 20);
+
     res.json({
       status: response.status,
       bodySize: Buffer.byteLength(html, 'utf8'),
@@ -1123,6 +1133,8 @@ app.get('/api/parse-test', async (req, res) => {
       scriptDataPreview,
       metaTags,
       microdata,
+      priceContext,
+      windowVars,
     });
   } catch (e) {
     res.json({ error: e.message });
