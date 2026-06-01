@@ -400,10 +400,12 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
                       } catch {}
 
                       updateDraft({
-                        name:     d.name     || draft.name,
-                        price:    d.price    ?? draft.price,
-                        photoUrl: d.imageUrl || draft.photoUrl,
-                        brand:    (!draft.brand || draft.brand === 'Бренд') ? brandFromUrl : draft.brand,
+                        name:       d.name       || draft.name,
+                        price:      d.price      ?? draft.price,
+                        photoUrl:   d.imageUrl   || draft.photoUrl,
+                        dimensions: d.dimensions || draft.dimensions,
+                        color:      d.color      || draft.color,
+                        brand:      (!draft.brand || draft.brand === 'Бренд') ? brandFromUrl : draft.brand,
                       });
                       // Подсвечиваем поля которые парсер не нашёл
                       setParseHints({

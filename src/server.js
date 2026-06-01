@@ -935,7 +935,15 @@ function extractFromJsonLd(html) {
         price = offer.price != null ? parseFloat(String(offer.price).replace(/\s/g, '')) : null;
         currency = offer.priceCurrency || null;
       }
-      if (name) return { name, price, imageUrl, currency, source: 'json-ld' };
+      if (name) {
+        const color = item.color || null;
+        // Размеры: size → или собираем из width/height/depth
+        let dimensions = item.size || null;
+        if (!dimensions && (item.width || item.height || item.depth)) {
+          dimensions = [item.width, item.height, item.depth].filter(Boolean).join(' × ');
+        }
+        return { name, price, imageUrl, currency, color, dimensions, source: 'json-ld' };
+      }
     }
   }
   return null;
@@ -977,7 +985,9 @@ function extractFromMicrodata(html) {
   const priceStr = md.price || null;
   const price = priceStr ? parseFloat(priceStr.replace(/[^\d.]/g, '')) : null;
   const currency = md.priceCurrency || null;
-  return { name, price, imageUrl, currency, source: 'microdata' };
+  const color = md.color || md.colour || null;
+  const dimensions = md.size || md.width || null;
+  return { name, price, imageUrl, currency, color, dimensions, source: 'microdata' };
 }
 
 // Метод 4: Nuxt.js devalue — цена вшита как "81300.00" в аргументах window.__NUXT__
@@ -1107,12 +1117,14 @@ async function parseProductLayer1(url) {
   }
 
   // Мержим: берём первое непустое значение каждого поля по приоритету
-  const merged = { name: null, price: null, imageUrl: null, currency: null, source: null };
+  const merged = { name: null, price: null, imageUrl: null, currency: null, color: null, dimensions: null, source: null };
   for (const c of candidates) {
-    if (!merged.name     && c.name)     { merged.name = c.name;         merged.source = c.source; }
-    if (!merged.price    && c.price)      merged.price = c.price;
-    if (!merged.imageUrl && c.imageUrl)   merged.imageUrl = c.imageUrl;
-    if (!merged.currency && c.currency)   merged.currency = c.currency;
+    if (!merged.name       && c.name)       { merged.name = c.name;       merged.source = c.source; }
+    if (!merged.price      && c.price)        merged.price = c.price;
+    if (!merged.imageUrl   && c.imageUrl)     merged.imageUrl = c.imageUrl;
+    if (!merged.currency   && c.currency)     merged.currency = c.currency;
+    if (!merged.color      && c.color)        merged.color = c.color;
+    if (!merged.dimensions && c.dimensions)   merged.dimensions = c.dimensions;
   }
 
   if (!merged.name) {
