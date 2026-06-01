@@ -860,6 +860,15 @@ app.get('/api/magic', async (req, res) => {
 
 // ── Парсер товаров — Слой 1 (HTTP fetch) ─────────────────────────────────
 
+// Чистим маркетинговые префиксы/суффиксы из названий товаров
+function cleanName(name) {
+  if (!name) return name;
+  return name
+    .replace(/^(купить|заказать|цена|стоимость|приобрести)\s+/i, '')
+    .replace(/\s+(купить|заказать|цена|с доставкой|в москве|в санкт-петербурге|в спб|интернет-магазин|недорого|официальный сайт)(\s+.*)?$/i, '')
+    .trim();
+}
+
 const FETCH_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -1109,6 +1118,8 @@ async function parseProductLayer1(url) {
   if (!merged.name) {
     return { ok: false, error: 'Данные не найдены', needsBrowser: true, status, finalUrl };
   }
+
+  merged.name = cleanName(merged.name);
 
   const needsBrowser = !merged.name || !merged.price;
   return { ok: true, ...merged, needsBrowser, status, finalUrl, redirected };
