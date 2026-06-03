@@ -19,6 +19,7 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
   const [viewMode, setViewMode] = useState("grid");
   const isMobile = useIsMobile();
   const total = categories.flatMap(c => c.products).reduce((s, p) => s + p.qty * p.price, 0);
+  const totalItems = categories.reduce((s, c) => s + c.products.length, 0);
 
   const initials = designerName
     ? designerName.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
@@ -61,7 +62,10 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
           {/* Название + клиент */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <h1 className="serif" style={{ margin: "0 0 2px", fontSize: isMobile ? 12 : 26, letterSpacing: "-0.01em", lineHeight: 1.15 }}>{project.name}</h1>
-            <div style={{ color: "var(--ink-2)", fontSize: isMobile ? 22 : 13 }}>{project.client}</div>
+            <div style={{ color: "var(--ink-2)", fontSize: 13, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+              <span>{project.client}</span>
+              {totalItems > 0 && <><span style={{ color: "var(--ink-3)" }}>·</span><span style={{ color: "var(--ink-3)" }}>{totalItems} {totalItems === 1 ? "позиция" : totalItems >= 2 && totalItems <= 4 ? "позиции" : "позиций"} в {categories.length} {categories.length === 1 ? "комнате" : "комнатах"}</span></>}
+            </div>
             {isMobile && (
               <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                 <button onClick={copyLink} className="btn btn-secondary" style={{ flex: 1, justifyContent: "center" }}>
@@ -109,7 +113,7 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
               return (
                 <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: isMobile ? 16 : 24, paddingBottom: isMobile ? 10 : 14, borderBottom: "1px solid var(--hairline-strong)" }}>
                   <h2 className="serif" style={{ margin: 0, fontSize: isMobile ? 22 : 30, letterSpacing: "-0.01em" }}>{cat.name}</h2>
-                  <span style={{ fontSize: 11, color: "var(--ink-3)", letterSpacing: "0.04em" }}>{cat.products.length} позиций</span>
+                  <span style={{ fontSize: 11, color: "var(--ink-3)", letterSpacing: "0.04em" }}>{cat.products.length} {cat.products.length === 1 ? "позиция" : cat.products.length <= 4 ? "позиции" : "позиций"}</span>
                   <span style={{ marginLeft: "auto", fontSize: isMobile ? 13 : 15, fontWeight: 600, fontVariantNumeric: "tabular-nums", color: "var(--ink)" }}>{fmt(catTotal)}</span>
                 </div>
               );
