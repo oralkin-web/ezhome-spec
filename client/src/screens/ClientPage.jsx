@@ -221,8 +221,10 @@ function ClientCard({ product, isMobile }) {
           )}
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", paddingTop: isMobile ? 7 : 10, marginTop: isMobile ? 7 : 10, borderTop: "1px solid var(--hairline)" }}>
-          <div style={{ fontSize: isMobile ? 10 : 11, color: "var(--ink-3)" }}>× {product.qty}</div>
-          <div style={{ fontSize: isMobile ? 12 : 14, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{fmt(product.price)}</div>
+          <div style={{ fontSize: isMobile ? 10 : 11, color: "var(--ink-3)" }}>
+            {product.qty > 1 ? `${product.qty} × ${fmt(product.price)}` : ""}
+          </div>
+          <div style={{ fontSize: isMobile ? 12 : 14, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{fmt(product.qty * product.price)}</div>
         </div>
       </div>
     </div>
@@ -250,8 +252,8 @@ function ClientListRow({ product, isMobile }) {
         )}
       </div>
       <div style={{ textAlign: "right", flexShrink: 0 }}>
-        <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 600, fontVariantNumeric: "tabular-nums", color: "var(--ink)" }}>{fmt(product.price)}</div>
-        <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 2 }}>× {product.qty}</div>
+        <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 600, fontVariantNumeric: "tabular-nums", color: "var(--ink)" }}>{fmt(product.qty * product.price)}</div>
+        {product.qty > 1 && <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 2 }}>{product.qty} × {fmt(product.price)}</div>}
       </div>
     </div>
   );
