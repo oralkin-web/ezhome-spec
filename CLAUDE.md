@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+<!-- ДЕПЛОЙ: git push origin main → Amvera подхватывает автоматически и пересобирает seta-client -->
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Что такое SETA
@@ -207,6 +209,23 @@ session     — (управляется connect-pg-simple)
    - Запрос не джойнил таблицу `projects` и возвращал `feedback_count` вместо `project_count`
    - Добавлен `LEFT JOIN projects p ON p.user_id = u.id AND p.status != 'archived'` с `COUNT(DISTINCT p.id) AS project_count`
 6. **Баннер**: факт закрытия сохраняется в `localStorage` (`seta_banner_closed` = текст баннера). При перезагрузке страницы закрытый баннер не показывается снова. Новый баннер с другим текстом появится у всех.
+
+---
+
+### Сессия 2026-06-04 — синхронизация счётчика товаров и фикс поля Кол-во
+
+**Исправлено:**
+
+1. **`ClientPage.jsx` — счётчик позиций** (коммит `b852f7d`):
+   - Добавлена переменная `totalItems = categories.reduce((s, c) => s + c.products.length, 0)` — формула идентична `Editor.jsx:53`
+   - Шапка публичной страницы теперь показывает `ClientName · N позиций в M комнатах` с правильным склонением — как в редакторе дизайнера (`Editor.jsx:174`)
+   - Исправлено склонение счётчика по комнате: было жёсткое `позиций`, стало `позиция / позиции / позиций`
+   - Исправлен баг с `fontSize: isMobile ? 22 : 13` в блоке имени клиента (значения были перепутаны)
+
+2. **`Editor.jsx` — поле Кол-во** (коммит `da21765`):
+   - Баг: `parseInt('') || 1` немедленно возвращало `1` при попытке очистить поле — невозможно было ввести новое число
+   - Фикс: `onChange` теперь разрешает пустую строку в черновике (`e.target.value === '' ? '' : Math.max(1, parseInt(e.target.value) || 1)`)
+   - Нормализация до `≥ 1` происходит только в `handleSave` через `Math.max(1, parseInt(draft.qty) || 1)`
 
 ---
 
