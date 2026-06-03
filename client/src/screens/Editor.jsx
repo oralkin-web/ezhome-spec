@@ -304,7 +304,7 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
   // Сброс autoExpandId после раскрытия
   if (autoExpand && !expanded) { setExpanded(true); onExpanded?.(); }
 
-  const handleSave = () => { onChange(draft); setExpanded(false); setParseHints({}); };
+  const handleSave = () => { onChange({ ...draft, qty: Math.max(1, parseInt(draft.qty) || 1) }); setExpanded(false); setParseHints({}); };
   const handleDiscard = () => { setDraft({ ...product }); setExpanded(false); setParseHints({}); };
   const updateDraft = (patch) => setDraft(d => ({ ...d, ...patch }));
   const [parsing, setParsing] = useState(false);
@@ -374,7 +374,7 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
               {parseHints.price && <div style={{ fontSize: 11, color: '#B87820', marginTop: 4 }}>Не найдено — заполните вручную</div>}
             </FieldGroup>
             <FieldGroup label="Кол-во">
-              <input type="number" value={draft.qty} min={1} onChange={e => updateDraft({ qty: parseInt(e.target.value) || 1 })} placeholder="1" style={{ ...inputStyle, textAlign: "left", paddingLeft: 12, MozAppearance: "textfield" }} className="no-arrows" />
+              <input type="number" value={draft.qty} min={1} onChange={e => updateDraft({ qty: e.target.value === '' ? '' : Math.max(1, parseInt(e.target.value) || 1) })} placeholder="1" style={{ ...inputStyle, textAlign: "left", paddingLeft: 12, MozAppearance: "textfield" }} className="no-arrows" />
             </FieldGroup>
           </div>
           {/* Строка 3: Ссылка на товар + Заполнить */}
