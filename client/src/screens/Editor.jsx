@@ -441,11 +441,11 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
               <span
                 onMouseEnter={() => setPhotoTooltip(true)}
                 onMouseLeave={() => setPhotoTooltip(false)}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, borderRadius: "50%", border: "1px solid var(--ink-3)", fontSize: 9, color: "var(--ink-3)", cursor: "default", lineHeight: 1, flexShrink: 0 }}>
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, borderRadius: "50%", border: "1px solid var(--ink-3)", fontSize: 9, color: "var(--ink-3)", cursor: "default", lineHeight: 1, flexShrink: 0, textTransform: "none" }}>
                 i
               </span>
               {photoTooltip && (
-                <div style={{ position: "absolute", left: 0, top: "calc(100% + 4px)", zIndex: 50, background: "var(--ink)", color: "#fff", fontSize: 11, lineHeight: 1.5, padding: "8px 10px", borderRadius: 6, width: 280, pointerEvents: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
+                <div style={{ position: "absolute", left: 0, top: "calc(100% + 4px)", zIndex: 50, background: "var(--ink)", color: "#fff", fontSize: 11, lineHeight: 1.5, padding: "8px 10px", borderRadius: 6, width: 280, pointerEvents: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.2)", textTransform: "none", letterSpacing: 0 }}>
                   Откройте страницу товара, нажмите правой кнопкой на фото → «Копировать адрес изображения» и вставьте ссылку сюда
                 </div>
               )}
