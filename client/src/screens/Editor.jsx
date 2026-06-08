@@ -110,7 +110,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
                     {p.photoUrl ? (
                       <img src={p.photoUrl} alt={p.name} style={{ width: 44, height: 44, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
                     ) : (
-                      <div style={{ width: 44, height: 44, borderRadius: 6, background: "#F0EDE8", flexShrink: 0 }} />
+                      <div style={{ width: 44, height: 44, borderRadius: 6, background: "#FFFFFF", flexShrink: 0 }} />
                     )}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</div>
@@ -171,7 +171,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
             <div style={{ fontSize: 15, color: "var(--ink-2)", display: "flex", alignItems: "center", gap: 6 }}>
               <Editable as="span" value={project.client} onChange={onRenameClient} placeholder="Имя клиента" style={{ color: project.client ? "var(--ink-2)" : "var(--ink-3)" }} />
               <span style={{ color: "var(--ink-3)" }}>&nbsp;·&nbsp;</span>
-              <span>{totalItems} {totalItems === 1 ? "позиция" : totalItems >= 2 && totalItems <= 4 ? "позиции" : "позиций"} в {categories.length} {categories.length === 1 ? "комнате" : "комнатах"}</span>
+              <span>{totalItems} {totalItems === 1 ? "позиция" : totalItems >= 2 && totalItems <= 4 ? "позиции" : "позиций"}</span>
             </div>
           </div>
 
@@ -253,7 +253,7 @@ function CategorySection({ cat, subtotal, onRename, onRemove, onAddProduct, onUp
 
       {/* Товары */}
       {cat.products.map(p => (
-        <ProductRow key={p.id} product={p} onChange={patch => onUpdateProduct(p.id, patch)} onRemove={() => onRemoveProduct(p.id)} autoExpand={p.id === autoExpandId} onExpanded={() => setAutoExpandId(null)} defaultExpanded={firstExpanded && cat.products.indexOf(p) === 0} />
+        <ProductRow key={p.id} product={p} onChange={patch => onUpdateProduct(p.id, patch)} onRemove={() => onRemoveProduct(p.id)} autoExpand={p.id === autoExpandId} onExpanded={() => setAutoExpandId(null)} defaultExpanded={false} />
       ))}
 
       {/* Правка 7: кнопка без названия комнаты */}
@@ -309,6 +309,7 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
   const updateDraft = (patch) => setDraft(d => ({ ...d, ...patch }));
   const [parsing, setParsing] = useState(false);
   const [parseHints, setParseHints] = useState({});
+  const [photoTooltip, setPhotoTooltip] = useState(false);
 
   return (
     <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{ borderTop: "1px solid var(--hairline)" }}>
@@ -320,7 +321,7 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
         {/* Фото: бокс 96×96, contain по центру */}
         <div
           onClick={e => { if (product.url) { e.stopPropagation(); window.open(product.url, '_blank'); } }}
-          style={{ width: 80, height: 80, borderRadius: 8, overflow: "hidden", background: "#F0EDE8", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: product.url ? "pointer" : "default" }}>
+          style={{ width: 80, height: 80, borderRadius: 8, overflow: "hidden", background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: product.url ? "pointer" : "default", ...(!product.photoUrl ? { outline: "2px solid #E8A838", outlineOffset: -2 } : {}) }}>
           {product.photoUrl ? (
             <img src={product.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center" }} onError={e => { e.currentTarget.style.display = "none"; }} />
           ) : (
@@ -434,7 +435,22 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
             </div>
           </FieldGroup>
           {/* Строка 4: Ссылка на фото */}
-          <FieldGroup label="Ссылка на фото" style={{ marginBottom: 16 }}>
+          <FieldGroup label={
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, position: "relative" }}>
+              Ссылка на фото
+              <span
+                onMouseEnter={() => setPhotoTooltip(true)}
+                onMouseLeave={() => setPhotoTooltip(false)}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, borderRadius: "50%", border: "1px solid var(--ink-3)", fontSize: 9, color: "var(--ink-3)", cursor: "default", lineHeight: 1, flexShrink: 0 }}>
+                i
+              </span>
+              {photoTooltip && (
+                <div style={{ position: "absolute", left: 0, top: "calc(100% + 4px)", zIndex: 50, background: "var(--ink)", color: "#fff", fontSize: 11, lineHeight: 1.5, padding: "8px 10px", borderRadius: 6, width: 280, pointerEvents: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
+                  Откройте страницу товара, нажмите правой кнопкой на фото → «Копировать адрес изображения» и вставьте ссылку сюда
+                </div>
+              )}
+            </span>
+          } style={{ marginBottom: 16 }}>
             <input value={draft.photoUrl || ""} onChange={e => { updateDraft({ photoUrl: e.target.value }); setParseHints(h => ({ ...h, photoUrl: false })); }} placeholder="https://..." style={parseHints.photoUrl ? { ...inputStyle, borderColor: '#E8A838', borderWidth: 2 } : inputStyle} />
             {parseHints.photoUrl && <div style={{ fontSize: 11, color: '#B87820', marginTop: 4 }}>Не найдено — заполните вручную</div>}
           </FieldGroup>

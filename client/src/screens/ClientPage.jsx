@@ -159,7 +159,7 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
               {designer?.phone && <a href={`tel:${designer.phone}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{designer.phone}</a>}
               {designer?.email && <a href={`mailto:${designer.email}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{designer.email}</a>}
               {designer?.site && <a href={`https://${designer.site}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{designer.site}</a>}
-              <div style={{ marginTop: 8, paddingTop: 12, borderTop: "1px solid var(--hairline)", fontSize: 10, color: "var(--ink-3)", letterSpacing: "0.06em" }}>СДЕЛАНО В SETA</div>
+              <a href="https://useseta.com" target="_blank" rel="noopener noreferrer" style={{ marginTop: 8, paddingTop: 12, borderTop: "1px solid var(--hairline)", fontSize: 10, color: "var(--ink-3)", letterSpacing: "0.06em", textDecoration: "none", display: "block" }}>СДЕЛАНО В SETA</a>
             </div>
           ) : (
             // Десктоп: контакты в строку
@@ -167,7 +167,7 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
               {designer?.phone && <><a href={`tel:${designer.phone}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{designer.phone}</a>{(designer.email || designer.site) && <Sep />}</>}
               {designer?.email && <><a href={`mailto:${designer.email}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{designer.email}</a>{designer.site && <Sep />}</>}
               {designer?.site && <a href={`https://${designer.site}`} style={{ color: "var(--ink-2)", textDecoration: "none" }}>{designer.site}</a>}
-              <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--ink-3)", letterSpacing: "0.06em" }}>СДЕЛАНО В SETA</span>
+              <a href="https://useseta.com" target="_blank" rel="noopener noreferrer" style={{ marginLeft: "auto", fontSize: 11, color: "var(--ink-3)", letterSpacing: "0.06em", textDecoration: "none" }}>СДЕЛАНО В SETA</a>
             </div>
           )}
         </div>
