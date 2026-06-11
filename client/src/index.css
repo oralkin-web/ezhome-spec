@@ -161,6 +161,10 @@ input[type=number].no-arrows {
   body { background: white !important; }
   header { padding: 20px 32px !important; border-bottom: 1px solid #e0e0e0 !important; }
   section { page-break-inside: avoid; }
+  .editor-project-header { break-after: avoid; page-break-after: avoid; }
+  .editor-product-row { break-inside: avoid; page-break-inside: avoid; }
+  .editor-category { break-inside: avoid; page-break-inside: avoid; }
+  @page { margin: 12mm; }
 }
 
 /* ─── MOBILE ADAPTATION (≤ 768px) ───────────────────────────────────────── */

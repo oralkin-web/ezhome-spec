@@ -165,7 +165,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
         {/* Content */}
         <div style={{ padding: "36px 56px 80px", maxWidth: 1280, width: "100%", margin: "0 auto" }} className="seta-main">
           {/* Правка 1: название и клиент только здесь, с возможностью редактировать */}
-          <div style={{ marginBottom: 28 }}>
+          <div className="editor-project-header" style={{ marginBottom: 28 }}>
             <div style={{ fontSize: 12, color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Комплектация</div>
             <Editable as="h1" value={project.name} onChange={onRename} className="serif" style={{ margin: "0 0 6px", fontSize: 42, lineHeight: 1, letterSpacing: "-0.02em", fontWeight: 400 }} />
             <div style={{ fontSize: 15, color: "var(--ink-2)", display: "flex", alignItems: "center", gap: 6 }}>
@@ -234,7 +234,7 @@ function CategorySection({ cat, subtotal, onRename, onRemove, onAddProduct, onUp
   const [autoExpandId, setAutoExpandId] = useState(null);
 
   return (
-    <div style={{ borderTop: "1px solid var(--hairline)", position: "relative" }}>
+    <div className="editor-category" style={{ borderTop: "1px solid var(--hairline)", position: "relative" }}>
       {/* Заголовок комнаты */}
       <div data-tour="rooms" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px 12px" }}>
         {/* П5: редактирование названия нажатием на текст */}
@@ -312,7 +312,7 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
   const [photoTooltip, setPhotoTooltip] = useState(false);
 
   return (
-    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{ borderTop: "1px solid var(--hairline)" }}>
+    <div className="editor-product-row" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{ borderTop: "1px solid var(--hairline)" }}>
       {/* Основная строка — клик раскрывает форму */}
       <div
         onClick={() => { if (!expanded) { setDraft({ ...product }); setExpanded(true); } else setExpanded(false); }}
