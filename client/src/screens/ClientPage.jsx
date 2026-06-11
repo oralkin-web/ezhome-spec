@@ -26,6 +26,13 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
     : '?';
 
   const handlePDF = () => {
+    const gridEl = document.querySelector('.client-view-grid');
+    const listEl = document.querySelector('.client-view-list');
+    const gridPrev = gridEl?.style.display;
+    const listPrev = listEl?.style.display;
+    if (gridEl) gridEl.style.display = 'none';
+    if (listEl) listEl.style.display = 'flex';
+
     const prev = document.title;
     document.title = (project.name || 'Комплектация') + ' Комплектация';
     const root = document.querySelector('.client-page-root');
@@ -41,6 +48,8 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
     window.addEventListener('afterprint', () => {
       document.title = prev;
       document.getElementById('client-print-fix')?.remove();
+      if (gridEl) gridEl.style.display = gridPrev || '';
+      if (listEl) listEl.style.display = listPrev || '';
     }, { once: true });
   };
 
