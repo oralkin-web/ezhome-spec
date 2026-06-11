@@ -155,7 +155,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
           </div>
           {totalItems > 0 && (
           <div style={{ display: "flex", gap: 8 }}>
-            <button data-tour="pdf" className="btn btn-secondary"><Icon name="download" size={14} />Скачать PDF</button>
+            <button data-tour="pdf" className="btn btn-secondary" onClick={() => window.open('/project/' + project.id + '/client?print=1', '_blank')}><Icon name="download" size={14} />Скачать PDF</button>
             <button data-tour="preview" className="btn btn-secondary" onClick={() => window.open('/project/' + project.id + '/client', '_blank')}><Icon name="eye" size={14} />Предпросмотр</button>
             <button data-tour="share" className="btn btn-primary" onClick={copyClientLink}><Icon name={copied ? "check" : "link"} size={14} />{copied ? "Скопировано" : "Ссылка клиенту"}</button>
           </div>
