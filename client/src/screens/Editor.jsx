@@ -35,9 +35,12 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
     style.id = 'editor-print-fix';
     style.textContent = `@page{size:794px ${h}px;margin:24px}`;
     document.head.appendChild(style);
+    const prevTitle = document.title;
+    document.title = `${project.name} Комплектация`;
     window.print();
     window.addEventListener('afterprint', () => {
       document.getElementById('editor-print-fix')?.remove();
+      document.title = prevTitle;
     }, { once: true });
   };
 
