@@ -28,8 +28,11 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
   const handlePDF = () => {
     const prev = document.title;
     document.title = (project.name || 'Комплектация') + ' Комплектация';
-    const content = document.querySelector('.client-main');
-    const h = (content ? content.scrollHeight : document.body.scrollHeight) + 96;
+    const root = document.querySelector('.client-page-root');
+    const headerEl = root?.querySelector('header');
+    const mainEl = root?.querySelector('.client-main');
+    const footerEl = root?.querySelector('footer');
+    const h = (headerEl?.offsetHeight || 0) + (mainEl?.scrollHeight || 0) + (footerEl?.offsetHeight || 0) + 96;
     const style = document.createElement('style');
     style.id = 'client-print-fix';
     style.textContent = `@page{size:794px ${h}px;margin:24px}`;
@@ -52,7 +55,7 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
   const vPad = isMobile ? "24px" : "44px";
 
   return (
-    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
+    <div className="client-page-root" style={{ background: "var(--bg)", minHeight: "100vh" }}>
 
 
       {/* Header */}
