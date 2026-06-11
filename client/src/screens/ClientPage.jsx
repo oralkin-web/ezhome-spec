@@ -132,12 +132,15 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
                 мобил  — 2 колонки
                 планшет — 3 колонки
                 десктоп — 5 колонок */}
-            <div className="client-print-grid" style={{ display: viewMode === "grid" ? "grid" : "none", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(180px, 1fr))", gap: isMobile ? 12 : 24 }}>
-              {cat.products.map(p => <ClientCard key={p.id} product={p} isMobile={isMobile} />)}
-            </div>
-            <div className="client-print-list" style={{ display: viewMode === "list" ? "flex" : "none", flexDirection: "column", gap: 1 }}>
-              {cat.products.map(p => <ClientListRow key={p.id} product={p} isMobile={isMobile} />)}
-            </div>
+            {viewMode === "grid" ? (
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(180px, 1fr))", gap: isMobile ? 12 : 24 }}>
+                {cat.products.map(p => <ClientCard key={p.id} product={p} isMobile={isMobile} />)}
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                {cat.products.map(p => <ClientListRow key={p.id} product={p} isMobile={isMobile} />)}
+              </div>
+            )}
           </section>
         ))}
 
