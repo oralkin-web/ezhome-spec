@@ -166,6 +166,7 @@ input[type=number].no-arrows {
   .editor-category { break-inside: avoid; page-break-inside: avoid; }
   .editor-items-container { overflow: visible !important; }
   .editor-topbar { display: none !important; }
+  .editor-root { display: block !important; }
   main { display: block !important; }
   @page { margin: 12mm; }
 }

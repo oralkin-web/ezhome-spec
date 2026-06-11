@@ -143,7 +143,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="editor-root" style={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar active="projects" onNav={onBack} isAdmin={user?.isAdmin} />
       <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         {/* Top bar — правка 1: только навигация, без названия и клиента */}
