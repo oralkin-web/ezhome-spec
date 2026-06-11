@@ -165,6 +165,8 @@ input[type=number].no-arrows {
   .editor-product-row { break-inside: avoid; page-break-inside: avoid; }
   .editor-category { break-inside: avoid; page-break-inside: avoid; }
   .editor-items-container { overflow: visible !important; }
+  .client-view-grid { display: none !important; }
+  .client-view-list { display: flex !important; flex-direction: column !important; }
   .editor-topbar { display: none !important; }
   .editor-root { display: block !important; }
   main { display: block !important; }
