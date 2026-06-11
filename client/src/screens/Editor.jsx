@@ -147,7 +147,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
       <Sidebar active="projects" onNav={onBack} isAdmin={user?.isAdmin} />
       <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         {/* Top bar — правка 1: только навигация, без названия и клиента */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 40px", borderBottom: "1px solid var(--hairline)", background: "var(--surface)", position: "sticky", top: 0, zIndex: 10 }}>
+        <div className="editor-topbar" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 40px", borderBottom: "1px solid var(--hairline)", background: "var(--surface)", position: "sticky", top: 0, zIndex: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
             <button className="btn btn-ghost btn-sm" onClick={onBack} style={{ paddingLeft: 6, paddingRight: 10, marginLeft: -6 }}>
               <Icon name="back" size={14} />Проекты
