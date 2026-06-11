@@ -29,7 +29,8 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
   const grandTotal = categories.reduce((sum, c) => sum + c.products.reduce((s, p) => s + p.qty * p.price, 0), 0);
 
   const handlePrint = () => {
-    const h = document.body.scrollHeight;
+    const content = document.querySelector('.seta-main');
+    const h = (content ? content.scrollHeight : document.body.scrollHeight) + 96;
     const style = document.createElement('style');
     style.id = 'editor-print-fix';
     style.textContent = `@page{size:794px ${h}px;margin:24px}`;

@@ -28,8 +28,17 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
   const handlePDF = () => {
     const prev = document.title;
     document.title = (project.name || 'Комплектация') + ' Комплектация';
+    const content = document.querySelector('.client-main');
+    const h = (content ? content.scrollHeight : document.body.scrollHeight) + 96;
+    const style = document.createElement('style');
+    style.id = 'client-print-fix';
+    style.textContent = `@page{size:794px ${h}px;margin:24px}`;
+    document.head.appendChild(style);
     window.print();
-    setTimeout(() => { document.title = prev; }, 1000);
+    window.addEventListener('afterprint', () => {
+      document.title = prev;
+      document.getElementById('client-print-fix')?.remove();
+    }, { once: true });
   };
 
   const copyLink = () => {
@@ -93,7 +102,7 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
       </header>
 
       {/* Body */}
-      <main style={{ maxWidth: 1280, margin: "0 auto", padding: isMobile ? "28px 16px 40px" : "56px 64px 40px" }}>
+      <main className="client-main" style={{ maxWidth: 1280, margin: "0 auto", padding: isMobile ? "28px 16px 40px" : "56px 64px 40px" }}>
         {/* Переключатель режима просмотра */}
         <div className="no-print" style={{ display: "flex", gap: 4, marginBottom: isMobile ? 20 : 28, background: "var(--surface)", borderRadius: 8, padding: 3, boxShadow: "var(--shadow-card)", alignSelf: "flex-start", width: "fit-content" }}>
           {[["grid", "image"], ["list", "menu"]].map(([mode, icon]) => (
@@ -123,15 +132,12 @@ export default function ClientPage({ project, categories, logoUrl, designerName,
                 мобил  — 2 колонки
                 планшет — 3 колонки
                 десктоп — 5 колонок */}
-            {viewMode === "grid" ? (
-              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(180px, 1fr))", gap: isMobile ? 12 : 24 }}>
-                {cat.products.map(p => <ClientCard key={p.id} product={p} isMobile={isMobile} />)}
-              </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                {cat.products.map(p => <ClientListRow key={p.id} product={p} isMobile={isMobile} />)}
-              </div>
-            )}
+            <div className="client-print-grid" style={{ display: viewMode === "grid" ? "grid" : "none", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(180px, 1fr))", gap: isMobile ? 12 : 24 }}>
+              {cat.products.map(p => <ClientCard key={p.id} product={p} isMobile={isMobile} />)}
+            </div>
+            <div className="client-print-list" style={{ display: viewMode === "list" ? "flex" : "none", flexDirection: "column", gap: 1 }}>
+              {cat.products.map(p => <ClientListRow key={p.id} product={p} isMobile={isMobile} />)}
+            </div>
           </section>
         ))}
 
