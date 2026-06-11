@@ -149,14 +149,17 @@ input[type=number].no-arrows {
 }
 
 @media print {
-  /* Скрыть кнопки и переключатель */
-  .btn, .no-print { display: none !important; }
-  /* Убрать тени и фон */
+  .btn, .no-print,
+  .sidebar, .seta-sidebar,
+  [data-tour="pdf"],
+  [data-tour="preview"],
+  [data-tour="share"],
+  [data-tour="feedback"],
+  .topbar-actions,
+  .view-switcher { display: none !important; }
   * { box-shadow: none !important; }
-  body { background: #fff !important; }
-  /* Убрать отступы header */
+  body { background: white !important; }
   header { padding: 20px 32px !important; border-bottom: 1px solid #e0e0e0 !important; }
-  /* Непрерывная прокрутка без разрывов страниц */
   section { page-break-inside: avoid; }
 }
 
