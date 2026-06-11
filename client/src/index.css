@@ -164,6 +164,7 @@ input[type=number].no-arrows {
   .editor-project-header { break-after: avoid; page-break-after: avoid; }
   .editor-product-row { break-inside: avoid; page-break-inside: avoid; }
   .editor-category { break-inside: avoid; page-break-inside: avoid; }
+  .editor-items-container { overflow: visible !important; }
   @page { margin: 12mm; }
 }
 

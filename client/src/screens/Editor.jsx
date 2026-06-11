@@ -175,7 +175,7 @@ export default function Editor({ project, onBack, onShare, onRename, onRenameCli
             </div>
           </div>
 
-          <div style={{ background: "var(--surface)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)", overflow: "hidden" }}>
+          <div className="editor-items-container" style={{ background: "var(--surface)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-card)", overflow: "hidden" }}>
             {/* Заголовок таблицы */}
             <div style={{ display: "grid", gridTemplateColumns: "96px 1fr 80px 120px 120px", gap: 16, padding: "14px 24px", fontSize: 11, color: "var(--ink-3)", letterSpacing: "0.06em", textTransform: "uppercase", borderBottom: "1px solid var(--hairline)", background: "#FAF8F5" }}>
               <span/><span>Товар</span><span style={{ textAlign: "right" }}>Кол-во</span><span style={{ textAlign: "right" }}>Цена</span><span style={{ textAlign: "right" }}>Сумма</span>
