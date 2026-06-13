@@ -469,6 +469,21 @@ function ProductRow({ product, onChange, onRemove, autoExpand, onExpanded, defau
           } style={{ marginBottom: 16 }}>
             <input value={draft.photoUrl || ""} onChange={e => { updateDraft({ photoUrl: e.target.value }); setParseHints(h => ({ ...h, photoUrl: false })); }} placeholder="https://..." style={parseHints.photoUrl ? { ...inputStyle, borderColor: '#E8A838', borderWidth: 2 } : inputStyle} />
             {parseHints.photoUrl && <div style={{ fontSize: 11, color: '#B87820', marginTop: 4 }}>Не найдено — заполните вручную</div>}
+            <label style={{ marginTop: 6, display: 'inline-block', fontSize: 12, color: '#888', cursor: 'pointer', textDecoration: 'underline' }}>
+              или загрузить с компьютера
+              <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }}
+                onChange={async e => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  if (file.size > 5 * 1024 * 1024) { alert('Файл слишком большой. Максимум 5 МБ.'); return; }
+                  const fd = new FormData();
+                  fd.append('file', file);
+                  const r = await fetch(`${API_BASE}/api/upload`, { method: 'POST', credentials: 'include', body: fd });
+                  const data = await r.json();
+                  if (data.url) updateDraft({ photoUrl: data.url });
+                }}
+              />
+            </label>
           </FieldGroup>
           {/* Строка 5: Комментарий */}
           <FieldGroup label="Комментарий" style={{ marginBottom: 16 }}>
