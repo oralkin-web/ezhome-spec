@@ -5,8 +5,20 @@ const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const { Pool } = require('pg');
 const path = require('path');
+const multer = require('multer');
 
 const app = express();
+
+const uploadDir = '/data/uploads';
+require('fs').mkdirSync(uploadDir, { recursive: true });
+const upload = multer({
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => cb(null, /jpeg|jpg|png|webp/.test(file.mimetype)),
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadDir),
+    filename: (req, file, cb) => cb(null, uuidv4() + path.extname(file.originalname).toLowerCase()),
+  }),
+});
 
 const loginAttempts = {};
 function checkRateLimit(ip) {
