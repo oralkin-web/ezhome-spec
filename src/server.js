@@ -194,6 +194,7 @@ async function initDB() {
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
+app.use('/uploads', express.static(uploadDir));
 app.set('trust proxy', 1);
 app.use(session({
   store: new pgSession({ pool, tableName: 'session' }),
@@ -481,6 +482,11 @@ app.put('/api/admin/banner', adminAuth, async (req, res) => {
     await pool.query("UPDATE settings SET value=$1 WHERE key='banner_text'", [text || '']);
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/upload', auth, upload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file' });
+  res.json({ url: `${process.env.APP_URL || ''}/uploads/${req.file.filename}` });
 });
 
 app.get('/api/projects', auth, async (req, res) => {
