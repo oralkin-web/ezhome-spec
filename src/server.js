@@ -471,15 +471,6 @@ app.put('/api/admin/banner', adminAuth, async (req, res) => {
   } catch(e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.get('/api/admin/disk', adminAuth, async (req, res) => {
-  const { execSync } = require('child_process');
-  try {
-    const out = execSync('df -h /data && echo "---" && du -sh /data/* 2>/dev/null || echo "empty"').toString();
-    res.send('<pre>' + out + '</pre>');
-  } catch(e) { res.status(500).send(e.message); }
-});
-
-
 app.get('/api/projects', auth, async (req, res) => {
   const r = await pool.query(`
     SELECT p.*, COUNT(i.id) as item_count, COALESCE(SUM(i.price * i.qty), 0) as total
